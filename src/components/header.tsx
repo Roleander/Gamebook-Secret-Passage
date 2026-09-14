@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { BookOpen, Home, Plus, Settings } from "lucide-react";
+import { BookOpen, Home, Plus, Settings, CreditCard } from "lucide-react";
 
 const navigation = [
   { name: "Inicio", href: "/", icon: Home },
   { name: "Mis Proyectos", href: "/projects", icon: BookOpen },
   { name: "Nuevo Proyecto", href: "/projects/new", icon: Plus },
+  { name: "Precios", href: "/pricing", icon: CreditCard },
   { name: "Admin", href: "/admin", icon: Settings },
 ];
 

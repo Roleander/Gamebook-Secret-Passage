@@ -14,6 +14,8 @@ model User {
   password      String
   role          String    @default("USER")
   projects      Project[]
+  subscription  Subscription?
+  donations     Donation[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -71,4 +73,59 @@ model ImportHistory {
   passagesCount Int
   rawContent    String?
   importedAt    DateTime  @default(now())
+}
+
+// === SUBSCRIPTION MODELS ===
+
+model SubscriptionPlan {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  displayName   String
+  description   String?
+  price         Float
+  currency      String    @default("EUR")
+  interval      String    @default("month") // month, year, one-time
+  features      String[]  // Array of feature strings
+  maxProjects   Int?      // null = unlimited
+  maxPassages   Int?      // null = unlimited
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId        String
+  plan          SubscriptionPlan @relation(fields: [planId], references: [id])
+  status        String    @default("active") // active, canceled, past_due, trialing
+  paypalSubscriptionId String? @unique
+  startDate     DateTime  @default(now())
+  endDate       DateTime?
+  canceledAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Donation {
+  id            String    @id @default(cuid())
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount        Float
+  currency      String    @default("EUR")
+  paymentMethod String    @default("paypal") // paypal, stripe
+  paypalOrderId String?   @unique
+  stripePaymentId String? @unique
+  status        String    @default("completed") // pending, completed, failed, refunded
+  message       String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([status])
 }
