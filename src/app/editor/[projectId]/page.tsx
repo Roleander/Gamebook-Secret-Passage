@@ -115,7 +115,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleExport = async (format: "pdf" | "epub") => {
+  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt") => {
     try {
       const response = await fetch("/api/export", {
         method: "POST",
@@ -129,7 +129,13 @@ export default function EditorPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${project?.title || "gamebook"}.${format === "pdf" ? "html" : "json"}`;
+      const extensions: Record<string, string> = {
+        pdf: "html",
+        epub: "epub",
+        txt: "txt",
+        odt: "odt",
+      };
+      a.download = `${project?.title || "gamebook"}.${extensions[format]}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -232,18 +238,30 @@ export default function EditorPage() {
                 Exportar
               </Button>
               <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-50">
-                <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[120px]">
+                <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[150px]">
                   <button
                     onClick={() => handleExport("pdf")}
                     className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
                   >
-                    Exportar PDF
+                    PDF (HTML imprimible)
                   </button>
                   <button
                     onClick={() => handleExport("epub")}
                     className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
                   >
-                    Exportar EPUB
+                    EPUB (e-book)
+                  </button>
+                  <button
+                    onClick={() => handleExport("txt")}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
+                  >
+                    TXT (texto plano)
+                  </button>
+                  <button
+                    onClick={() => handleExport("odt")}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
+                  >
+                    ODT (OpenOffice)
                   </button>
                 </div>
               </div>

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { generatePDF } from "@/lib/exporters/pdf";
+import { generateTXT } from "@/lib/exporters/txt";
+import { generateODT } from "@/lib/exporters/odt";
 import JSZip from "jszip";
 
 export async function POST(req: Request) {
@@ -66,9 +68,27 @@ export async function POST(req: Request) {
           },
         });
       }
+      case "txt": {
+        const txt = await generateTXT(projectId);
+        return new NextResponse(txt, {
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${safeTitle}.txt"`,
+          },
+        });
+      }
+      case "odt": {
+        const odtBuffer = await generateODT(projectId);
+        return new NextResponse(new Uint8Array(odtBuffer), {
+          headers: {
+            "Content-Type": "application/vnd.oasis.opendocument.text",
+            "Content-Disposition": `attachment; filename="${safeTitle}.odt"`,
+          },
+        });
+      }
       default:
         return NextResponse.json(
-          { error: "Formato no soportado. Usa 'pdf' o 'epub'" },
+          { error: "Formato no soportado. Usa 'pdf', 'epub', 'txt' o 'odt'" },
           { status: 400 }
         );
     }
@@ -93,10 +113,8 @@ function escapeXml(text: string): string {
 async function generateEPUB(project: any): Promise<Buffer> {
   const zip = new JSZip();
 
-  // mimetype
   zip.file("mimetype", "application/epub+zip", { compression: "STORE" as any });
 
-  // container.xml
   zip.file("META-INF/container.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
@@ -104,7 +122,6 @@ async function generateEPUB(project: any): Promise<Buffer> {
   </rootfiles>
 </container>`);
 
-  // content.opf
   const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -125,7 +142,6 @@ async function generateEPUB(project: any): Promise<Buffer> {
 </package>`;
   zip.file("OEBPS/content.opf", contentOpf);
 
-  // style.css
   zip.file("OEBPS/style.css", `body {
   font-family: Georgia, 'Times New Roman', serif;
   line-height: 1.8;
@@ -154,7 +170,6 @@ a { color: #8b4513; text-decoration: none; }
 .start-marker { color: #22c55e; font-size: 0.9em; }
 .end-marker { color: #ef4444; font-size: 0.9em; }`);
 
-  // nav.xhtml
   const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -173,7 +188,6 @@ a { color: #8b4513; text-decoration: none; }
 </html>`;
   zip.file("OEBPS/nav.xhtml", navXhtml);
 
-  // Chapter XHTML files
   project.passages.forEach((passage: any, index: number) => {
     let linksHtml = "";
     if (passage.outgoingLinks.length > 0) {
