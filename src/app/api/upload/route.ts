@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { parseFile } from "@/lib/parsers";
+import { detectLinksInPassage } from "@/lib/parsers/txt";
 
 export async function POST(req: Request) {
   try {
@@ -84,6 +85,45 @@ export async function POST(req: Request) {
       })),
     });
 
+    // Now auto-detect and create links
+    const allPassages = await db.passage.findMany({
+      where: { projectId },
+      orderBy: { number: "asc" },
+    });
+
+    const passageNumbers = allPassages.map(p => p.number);
+    let linksCreated = 0;
+
+    for (const passage of allPassages) {
+      const detectedLinks = detectLinksInPassage(passage.content, passageNumbers);
+
+      for (const link of detectedLinks) {
+        const targetPassage = allPassages.find(p => p.number === link.targetNumber);
+        if (!targetPassage) continue;
+
+        // Check if link already exists
+        const existingLink = await db.passageLink.findUnique({
+          where: {
+            sourceId_targetId: {
+              sourceId: passage.id,
+              targetId: targetPassage.id,
+            },
+          },
+        });
+
+        if (!existingLink) {
+          await db.passageLink.create({
+            data: {
+              sourceId: passage.id,
+              targetId: targetPassage.id,
+              linkText: link.text,
+            },
+          });
+          linksCreated++;
+        }
+      }
+    }
+
     // Create import history record
     await db.importHistory.create({
       data: {
@@ -91,13 +131,14 @@ export async function POST(req: Request) {
         filename: file.name,
         fileType: file.name.split(".").pop() || "unknown",
         passagesCount: createdPassages.count,
-        rawContent: result.rawText.substring(0, 10000), // Store first 10KB
+        rawContent: result.rawText.substring(0, 10000),
       },
     });
 
     return NextResponse.json({
       message: "Archivo importado exitosamente",
       passagesCount: createdPassages.count,
+      linksCreated,
       errors: result.errors,
     });
   } catch (error) {

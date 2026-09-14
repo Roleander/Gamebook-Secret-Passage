@@ -14,25 +14,22 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
 
   // Multiple passage detection patterns (ordered by priority)
   const boundaryPatterns: { regex: RegExp; group: number }[] = [
-    // "1." or "1)" at start of line (standalone or with text after)
+    // "1." or "1)" at start of line
     { regex: /^(\d+)\s*[\.\)]\s*/gm, group: 1 },
     // "Pasaje 1" or "PASAJE 1"
     { regex: /^[Pp][Aa][Ss][Aa][Jj][Ee]\s+(\d+)/gm, group: 1 },
-    // "# 1" or "## 1" markdown headers with number
+    // "# 1" or "## 1" markdown headers
     { regex: /^#{1,3}\s+(\d+)/gm, group: 1 },
-    // "SECTION 1" or "Section 1"
+    // "SECTION 1"
     { regex: /^[Ss][Ee][Cc][Tt][Ii][Oo][Nn]\s+(\d+)/gm, group: 1 },
     // "CAPITULO 1" or "Capítulo 1"
     { regex: /^[Cc][Aa][Pp][Ii][Tt][Uu][Ll][Oo]\s+(\d+)/gm, group: 1 },
-    // "---" separator (treat as unnumbered boundary)
+    // Separators
     { regex: /^\s*---\s*$/gm, group: -1 },
-    // "***" separator
     { regex: /^\s*\*\*\*\s*$/gm, group: -1 },
-    // "===" separator
     { regex: /^\s*===+\s*$/gm, group: -1 },
   ];
 
-  // Find all boundaries with their positions
   interface Boundary {
     pos: number;
     length: number;
@@ -55,10 +52,8 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
     }
   }
 
-  // Sort by position
   boundaries.sort((a, b) => a.pos - b.pos);
 
-  // Remove overlapping boundaries (keep earliest)
   const cleanBoundaries: Boundary[] = [];
   let lastEnd = 0;
   for (const b of boundaries) {
@@ -69,12 +64,10 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
   }
 
   if (cleanBoundaries.length === 0) {
-    // No boundaries found - try to split by double newlines as paragraphs
     const paragraphs = normalizedText.split(/\n\s*\n/).filter(s => s.trim().length > 0);
     if (paragraphs.length > 0) {
       paragraphs.forEach((paragraph, index) => {
         const trimmed = paragraph.trim();
-        // Check if first line is a title (short, uppercase, etc.)
         const lines = trimmed.split("\n");
         const firstLine = lines[0].trim();
         const isTitle = firstLine.length < 120 && lines.length > 1 && (
@@ -91,7 +84,6 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
         });
       });
     } else {
-      // Single block of text
       passages.push({
         number: 1,
         content: normalizedText.trim(),
@@ -102,8 +94,6 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
     return passages;
   }
 
-  // Extract passages from boundaries
-  // Track used numbers to assign missing ones
   const usedNumbers = new Set<number>();
   let nextNumber = 1;
 
@@ -111,48 +101,33 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
     const boundary = cleanBoundaries[i];
     const nextBoundary = cleanBoundaries[i + 1];
 
-    // Extract text for this passage
     const passageStart = boundary.isSeparator
       ? boundary.pos + boundary.length
       : boundary.pos;
-    const passageEnd = nextBoundary
-      ? nextBoundary.pos
-      : normalizedText.length;
+    const passageEnd = nextBoundary ? nextBoundary.pos : normalizedText.length;
 
     const passageText = normalizedText.slice(passageStart, passageEnd).trim();
-
     if (passageText.length === 0) continue;
 
-    // Determine passage number
     let passageNumber: number;
     if (boundary.number !== null) {
       passageNumber = boundary.number;
       usedNumbers.add(passageNumber);
-      // Update nextNumber to be higher than any explicit number
-      if (passageNumber >= nextNumber) {
-        nextNumber = passageNumber + 1;
-      }
+      if (passageNumber >= nextNumber) nextNumber = passageNumber + 1;
     } else {
-      // Separator without number - assign next available number
-      while (usedNumbers.has(nextNumber)) {
-        nextNumber++;
-      }
+      while (usedNumbers.has(nextNumber)) nextNumber++;
       passageNumber = nextNumber;
       usedNumbers.add(passageNumber);
       nextNumber++;
     }
 
-    // Extract title from first line
     const lines = passageText.split("\n");
     const firstLine = lines[0].trim();
     const titleMatch = firstLine.match(/^(?:\d+[\.\)]\s*|[Pp]asaje\s+\d+\s*|#{1,3}\s+\d+\s*)(.*)/);
     const title = titleMatch?.[1]?.trim() || undefined;
-
-    // Content is everything after the first line (if title was extracted)
     const contentStart = title ? 1 : 0;
     const content = lines.slice(contentStart).join("\n").trim();
 
-    // Detect if this is an endpoint
     const isEndpoint = content.length === 0 ||
       /\b(fin|termina|acaba|muerte|game\s*over|the\s*end)\b/i.test(content);
 
@@ -165,9 +140,7 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
     });
   }
 
-  // Sort by number
   passages.sort((a, b) => a.number - b.number);
-
   return passages;
 }
 
@@ -177,29 +150,65 @@ export function detectLinksInPassage(
 ): { targetNumber: number; text: string }[] {
   const links: { targetNumber: number; text: string }[] = [];
 
-  // Common patterns for gamebook links (Spanish + English)
+  // Comprehensive patterns for gamebook links (Spanish + English)
   const patterns: RegExp[] = [
-    // Spanish
-    /(?:ve[rs]?|ir?\s+a|contin[uú]a?\s+(?:en|al?)?|pasa(?:r)?\s+(?:a|al?)?|segue(?:ix|isce)?\s+(?:a|en|al?)?|acude(?:is)?\s+(?:a|al?)?)\s+(?:el\s+)?(?:pasaje\s+)?(\d+)/gi,
-    /(?:si\s+.+?,?\s+)?(?:ve|ir|continuar|pasar|acudir)\s+(?:al?\s+)?(\d+)/gi,
-    // English
-    /(?:go(?:es)?|continue|turn|proceed|move)\s+(?:to\s+)?(?:passage\s+)?(\d+)/gi,
+    // === SPANISH PATTERNS ===
+    // "ve al pasaje 25", "ves al 25", "ir al pasaje 25"
+    /(?:ve(?:s|r)?|ir)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
+    // "continua en el 25", "continuar al 25"
+    /(?:contin[uú](?:a|ar))\s+(?:en\s+(?:el\s+)?|al?\s+)?(?:pasaje\s+)?(\d+)/gi,
+    // "pasa al 25", "pasar al 25"
+    /(?:pasa(?:r)?)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
+    // "acude al 25"
+    /(?:acude(?:r)?)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
+    // "dirigete al 25", "dirígete al 25"
+    /(?:dirig(?:ete|irse))\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
+    // "si tienes X, ve al 25"
+    /(?:si\s+.+?,?\s+)?(?:ve|ir|continuar|pasar)\s+(?:al?\s+)?(\d+)/gi,
+    // "ve a la opcion 25"
+    /(?:ve|ir)\s+(?:a\s+)?(?:la\s+)?(?:opción|opcion|alternativa)\s+(\d+)/gi,
+
+    // === ENGLISH PATTERNS ===
+    // "go to passage 25", "go to 25"
+    /(?:go(?:es)?|turn|proceed|move)\s+(?:to\s+)?(?:passage\s+)?(\d+)/gi,
+    // "continue to 25", "continue at 25"
+    /(?:continue)\s+(?:to|at)\s+(?:passage\s+)?(\d+)/gi,
+    // "if X, go to 25"
     /(?:if\s+.+?,?\s+)?(?:go|turn|continue|proceed)\s+(?:to\s+)?(\d+)/gi,
-    // Arrow patterns
-    /(\d+)\s*(?:→|->|—>)\s*(\d+)/g,
-    // Bracket patterns
-    /\[(\d+)\]/g,
-    // Parenthesis patterns (only for numbers > 0)
-    /\((\d+)\)/g,
-    // "number number" pattern at end of line
+
+    // === ARROW PATTERNS ===
+    // "1 -> 25", "1 → 25", "1 --> 25"
+    /(\d+)\s*(?:→|->|-->|—>)\s*(\d+)/g,
+    // "-> 25", "→ 25"
+    /(?:→|->|-->|—>)\s*(\d+)/g,
+
+    // === BRACKET PATTERNS ===
+    // "[25]", "[pasaje 25]"
+    /\[(?:pasaje\s+)?(\d+)\]/gi,
+    // "{25}"
+    /\{(\d+)\}/g,
+
+    // === PARENTHESIS PATTERNS ===
+    // "(25)", "(pasaje 25)"
+    /\((?:pasaje\s+)?(\d+)\)/gi,
+
+    // === NUMBER AT END OF LINE ===
+    // "25" at the end of a line (common in gamebooks)
     /\b(\d+)\s*$/gm,
+
+    // === OPTION PATTERNS ===
+    // "opción 25", "alternativa 25"
+    /(?:opción|opcion|alternativa|opcao|alternative)\s+(\d+)/gi,
+    // "a) 25", "b) 25"
+    /[a-z]\)\s*(\d+)/gi,
   ];
 
   patterns.forEach(pattern => {
     const regex = new RegExp(pattern.source, pattern.flags);
     let match;
     while ((match = regex.exec(content)) !== null) {
-      const targetNumber = parseInt(match[1]);
+      // For arrow patterns with two numbers, use the second one
+      const targetNumber = match[2] ? parseInt(match[2]) : parseInt(match[1]);
       if (targetNumber > 0 && allPassageNumbers.includes(targetNumber)) {
         links.push({
           targetNumber,

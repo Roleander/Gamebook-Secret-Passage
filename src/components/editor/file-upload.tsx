@@ -18,6 +18,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
     success: boolean;
     message: string;
     passagesCount?: number;
+    linksCreated?: number;
     errors?: string[];
   } | null>(null);
 
@@ -104,6 +105,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
         success: true,
         message: data.message,
         passagesCount: data.passagesCount,
+        linksCreated: data.linksCreated,
         errors: data.errors,
       });
 
@@ -184,6 +186,11 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
               {result.passagesCount && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {result.passagesCount} pasajes importados
+                </p>
+              )}
+              {result.linksCreated !== undefined && result.linksCreated > 0 && (
+                <p className="text-sm text-green-500 mt-1">
+                  {result.linksCreated} enlaces creados automáticamente
                 </p>
               )}
               {result.errors && result.errors.length > 0 && (

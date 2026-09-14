@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
-import { autoDetectLinks } from "@/lib/parsers/txt";
+import { detectLinksInPassage } from "@/lib/parsers/txt";
 
 export async function POST(req: Request) {
   try {
@@ -44,41 +44,38 @@ export async function POST(req: Request) {
     let orphansFixed = 0;
 
     // 1. Auto-detect links from passage content
-    const passages = project.passages.map(p => ({
-      number: p.number,
-      content: p.content,
-    }));
+    const passageNumbers = project.passages.map(p => p.number);
 
-    const detectedLinks = autoDetectLinks(passages);
+    for (const passage of project.passages) {
+      const detectedLinks = detectLinksInPassage(passage.content, passageNumbers);
 
-    for (const link of detectedLinks) {
-      const sourcePassage = project.passages.find(p => p.number === link.sourceNumber);
-      const targetPassage = project.passages.find(p => p.number === link.targetNumber);
+      for (const link of detectedLinks) {
+        const targetPassage = project.passages.find(p => p.number === link.targetNumber);
+        if (!targetPassage) continue;
 
-      if (!sourcePassage || !targetPassage) continue;
-
-      const existingLink = await db.passageLink.findUnique({
-        where: {
-          sourceId_targetId: {
-            sourceId: sourcePassage.id,
-            targetId: targetPassage.id,
-          },
-        },
-      });
-
-      if (!existingLink) {
-        await db.passageLink.create({
-          data: {
-            sourceId: sourcePassage.id,
-            targetId: targetPassage.id,
-            linkText: link.text,
+        const existingLink = await db.passageLink.findUnique({
+          where: {
+            sourceId_targetId: {
+              sourceId: passage.id,
+              targetId: targetPassage.id,
+            },
           },
         });
-        linksCreated++;
+
+        if (!existingLink) {
+          await db.passageLink.create({
+            data: {
+              sourceId: passage.id,
+              targetId: targetPassage.id,
+              linkText: link.text,
+            },
+          });
+          linksCreated++;
+        }
       }
     }
 
-    // Refresh project data after creating links
+    // Refresh project data
     const refreshedProject = await db.project.findFirst({
       where: { id: projectId },
       include: {
@@ -96,12 +93,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Error al refrescar proyecto" }, { status: 500 });
     }
 
-    // 2. Fix orphan passages by linking from the previous passage
+    // 2. Fix orphan passages
     for (let i = 0; i < refreshedProject.passages.length; i++) {
       const passage = refreshedProject.passages[i];
 
       if (passage.incomingLinks.length === 0 && !passage.isStart && i > 0) {
-        // This is an orphan - link from the previous passage
         const previousPassage = refreshedProject.passages[i - 1];
 
         const existingLink = await db.passageLink.findUnique({
@@ -127,7 +123,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Mark passages without outgoing links as endpoints
+    // 3. Mark endpoints
     for (const passage of refreshedProject.passages) {
       if (passage.outgoingLinks.length === 0 && !passage.isEndpoint) {
         await db.passage.update({
@@ -138,7 +134,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 4. Mark passage with number 1 as start
+    // 4. Mark start
     for (const passage of refreshedProject.passages) {
       if (passage.number === 1 && !passage.isStart) {
         await db.passage.update({
