@@ -35,18 +35,31 @@ export async function POST(
       );
     }
 
+    if (project.passages.length === 0) {
+      return NextResponse.json(
+        { error: "No hay pasajes para reordenar" },
+        { status: 400 }
+      );
+    }
+
     // Shuffle passages
     const shuffledPassages = [...project.passages].sort(
       () => Math.random() - 0.5
     );
 
-    // Create a mapping from old numbers to new numbers
-    const numberMapping = new Map<number, number>();
-    shuffledPassages.forEach((passage, index) => {
-      numberMapping.set(passage.number, index + 1);
-    });
+    // Step 1: Set all numbers to negative temporary values to avoid conflicts
+    await db.$transaction(
+      project.passages.map((passage) =>
+        db.passage.update({
+          where: { id: passage.id },
+          data: {
+            number: -passage.number, // Temporary negative number
+          },
+        })
+      )
+    );
 
-    // Update all passages with new numbers
+    // Step 2: Set the final numbers
     await db.$transaction(
       shuffledPassages.map((passage, index) =>
         db.passage.update({
@@ -54,10 +67,17 @@ export async function POST(
           data: {
             number: index + 1,
             sortOrder: index,
+            isStart: index === 0, // First passage is the start
           },
         })
       )
     );
+
+    // Create a mapping from old numbers to new numbers
+    const numberMapping = new Map<number, number>();
+    shuffledPassages.forEach((passage, index) => {
+      numberMapping.set(passage.number, index + 1);
+    });
 
     return NextResponse.json({
       message: "Pasajes reordenados aleatoriamente",

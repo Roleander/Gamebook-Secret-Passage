@@ -278,6 +278,7 @@ export default function EditorPage() {
                   passages={project.passages}
                   selectedPassageId={selectedPassage?.id}
                   onSelectPassage={(p) => setSelectedPassage(p as Passage)}
+                  onReorder={fetchProject}
                 />
               </CardContent>
             </Card>
