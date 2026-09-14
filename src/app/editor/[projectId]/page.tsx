@@ -382,6 +382,7 @@ export default function EditorPage() {
                 <CardContent className="p-6">
                   {selectedPassage ? (
                     <PassageEditor
+                      key={selectedPassage.id}
                       passage={selectedPassage}
                       allPassages={project.passages}
                       onUpdate={handlePassageUpdate}
