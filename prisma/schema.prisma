@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          String    @default("USER")
+  projects      Project[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Project {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passages      Passage[]
+  imports       ImportHistory[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Passage {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number        Int
+  title         String?
+  content       String
+  sortOrder     Int       @default(0)
+  isStart       Boolean   @default(false)
+  isEndpoint    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  outgoingLinks PassageLink[] @relation("SourcePassage")
+  incomingLinks PassageLink[] @relation("TargetPassage")
+
+  @@unique([projectId, number])
+  @@index([projectId, sortOrder])
+}
+
+model PassageLink {
+  id            String    @id @default(cuid())
+  sourceId      String
+  source        Passage   @relation("SourcePassage", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetId      String
+  target        Passage   @relation("TargetPassage", fields: [targetId], references: [id], onDelete: Cascade)
+  linkText      String?
+  condition     String?
+
+  @@unique([sourceId, targetId])
+}
+
+model ImportHistory {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  filename      String
+  fileType      String
+  passagesCount Int
+  rawContent    String?
+  importedAt    DateTime  @default(now())
+}
