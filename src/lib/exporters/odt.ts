@@ -81,14 +81,18 @@ export async function generateODT(projectId: string): Promise<Buffer> {
     <style:style style:name="PassageContent" style:family="paragraph">
       <style:text-properties fo:font-size="12pt"/>
     </style:style>
+    <style:style style:name="Hyperlink" style:family="text">
+      <style:text-properties fo:color="#0000FF" style:text-underline-style="solid"/>
+    </style:style>
   </office:styles>
 </office:document-styles>`);
 
-  // content.xml
+  // content.xml with hyperlinks
   let content = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
   xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office"
   xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style"
   xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible"
   office:version="1.2">
@@ -99,7 +103,21 @@ export async function generateODT(projectId: string): Promise<Buffer> {
       <text:p text:style-name="PassageContent"/>
 `;
 
+  // Table of contents with hyperlinks
+  content += `      <text:p text:style-name="Heading2">Índice</text:p>\n`;
   project.passages.forEach((passage) => {
+    content += `      <text:p text:style-name="PassageContent">`;
+    content += `<text:a xlink:href="#passage${passage.number}" text:style-name="Hyperlink">`;
+    content += `Pasaje ${passage.number}`;
+    if (passage.title) content += ` - ${escapeXml(passage.title)}`;
+    content += `</text:a></text:p>\n`;
+  });
+  content += `      <text:p text:style-name="PassageContent"/>\n`;
+
+  project.passages.forEach((passage) => {
+    // Passage anchor
+    content += `      <text:bookmark text:name="passage${passage.number}"/>\n`;
+    
     // Passage title
     content += `      <text:p text:style-name="PassageTitle">--- PASAJE ${passage.number}`;
     if (passage.title) content += ` — ${escapeXml(passage.title)}`;
@@ -107,10 +125,12 @@ export async function generateODT(projectId: string): Promise<Buffer> {
     if (passage.isEndpoint) content += " [FIN]";
     content += ` ---</text:p>\n`;
 
-    // Content paragraphs
+    // Content paragraphs with inline hyperlinks
     const lines = passage.content.split("\n");
     lines.forEach((line) => {
-      content += `      <text:p text:style-name="PassageContent">${escapeXml(line)}</text:p>\n`;
+      content += `      <text:p text:style-name="PassageContent">`;
+      content += convertInlineLinks(line);
+      content += `</text:p>\n`;
     });
 
     // Links
@@ -118,7 +138,10 @@ export async function generateODT(projectId: string): Promise<Buffer> {
       content += `      <text:p text:style-name="PassageTitle">Opciones:</text:p>\n`;
       passage.outgoingLinks.forEach((link) => {
         const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-        content += `      <text:p text:style-name="PassageContent">  → ${escapeXml(text)}</text:p>\n`;
+        content += `      <text:p text:style-name="PassageContent">  → `;
+        content += `<text:a xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">`;
+        content += `${escapeXml(text)}`;
+        content += `</text:a></text:p>\n`;
       });
     }
 
@@ -133,6 +156,23 @@ export async function generateODT(projectId: string): Promise<Buffer> {
 
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
   return Buffer.from(buffer);
+}
+
+function convertInlineLinks(line: string): string {
+  // Convert patterns like "pasaje 123", "apartado 123" to hyperlinks
+  const patterns = [
+    /((?:pasaje|apartado|punto|sección|seccion|párrafo)\s+)(\d+)/gi,
+  ];
+
+  let result = escapeXml(line);
+
+  patterns.forEach(pattern => {
+    result = result.replace(pattern, (match, prefix, num) => {
+      return `<text:a xlink:href="#passage${num}" text:style-name="Hyperlink">${escapeXml(prefix)}${num}</text:a>`;
+    });
+  });
+
+  return result;
 }
 
 function escapeXml(text: string): string {
