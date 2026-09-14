@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { generatePDF } from "@/lib/exporters/pdf";
 import { generateTXT } from "@/lib/exporters/txt";
 import { generateODT } from "@/lib/exporters/odt";
+import { generateDOC } from "@/lib/exporters/doc";
 import JSZip from "jszip";
 
 export async function POST(req: Request) {
@@ -86,9 +87,18 @@ export async function POST(req: Request) {
           },
         });
       }
+      case "doc": {
+        const docContent = await generateDOC(projectId);
+        return new NextResponse(docContent, {
+          headers: {
+            "Content-Type": "application/rtf",
+            "Content-Disposition": `attachment; filename="${safeTitle}.doc"`,
+          },
+        });
+      }
       default:
         return NextResponse.json(
-          { error: "Formato no soportado. Usa 'pdf', 'epub', 'txt' o 'odt'" },
+          { error: "Formato no soportado. Usa 'pdf', 'epub', 'txt', 'odt' o 'doc'" },
           { status: 400 }
         );
     }

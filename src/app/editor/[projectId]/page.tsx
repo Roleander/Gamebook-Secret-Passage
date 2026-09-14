@@ -11,7 +11,7 @@ import { PassageList } from "@/components/editor/passage-list";
 import { ErrorPanel } from "@/components/editor/error-panel";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Link2, Wand2
+  Trash2, Link2, Wand2, ChevronDown
 } from "lucide-react";
 import Link from "next/link";
 
@@ -51,6 +51,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"editor" | "upload" | "errors">("editor");
   const [autoFixing, setAutoFixing] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -115,7 +116,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt") => {
+  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc") => {
     try {
       const response = await fetch("/api/export", {
         method: "POST",
@@ -134,6 +135,7 @@ export default function EditorPage() {
         epub: "epub",
         txt: "txt",
         odt: "odt",
+        doc: "doc",
       };
       a.download = `${project?.title || "gamebook"}.${extensions[format]}`;
       document.body.appendChild(a);
@@ -232,39 +234,61 @@ export default function EditorPage() {
               Reordenar
             </Button>
 
-            <div className="relative group">
-              <Button variant="outline" disabled={project.passages.length === 0}>
+            <div className="relative">
+              <Button
+                variant="outline"
+                disabled={project.passages.length === 0}
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                onMouseEnter={() => setShowExportMenu(true)}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
+                <ChevronDown className="w-4 h-4 ml-1" />
               </Button>
-              <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-50">
-                <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[150px]">
-                  <button
-                    onClick={() => handleExport("pdf")}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
-                  >
-                    PDF (HTML imprimible)
-                  </button>
-                  <button
-                    onClick={() => handleExport("epub")}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
-                  >
-                    EPUB (e-book)
-                  </button>
-                  <button
-                    onClick={() => handleExport("txt")}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
-                  >
-                    TXT (texto plano)
-                  </button>
-                  <button
-                    onClick={() => handleExport("odt")}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
-                  >
-                    ODT (OpenOffice)
-                  </button>
+              {showExportMenu && (
+                <div
+                  className="absolute right-0 top-full mt-1 z-50"
+                  onMouseLeave={() => setShowExportMenu(false)}
+                >
+                  <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[180px]">
+                    <button
+                      onClick={() => { handleExport("pdf"); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                      PDF (HTML imprimible)
+                    </button>
+                    <button
+                      onClick={() => { handleExport("epub"); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                      EPUB (e-book)
+                    </button>
+                    <button
+                      onClick={() => { handleExport("txt"); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                      TXT (texto plano)
+                    </button>
+                    <button
+                      onClick={() => { handleExport("odt"); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                      ODT (OpenOffice)
+                    </button>
+                    <button
+                      onClick={() => { handleExport("doc"); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                      DOC (Word)
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <Button
