@@ -9,7 +9,10 @@ import { FileUpload } from "@/components/editor/file-upload";
 import { PassageEditor } from "@/components/editor/passage-editor";
 import { PassageList } from "@/components/editor/passage-list";
 import { ErrorPanel } from "@/components/editor/error-panel";
-import { ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download } from "lucide-react";
+import {
+  ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
+  Trash2, Link2, Wand2
+} from "lucide-react";
 import Link from "next/link";
 
 interface Passage {
@@ -31,6 +34,13 @@ interface Project {
   passages: Passage[];
 }
 
+interface PassageError {
+  type: "orphan" | "no_exit" | "broken_link" | "cycle";
+  passageNumber: number;
+  message: string;
+  autoFixable: boolean;
+}
+
 export default function EditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -40,6 +50,7 @@ export default function EditorPage() {
   const [selectedPassage, setSelectedPassage] = useState<Passage | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"editor" | "upload" | "errors">("editor");
+  const [autoFixing, setAutoFixing] = useState(false);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -63,16 +74,12 @@ export default function EditorPage() {
 
   const handlePassageUpdate = async (updatedPassage: Partial<Passage>) => {
     if (!selectedPassage) return;
-
     try {
       const response = await fetch(`/api/passages/${selectedPassage.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedPassage),
       });
-
       if (response.ok) {
         fetchProject();
       }
@@ -83,10 +90,7 @@ export default function EditorPage() {
 
   const handlePassageDelete = async (passageId: string) => {
     try {
-      const response = await fetch(`/api/passages/${passageId}`, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(`/api/passages/${passageId}`, { method: "DELETE" });
       if (response.ok) {
         setSelectedPassage(null);
         fetchProject();
@@ -98,17 +102,76 @@ export default function EditorPage() {
 
   const handleShuffle = async () => {
     if (!project) return;
-
     try {
-      const response = await fetch(`/api/projects/${projectId}/shuffle`, {
-        method: "POST",
-      });
-
+      const response = await fetch(`/api/projects/${projectId}/shuffle`, { method: "POST" });
       if (response.ok) {
         fetchProject();
       }
     } catch (error) {
       console.error("Error shuffling passages:", error);
+    }
+  };
+
+  const handleExport = async (format: "pdf" | "epub") => {
+    try {
+      const response = await fetch("/api/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, format }),
+      });
+
+      if (!response.ok) throw new Error("Error al exportar");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${project?.title || "gamebook"}.${format === "pdf" ? "html" : "json"}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting:", error);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!confirm("¿Seguro que quieres eliminar este proyecto? Esta acción no se puede deshacer.")) return;
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
+      if (response.ok) {
+        router.push("/projects");
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    }
+  };
+
+  const handleAutoFix = async () => {
+    if (!project) return;
+    setAutoFixing(true);
+    try {
+      const response = await fetch("/api/autofix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(
+          `Auto-fix completado:\n` +
+          `- Enlaces creados: ${result.linksCreated}\n` +
+          `- Pasajes marcados como finales: ${result.endpointsMarked}\n` +
+          `- Pasajes marcados como inicio: ${result.startsMarked}`
+        );
+        fetchProject();
+      }
+    } catch (error) {
+      console.error("Error auto-fixing:", error);
+    } finally {
+      setAutoFixing(false);
     }
   };
 
@@ -126,16 +189,14 @@ export default function EditorPage() {
     );
   }
 
-  if (!project) {
-    return null;
-  }
+  if (!project) return null;
 
   const errors = validatePassages(project.passages);
 
   return (
     <div className="min-h-screen bg-dungeon">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <Link
           href="/projects"
@@ -155,24 +216,58 @@ export default function EditorPage() {
               <p className="text-muted-foreground mt-1">{project.description}</p>
             )}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={handleShuffle} disabled={project.passages.length === 0}>
               <Shuffle className="w-4 h-4 mr-2" />
               Reordenar
             </Button>
-            <Button disabled={project.passages.length === 0}>
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
+
+            <div className="relative group">
+              <Button variant="outline" disabled={project.passages.length === 0}>
+                <Download className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+              <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-50">
+                <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[120px]">
+                  <button
+                    onClick={() => handleExport("pdf")}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
+                  >
+                    Exportar PDF
+                  </button>
+                  <button
+                    onClick={() => handleExport("epub")}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted"
+                  >
+                    Exportar EPUB
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={handleAutoFix}
+              disabled={autoFixing || project.passages.length === 0}
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              {autoFixing ? "Arreglando..." : "Auto-fix"}
+            </Button>
+
+            <Button variant="destructive" onClick={handleDeleteProject}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Eliminar
             </Button>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Pasajes ({project.passages.length})</CardTitle>
+                <CardTitle className="text-lg">
+                  Pasajes ({project.passages.length})
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <PassageList
@@ -184,7 +279,6 @@ export default function EditorPage() {
             </Card>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3">
             <div className="flex space-x-1 mb-4">
               <Button
@@ -223,9 +317,7 @@ export default function EditorPage() {
                   ) : (
                     <div className="text-center py-12">
                       <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-medium mb-2">
-                        Selecciona un pasaje
-                      </h3>
+                      <h3 className="text-lg font-medium mb-2">Selecciona un pasaje</h3>
                       <p className="text-muted-foreground">
                         Elige un pasaje de la lista para empezar a editar
                       </p>
@@ -241,16 +333,18 @@ export default function EditorPage() {
                   <CardTitle>Importar Documento</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <FileUpload
-                    projectId={projectId}
-                    onUploadComplete={fetchProject}
-                  />
+                  <FileUpload projectId={projectId} onUploadComplete={fetchProject} />
                 </CardContent>
               </Card>
             )}
 
             {activeTab === "errors" && (
-              <ErrorPanel errors={errors} passages={project.passages} />
+              <ErrorPanel
+                errors={errors}
+                passages={project.passages}
+                onAutoFix={handleAutoFix}
+                autoFixing={autoFixing}
+              />
             )}
           </div>
         </div>
@@ -259,67 +353,41 @@ export default function EditorPage() {
   );
 }
 
-function validatePassages(passages: Passage[]): string[] {
-  const errors: string[] = [];
+function validatePassages(passages: Passage[]): PassageError[] {
+  const errors: PassageError[] = [];
   const numbers = passages.map(p => p.number);
 
   passages.forEach(passage => {
     // Check for broken links
     passage.outgoingLinks.forEach(link => {
       if (!numbers.includes(link.target.number)) {
-        errors.push(
-          `Pasaje ${passage.number}: enlace roto hacia pasaje ${link.target.number} que no existe`
-        );
+        errors.push({
+          type: "broken_link",
+          passageNumber: passage.number,
+          message: `Enlace roto hacia pasaje ${link.target.number} que no existe`,
+          autoFixable: false,
+        });
       }
     });
 
     // Check for orphan passages (no incoming links, not start)
-    if (
-      passage.incomingLinks.length === 0 &&
-      !passage.isStart &&
-      passages.length > 1
-    ) {
-      errors.push(
-        `Pasaje ${passage.number}: no tiene enlaces entrantes (huérfano)`
-      );
+    if (passage.incomingLinks.length === 0 && !passage.isStart && passages.length > 1) {
+      errors.push({
+        type: "orphan",
+        passageNumber: passage.number,
+        message: `Pasaje ${passage.number}: no tiene enlaces entrantes (huérfano)`,
+        autoFixable: true,
+      });
     }
 
     // Check for passages without outgoing links (endpoints)
     if (passage.outgoingLinks.length === 0 && !passage.isEndpoint) {
-      errors.push(
-        `Pasaje ${passage.number}: no tiene enlaces salientes (¿es un final?)`
-      );
-    }
-  });
-
-  // Check for cycles
-  const visited = new Set<string>();
-  const recursionStack = new Set<string>();
-
-  function hasCycle(passageId: string): boolean {
-    visited.add(passageId);
-    recursionStack.add(passageId);
-
-    const passage = passages.find(p => p.id === passageId);
-    if (passage) {
-      for (const link of passage.outgoingLinks) {
-        if (!visited.has(link.targetId)) {
-          if (hasCycle(link.targetId)) return true;
-        } else if (recursionStack.has(link.targetId)) {
-          return true;
-        }
-      }
-    }
-
-    recursionStack.delete(passageId);
-    return false;
-  }
-
-  passages.forEach(passage => {
-    if (!visited.has(passage.id)) {
-      if (hasCycle(passage.id)) {
-        errors.push("Se detectó un ciclo en los enlaces entre pasajes");
-      }
+      errors.push({
+        type: "no_exit",
+        passageNumber: passage.number,
+        message: `Pasaje ${passage.number}: no tiene enlaces salientes`,
+        autoFixable: true,
+      });
     }
   });
 

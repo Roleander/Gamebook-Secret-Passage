@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, Calendar, FileText } from "lucide-react";
+import { Plus, BookOpen, Calendar, FileText, Trash2 } from "lucide-react";
 
 interface Project {
   id: string;
@@ -39,10 +39,29 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleDelete = async (projectId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!confirm("¿Seguro que quieres eliminar este proyecto?")) return;
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setProjects(projects.filter(p => p.id !== projectId));
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-dungeon">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -98,9 +117,19 @@ export default function ProjectsPage() {
               <Link key={project.id} href={`/editor/${project.id}`}>
                 <Card className="h-full hover:border-primary/50 transition-colors cursor-pointer">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <BookOpen className="w-5 h-5 mr-2 text-primary" />
-                      {project.title}
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center">
+                        <BookOpen className="w-5 h-5 mr-2 text-primary" />
+                        {project.title}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleDelete(project.id, e)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </CardTitle>
                     <CardDescription>
                       {project.description || "Sin descripción"}
