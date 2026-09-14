@@ -179,9 +179,9 @@ export default function DownloadsPage() {
 
               <CardContent>
                 <div className="space-y-3">
-                  {platform.formats.map((format) => (
+                  {platform.formats.map((format, index) => (
                     <Button
-                      key={format.extension}
+                      key={`${platform.id}-${index}`}
                       variant={selectedPlatform === platform.id ? "default" : "outline"}
                       className="w-full justify-between"
                       onClick={() => handleDownload(platform, format)}
