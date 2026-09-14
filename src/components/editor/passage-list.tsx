@@ -7,6 +7,7 @@ interface Passage {
   id: string;
   number: number;
   title: string | null;
+  content: string;
   isStart: boolean;
   isEndpoint: boolean;
   outgoingLinks: any[];
@@ -38,44 +39,60 @@ export function PassageList({
 
   return (
     <div className="space-y-2 max-h-[600px] overflow-y-auto">
-      {sortedPassages.map((passage) => (
-        <button
-          key={passage.id}
-          onClick={() => onSelectPassage(passage)}
-          className={cn(
-            "w-full text-left p-3 rounded-md transition-colors",
-            selectedPassageId === passage.id
-              ? "bg-primary text-primary-foreground"
-              : "hover:bg-muted"
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="font-mono text-sm font-bold">
-                {passage.number}
-              </span>
-              {passage.title && (
-                <span className="text-sm truncate max-w-[150px]">
-                  {passage.title}
+      {sortedPassages.map((passage) => {
+        // Extract first line as preview
+        const firstLine = passage.content.split("\n")[0]?.trim() || "";
+        const preview = firstLine.length > 80 ? firstLine.substring(0, 80) + "..." : firstLine;
+
+        return (
+          <button
+            key={passage.id}
+            onClick={() => onSelectPassage(passage)}
+            className={cn(
+              "w-full text-left p-3 rounded-md transition-colors",
+              selectedPassageId === passage.id
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted"
+            )}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center space-x-2">
+                <span className="font-mono text-sm font-bold">
+                  {passage.number}
                 </span>
-              )}
+                {passage.title && (
+                  <span className="text-sm font-medium truncate max-w-[150px]">
+                    {passage.title}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                {passage.isStart && (
+                  <Flag className="w-4 h-4 text-green-500" />
+                )}
+                {passage.isEndpoint && (
+                  <Target className="w-4 h-4 text-red-500" />
+                )}
+                {passage.outgoingLinks.length > 0 && (
+                  <span className="text-xs bg-muted-foreground/20 px-1 rounded">
+                    {passage.outgoingLinks.length}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center space-x-1">
-              {passage.isStart && (
-                <Flag className="w-4 h-4 text-green-500" />
-              )}
-              {passage.isEndpoint && (
-                <Target className="w-4 h-4 text-red-500" />
-              )}
-              {passage.outgoingLinks.length > 0 && (
-                <span className="text-xs bg-muted-foreground/20 px-1 rounded">
-                  {passage.outgoingLinks.length}
-                </span>
-              )}
-            </div>
-          </div>
-        </button>
-      ))}
+            {preview && (
+              <p className={cn(
+                "text-xs mt-1 line-clamp-2",
+                selectedPassageId === passage.id
+                  ? "text-primary-foreground/80"
+                  : "text-muted-foreground"
+              )}>
+                {preview}
+              </p>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

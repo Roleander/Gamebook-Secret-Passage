@@ -102,9 +102,12 @@ export default function EditorPage() {
 
   const handleShuffle = async () => {
     if (!project) return;
+    if (!confirm("¿Reordenar aleatoriamente los pasajes? Los números cambiarán.")) return;
     try {
       const response = await fetch(`/api/projects/${projectId}/shuffle`, { method: "POST" });
       if (response.ok) {
+        const result = await response.json();
+        alert(`Reordenado: ${result.passageCount} pasajes reordenados`);
         fetchProject();
       }
     } catch (error) {
@@ -163,6 +166,7 @@ export default function EditorPage() {
         alert(
           `Auto-fix completado:\n` +
           `- Enlaces creados: ${result.linksCreated}\n` +
+          `- Huérfanos arreglados: ${result.orphansFixed}\n` +
           `- Pasajes marcados como finales: ${result.endpointsMarked}\n` +
           `- Pasajes marcados como inicio: ${result.startsMarked}`
         );
