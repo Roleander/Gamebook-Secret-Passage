@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, Flag, Target, ChevronUp, ChevronDown } from "lucide-react";
+import { BookOpen, Flag, Target, ChevronUp, ChevronDown, Hash } from "lucide-react";
 
 interface Passage {
   id: string;
@@ -18,6 +19,7 @@ interface PassageListProps {
   selectedPassageId?: string;
   onSelectPassage: (passage: Passage) => void;
   onReorder?: () => void;
+  onRenumber?: () => void;
 }
 
 export function PassageList({
@@ -25,8 +27,11 @@ export function PassageList({
   selectedPassageId,
   onSelectPassage,
   onReorder,
+  onRenumber,
 }: PassageListProps) {
   const sortedPassages = [...passages].sort((a, b) => a.number - b.number);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<number>(0);
 
   const handleMove = async (e: React.MouseEvent, passageId: string, direction: "up" | "down") => {
     e.stopPropagation();
@@ -41,6 +46,27 @@ export function PassageList({
       }
     } catch (error) {
       console.error("Error reordering:", error);
+    }
+  };
+
+  const handleRenumber = async (passageId: string) => {
+    if (editValue < 1) {
+      setEditingId(null);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/passages/${passageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: editValue }),
+      });
+      if (response.ok) {
+        setEditingId(null);
+        if (onRenumber) onRenumber();
+      }
+    } catch (error) {
+      console.error("Error renumbering:", error);
     }
   };
 
@@ -61,6 +87,7 @@ export function PassageList({
         const firstLine = passage.content.split("\n")[0]?.trim() || "";
         const preview = firstLine.length > 60 ? firstLine.substring(0, 60) + "..." : firstLine;
         const isSelected = selectedPassageId === passage.id;
+        const isEditing = editingId === passage.id;
 
         return (
           <div
@@ -106,9 +133,43 @@ export function PassageList({
             >
               <div className="flex items-center justify-between mb-0.5">
                 <div className="flex items-center space-x-2">
-                  <span className="font-mono text-xs font-bold">
-                    {passage.number}
-                  </span>
+                  {/* Editable number */}
+                  {isEditing ? (
+                    <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="number"
+                        value={editValue}
+                        onChange={(e) => setEditValue(parseInt(e.target.value) || 0)}
+                        onBlur={() => handleRenumber(passage.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleRenumber(passage.id);
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                        className="w-16 px-1 py-0.5 text-xs bg-background text-foreground border rounded"
+                        autoFocus
+                        min={1}
+                      />
+                      <button
+                        onClick={() => handleRenumber(passage.id)}
+                        className="text-[10px] px-1 bg-green-600 text-white rounded"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingId(passage.id);
+                        setEditValue(passage.number);
+                      }}
+                      className="font-mono text-xs font-bold cursor-pointer hover:bg-muted-foreground/20 px-1 rounded flex items-center"
+                      title="Clic para cambiar número"
+                    >
+                      {passage.number}
+                      <Hash className="w-2.5 h-2.5 ml-0.5 opacity-50" />
+                    </span>
+                  )}
                   {passage.title && (
                     <span className="text-xs font-medium truncate max-w-[120px]">
                       {passage.title}

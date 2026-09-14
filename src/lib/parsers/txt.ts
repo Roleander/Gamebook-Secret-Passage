@@ -18,6 +18,8 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
     { regex: /^(\d+)\s*[\.\)]\s*/gm, group: 1 },
     // "Pasaje 1" or "PASAJE 1"
     { regex: /^[Pp][Aa][Ss][Aa][Jj][Ee]\s+(\d+)/gm, group: 1 },
+    // "Apartado 1" or "APARTADO 1"
+    { regex: /^[Aa][Pp][Aa][Rr][Tt][Aa][Dd][Oo]\s+(\d+)/gm, group: 1 },
     // "# 1" or "## 1" markdown headers
     { regex: /^#{1,3}\s+(\d+)/gm, group: 1 },
     // "SECTION 1"
@@ -167,6 +169,14 @@ export function detectLinksInPassage(
     /(?:si\s+.+?,?\s+)?(?:ve|ir|continuar|pasar)\s+(?:al?\s+)?(\d+)/gi,
     // "ve a la opcion 25"
     /(?:ve|ir)\s+(?:a\s+)?(?:la\s+)?(?:opción|opcion|alternativa)\s+(\d+)/gi,
+    // "apartado 25", "al apartado 25"
+    /(?:al?\s+)?(?:apartado|punto|sección|seccion|párrafo)\s+(\d+)/gi,
+    // "puedes pasar al apartado 25", "puedes ir al pasaje 25"
+    /(?:puedes?\s+)?(?:pasar|ir|continuar|seguir)\s+(?:al?\s+)?(?:apartado|punto|sección|seccion|pasaje)\s+(\d+)/gi,
+    // "trata de atacarte" followed by "Ve al pasaje X"
+    /(?:trata|intenta)\s+.*?\s*(?:ve|pasa|continua)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
+    // Standalone "pasaje X", "apartado X", "sección X" as reference
+    /(?:pasaje|apartado|punto|sección|seccion|párrafo)\s+(\d+)/gi,
 
     // === ENGLISH PATTERNS ===
     // "go to passage 25", "go to 25"

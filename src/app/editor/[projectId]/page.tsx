@@ -311,9 +311,34 @@ export default function EditorPage() {
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">
-                  Pasajes ({project.passages.length})
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">
+                    Pasajes ({project.passages.length})
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const maxNumber = Math.max(0, ...project.passages.map(p => p.number));
+                      const response = await fetch(`/api/projects/${projectId}/passages`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          number: maxNumber + 1,
+                          title: "Nuevo Pasaje",
+                          content: "Escribe el contenido aquí...",
+                          isStart: project.passages.length === 0,
+                          isEndpoint: false,
+                        }),
+                      });
+                      if (response.ok) {
+                        fetchProject();
+                      }
+                    }}
+                  >
+                    + Nuevo
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <PassageList
@@ -321,6 +346,7 @@ export default function EditorPage() {
                   selectedPassageId={selectedPassage?.id}
                   onSelectPassage={(p) => setSelectedPassage(p as Passage)}
                   onReorder={fetchProject}
+                  onRenumber={fetchProject}
                 />
               </CardContent>
             </Card>
