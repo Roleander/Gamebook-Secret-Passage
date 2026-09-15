@@ -9,9 +9,10 @@ import { FileUpload } from "@/components/editor/file-upload";
 import { PassageEditor } from "@/components/editor/passage-editor";
 import { PassageList } from "@/components/editor/passage-list";
 import { ErrorPanel } from "@/components/editor/error-panel";
+import { PreviewMode } from "@/components/editor/preview-mode";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Link2, Wand2, ChevronDown
+  Trash2, Link2, Wand2, ChevronDown, Eye
 } from "lucide-react";
 import Link from "next/link";
 
@@ -52,6 +53,7 @@ export default function EditorPage() {
   const [activeTab, setActiveTab] = useState<"editor" | "upload" | "errors">("editor");
   const [autoFixing, setAutoFixing] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -229,6 +231,15 @@ export default function EditorPage() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowPreview(true)}
+              disabled={project.passages.length === 0}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Previsualizar
+            </Button>
+
             <Button variant="outline" onClick={handleShuffle} disabled={project.passages.length === 0}>
               <Shuffle className="w-4 h-4 mr-2" />
               Reordenar
@@ -423,6 +434,13 @@ export default function EditorPage() {
           </div>
         </div>
       </main>
+
+      {showPreview && (
+        <PreviewMode
+          project={project}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 }
