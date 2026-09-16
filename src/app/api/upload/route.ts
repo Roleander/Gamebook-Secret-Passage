@@ -69,13 +69,15 @@ export async function POST(req: Request) {
       select: { number: true },
     });
 
-    const startNumber = (maxPassage?.number || 0) + 1;
+    // If project is empty, preserve original numbering
+    // If project has passages, offset new numbers to avoid duplicates
+    const hasExistingPassages = (maxPassage?.number || 0) > 0;
+    const startNumber = hasExistingPassages ? (maxPassage!.number + 1) : 0;
 
     // Create passages in database
-    // Preserve original passage numbers (including auto-created ones)
     const passageData = result.passages.map((passage, index) => ({
       projectId,
-      number: passage.number,
+      number: startNumber + passage.number,
       title: passage.title,
       content: passage.content,
       sortOrder: index,
@@ -95,10 +97,10 @@ export async function POST(req: Request) {
 
     let linksCreated = 0;
 
-    // Create links from parsed result
+    // Create links from parsed result (offset numbers if needed)
     for (const link of result.links) {
-      const sourcePassage = allPassages.find(p => p.number === link.sourceNumber);
-      const targetPassage = allPassages.find(p => p.number === link.targetNumber);
+      const sourcePassage = allPassages.find(p => p.number === startNumber + link.sourceNumber);
+      const targetPassage = allPassages.find(p => p.number === startNumber + link.targetNumber);
 
       if (!sourcePassage || !targetPassage) continue;
 
@@ -129,8 +131,10 @@ export async function POST(req: Request) {
       const passage = allPassages[i];
       if (passage.isEndpoint) continue;
 
+      // Check if this passage has options in the parsed result
+      const originalNumber = passage.number - startNumber;
       const hasOptions = result.passages.find(
-        p => p.number === passage.number
+        p => p.number === originalNumber
       )?.options?.some(o => o.type !== "dice");
 
       if (hasOptions && i + 1 < allPassages.length) {
