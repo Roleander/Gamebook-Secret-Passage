@@ -152,9 +152,24 @@ function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passa
   let nextNumber = Math.max(...Array.from(existingNumbers), 0) + 1;
   let newCount = 0;
 
+  // Named references that map to existing passages
+  const namedTargets: { pattern: RegExp; findPassage: (passages: ParsedPassage[]) => ParsedPassage | undefined }[] = [
+    { pattern: /Continuar\s+abajo/i, findPassage: (ps) => ps.find(p => p.number === 14.5 || (p.number > 14 && !ps.some(q => q.number === p.number && q.number < p.number))) },
+    { pattern: /^Continuar$/i, findPassage: () => undefined }, // Will be resolved to next passage
+    { pattern: /Proseguir\s+aventura/i, findPassage: () => undefined }, // Will be resolved to next passage
+    { pattern: /Continuar\s+epopeya/i, findPassage: () => undefined }, // Will be resolved to next passage
+    { pattern: /Desde\s+la\s+muerte/i, findPassage: (ps) => ps.find(p => p.number === 21) },
+    { pattern: /Hacia\s+"?Raízcrecida"?/i, findPassage: (ps) => ps.find(p => p.number === 12) },
+  ];
+
   for (const passage of passages) {
     if (!passage.options || passage.options.length === 0) continue;
     if (passage.isEndpoint) continue;
+
+    const passageIdx = allPassages.indexOf(passage);
+    const nextPassage = passageIdx >= 0 && passageIdx < allPassages.length - 1
+      ? allPassages[passageIdx + 1]
+      : null;
 
     const unnumberedOptions = passage.options.filter(
       opt => !opt.targetNumber && opt.type !== "dice"
@@ -162,13 +177,37 @@ function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passa
 
     if (unnumberedOptions.length === 0) continue;
 
-    // This passage has unnumbered options — create new passages for each
     for (const option of unnumberedOptions) {
+      // Check for named references first
+      let resolved = false;
+      for (const named of namedTargets) {
+        if (named.pattern.test(option.text)) {
+          const target = named.findPassage(allPassages);
+          if (target) {
+            option.targetNumber = target.number;
+            option.type = "link";
+            resolved = true;
+            break;
+          }
+        }
+      }
+
+      // "Continuar" variants → link to next passage
+      if (!resolved && /^Continuar|Proseguir|Seguir$/i.test(option.text.trim())) {
+        if (nextPassage) {
+          option.targetNumber = nextPassage.number;
+          option.type = "link";
+          resolved = true;
+        }
+      }
+
+      if (resolved) continue;
+
+      // Truly unnumbered option → create new passage
       const newNumber = nextNumber++;
       option.targetNumber = newNumber;
       option.isNewPassage = true;
 
-      // Create a new passage with the option text as content hint
       const newPassage: ParsedPassage = {
         number: newNumber,
         title: option.text,
@@ -182,8 +221,7 @@ function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passa
       newCount++;
     }
 
-    // Update passage content to reference new passage numbers
-    // Replace unnumbered option lines with numbered ones
+    // Update passage content to reference resolved passage numbers
     const contentLines = passage.content.split("\n");
     for (let i = 0; i < contentLines.length; i++) {
       const trimmed = contentLines[i].trim();
@@ -229,13 +267,15 @@ function extractOptionsFromContent(content: string): PassageOption[] {
     const isSiOption = /^Si\s+/i.test(trimmed);
 
     // Short verb-only option at end of passage (e.g., "Interrogar", "Lanzar un Misil Mágico")
-    // These are typically the last few lines, short, and start with a verb
+    // These are typically the last few lines, short, start with a verb, and are decision points
     const isVerbOption = i >= lines.length - 6 &&
       trimmed.length > 2 &&
-      trimmed.length < 80 &&
+      trimmed.length < 60 &&
       !/^\d/.test(trimmed) &&
-      !/^(FIN|Nota|Recuerda|Pierdes|Recupera|Has|Te|Los|Las|El|La|Lo|Un|Una)/i.test(trimmed) &&
-      !/\./.test(trimmed) && // No periods = likely an option
+      !/\.\s*$/.test(trimmed) && // No period at end
+      !/:$/.test(trimmed) && // No colon at end (narrative lead-in)
+      !/^(FIN|Nota|Recuerda|Pierdes|Recupera|Has\s|Te\s|Los\s|Las\s|El\s|La\s|Lo\s|Un\s|Una\s)/i.test(trimmed) &&
+      !/^(Depositas|Es\s+hora|Recuerda,\s)/i.test(trimmed) && // Narrative phrases
       /^[A-ZÁÉÍÓÚÑ]/.test(trimmed); // Starts with capital letter
 
     if (isTabOption || isArrowOption || isSiOption || isVerbOption) {
