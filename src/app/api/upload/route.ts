@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
     if (!session?.user) {
       return NextResponse.json(
-        { error: "No autorizado" },
+        { error: "Debes iniciar sesión para importar archivos" },
         { status: 401 }
       );
     }
@@ -48,16 +48,37 @@ export async function POST(req: Request) {
       );
     }
 
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        { error: `Archivo demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo 10MB.` },
+        { status: 400 }
+      );
+    }
+
     // Read file buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Parse file — this now includes auto-created passages from unnumbered options
-    const result = await parseFile(buffer, file.name);
+    // Parse file
+    let result;
+    try {
+      result = await parseFile(buffer, file.name);
+    } catch (parseError) {
+      const msg = parseError instanceof Error ? parseError.message : String(parseError);
+      return NextResponse.json(
+        { error: `Error al procesar el archivo: ${msg}` },
+        { status: 400 }
+      );
+    }
 
     if (result.errors.length > 0 && result.passages.length === 0) {
       return NextResponse.json(
-        { error: result.errors.join(", ") },
+        {
+          error: "No se pudo procesar el archivo",
+          details: result.errors,
+        },
         { status: 400 }
       );
     }
@@ -97,14 +118,13 @@ export async function POST(req: Request) {
 
     let linksCreated = 0;
 
-    // Create links from parsed result (offset numbers if needed)
+    // Create links from parsed result
     for (const link of result.links) {
       const sourcePassage = allPassages.find(p => p.number === startNumber + link.sourceNumber);
       const targetPassage = allPassages.find(p => p.number === startNumber + link.targetNumber);
 
       if (!sourcePassage || !targetPassage) continue;
 
-      // Check if link already exists
       const existingLink = await db.passageLink.findUnique({
         where: {
           sourceId_targetId: {
@@ -126,12 +146,11 @@ export async function POST(req: Request) {
       }
     }
 
-    // Also create implicit "Continuar" links for passages with options
+    // Create implicit "Continuar" links
     for (let i = 0; i < allPassages.length; i++) {
       const passage = allPassages[i];
       if (passage.isEndpoint) continue;
 
-      // Check if this passage has options in the parsed result
       const originalNumber = passage.number - startNumber;
       const hasOptions = result.passages.find(
         p => p.number === originalNumber
@@ -162,7 +181,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create import history record
+    // Create import history
     await db.importHistory.create({
       data: {
         projectId,
@@ -182,8 +201,9 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Upload error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Error al procesar el archivo" },
+      { error: `Error interno al procesar el archivo: ${msg}` },
       { status: 500 }
     );
   }
