@@ -83,6 +83,11 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <div className="text-right">
+              <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>

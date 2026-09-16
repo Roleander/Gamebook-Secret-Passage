@@ -16,6 +16,7 @@ model User {
   projects      Project[]
   subscription  Subscription?
   donations     Donation[]
+  passwordResets PasswordReset[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -128,4 +129,17 @@ model Donation {
 
   @@index([userId])
   @@index([status])
+}
+
+model PasswordReset {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String    @unique
+  expiresAt     DateTime
+  used          Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
 }
