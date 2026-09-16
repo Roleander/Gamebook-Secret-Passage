@@ -349,6 +349,26 @@ export default function EditorPage() {
                   >
                     + Nuevo
                   </Button>
+                  {project.passages.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!confirm("¿Renumerar todos los pasajes secuencialmente (1, 2, 3...)?")) return;
+                        const response = await fetch(`/api/projects/${projectId}/renumber`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ startFrom: 1, step: 1 }),
+                        });
+                        if (response.ok) {
+                          fetchProject();
+                        }
+                      }}
+                      title="Renumerar todos los pasajes desde 1"
+                    >
+                      1,2,3...
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
