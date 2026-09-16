@@ -149,7 +149,7 @@ export function extractPassagesFromText(text: string): ParseResult {
 function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passages: ParsedPassage[]; newPassagesCount: number } {
   const allPassages = [...passages];
   const existingNumbers = new Set(passages.map(p => p.number));
-  let nextNumber = Math.max(...Array.from(existingNumbers), 0) + 1;
+  let nextNumber = Math.floor(Math.max(...Array.from(existingNumbers), 0)) + 1;
   let newCount = 0;
 
   // Named references that map to existing passages

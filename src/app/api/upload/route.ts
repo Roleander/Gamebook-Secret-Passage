@@ -83,28 +83,68 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get existing max passage number
-    const maxPassage = await db.passage.findFirst({
-      where: { projectId },
-      orderBy: { number: "desc" },
-      select: { number: true },
+    // Deduplicate passages by number (keep first occurrence)
+    const seenNumbers = new Set<number>();
+    const uniquePassages = result.passages.filter(p => {
+      if (seenNumbers.has(p.number)) return false;
+      seenNumbers.add(p.number);
+      return true;
     });
 
-    // If project is empty, preserve original numbering
-    // If project has passages, offset new numbers to avoid duplicates
-    const hasExistingPassages = (maxPassage?.number || 0) > 0;
-    const startNumber = hasExistingPassages ? (maxPassage!.number + 1) : 0;
+    // Get existing passage numbers in this project
+    const existingPassages = await db.passage.findMany({
+      where: { projectId },
+      select: { number: true },
+    });
+    const existingNumbers = new Set(existingPassages.map(p => p.number));
 
-    // Create passages in database
-    const passageData = result.passages.map((passage, index) => ({
-      projectId,
-      number: startNumber + passage.number,
-      title: passage.title,
-      content: passage.content,
-      sortOrder: index,
-      isStart: passage.isStart && index === 0,
-      isEndpoint: passage.isEndpoint,
-    }));
+    // Calculate offset: if project has passages, offset to avoid collisions
+    const maxPassageNumber = existingPassages.length > 0
+      ? Math.max(...existingPassages.map(p => p.number))
+      : 0;
+    const hasExistingPassages = existingPassages.length > 0;
+    const startNumber = hasExistingPassages ? (maxPassageNumber + 1) : 0;
+
+    // Create passages, skip any that would collide with existing numbers
+    const passageData: Array<{
+      projectId: string;
+      number: number;
+      title?: string;
+      content: string;
+      sortOrder: number;
+      isStart: boolean;
+      isEndpoint: boolean;
+    }> = [];
+    const skippedNumbers: number[] = [];
+
+    for (let index = 0; index < uniquePassages.length; index++) {
+      const passage = uniquePassages[index];
+      const finalNumber = startNumber + passage.number;
+
+      // Skip if this number already exists
+      if (existingNumbers.has(finalNumber)) {
+        skippedNumbers.push(finalNumber);
+        continue;
+      }
+
+      passageData.push({
+        projectId,
+        number: Math.round(finalNumber),
+        title: passage.title,
+        content: passage.content,
+        sortOrder: index,
+        isStart: passage.isStart && index === 0,
+        isEndpoint: passage.isEndpoint,
+      });
+      existingNumbers.add(Math.round(finalNumber));
+    }
+
+    if (passageData.length === 0) {
+      return NextResponse.json(
+        { error: "No se pudieron crear pasajes. Todos los números ya existen en el proyecto." },
+        { status: 400 }
+      );
+    }
 
     await db.passage.createMany({
       data: passageData,
@@ -120,8 +160,8 @@ export async function POST(req: Request) {
 
     // Create links from parsed result
     for (const link of result.links) {
-      const sourcePassage = allPassages.find(p => p.number === startNumber + link.sourceNumber);
-      const targetPassage = allPassages.find(p => p.number === startNumber + link.targetNumber);
+      const sourcePassage = allPassages.find(p => p.number === Math.round(startNumber + link.sourceNumber));
+      const targetPassage = allPassages.find(p => p.number === Math.round(startNumber + link.targetNumber));
 
       if (!sourcePassage || !targetPassage) continue;
 
@@ -153,7 +193,7 @@ export async function POST(req: Request) {
 
       const originalNumber = passage.number - startNumber;
       const hasOptions = result.passages.find(
-        p => p.number === originalNumber
+        p => Math.round(p.number) === Math.round(originalNumber)
       )?.options?.some(o => o.type !== "dice");
 
       if (hasOptions && i + 1 < allPassages.length) {
@@ -194,10 +234,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       message: "Archivo importado exitosamente",
-      passagesCount: result.passages.length,
+      passagesCount: passageData.length,
       linksCreated,
       errors: result.errors,
       warnings: result.warnings,
+      ...(skippedNumbers.length > 0 && {
+        skippedCount: skippedNumbers.length,
+        skippedMessage: `${skippedNumbers.length} pasajes omitidos (números ya existentes)`,
+      }),
     });
   } catch (error) {
     console.error("Upload error:", error);
