@@ -4,146 +4,186 @@ export interface ParsedPassage {
   content: string;
   isStart: boolean;
   isEndpoint: boolean;
+  options?: PassageOption[];
+}
+
+export interface PassageOption {
+  text: string;
+  targetNumber?: number;
+  type: "link" | "action" | "dice";
 }
 
 export function extractPassagesFromText(text: string): ParsedPassage[] {
   if (!text || text.trim().length === 0) return [];
 
-  const passages: ParsedPassage[] = [];
   const normalizedText = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const lines = normalizedText.split("\n");
 
-  // Multiple passage detection patterns (ordered by priority)
-  const boundaryPatterns: { regex: RegExp; group: number }[] = [
-    // "1." or "1)" at start of line
-    { regex: /^(\d+)\s*[\.\)]\s*/gm, group: 1 },
-    // "Pasaje 1" or "PASAJE 1"
-    { regex: /^[Pp][Aa][Ss][Aa][Jj][Ee]\s+(\d+)/gm, group: 1 },
-    // "Apartado 1" or "APARTADO 1"
-    { regex: /^[Aa][Pp][Aa][Rr][Tt][Aa][Dd][Oo]\s+(\d+)/gm, group: 1 },
-    // "# 1" or "## 1" markdown headers
-    { regex: /^#{1,3}\s+(\d+)/gm, group: 1 },
-    // "SECTION 1"
-    { regex: /^[Ss][Ee][Cc][Tt][Ii][Oo][Nn]\s+(\d+)/gm, group: 1 },
-    // "CAPITULO 1" or "Capítulo 1"
-    { regex: /^[Cc][Aa][Pp][Ii][Tt][Uu][Ll][Oo]\s+(\d+)/gm, group: 1 },
-    // Separators
-    { regex: /^\s*---\s*$/gm, group: -1 },
-    { regex: /^\s*\*\*\*\s*$/gm, group: -1 },
-    { regex: /^\s*===+\s*$/gm, group: -1 },
-  ];
+  const passageMap = new Map<number, { startLine: number; lines: string[] }>();
+  const passageOrder: number[] = [];
 
-  interface Boundary {
-    pos: number;
-    length: number;
-    number: number | null;
-    isSeparator: boolean;
-  }
+  // Pattern: number alone on a line (supports decimals "7,5" or "7.5")
+  const passageStartRegex = /^\s*(\d+(?:[.,]\d+)?)\s*$/;
 
-  const boundaries: Boundary[] = [];
-
-  for (const { regex, group } of boundaryPatterns) {
-    const pattern = new RegExp(regex.source, regex.flags);
-    let match;
-    while ((match = pattern.exec(normalizedText)) !== null) {
-      boundaries.push({
-        pos: match.index,
-        length: match[0].length,
-        number: group > 0 ? parseInt(match[group]) : null,
-        isSeparator: group === -1,
-      });
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(passageStartRegex);
+    if (match) {
+      const numStr = match[1].replace(",", ".");
+      const num = parseFloat(numStr);
+      if (!isNaN(num)) {
+        passageMap.set(num, { startLine: i + 1, lines: [] });
+        passageOrder.push(num);
+      }
     }
   }
 
-  boundaries.sort((a, b) => a.pos - b.pos);
-
-  const cleanBoundaries: Boundary[] = [];
-  let lastEnd = 0;
-  for (const b of boundaries) {
-    if (b.pos >= lastEnd) {
-      cleanBoundaries.push(b);
-      lastEnd = b.pos + b.length;
-    }
+  if (passageMap.size === 0) {
+    return [{
+      number: 1,
+      content: normalizedText.trim(),
+      isStart: true,
+      isEndpoint: true,
+    }];
   }
 
-  if (cleanBoundaries.length === 0) {
-    const paragraphs = normalizedText.split(/\n\s*\n/).filter(s => s.trim().length > 0);
-    if (paragraphs.length > 0) {
-      paragraphs.forEach((paragraph, index) => {
-        const trimmed = paragraph.trim();
-        const lines = trimmed.split("\n");
-        const firstLine = lines[0].trim();
-        const isTitle = firstLine.length < 120 && lines.length > 1 && (
-          firstLine === firstLine.toUpperCase() ||
-          /^[A-ZÁÉÍÓÚÑ]/.test(firstLine)
-        );
-
-        passages.push({
-          number: index + 1,
-          title: isTitle ? firstLine : undefined,
-          content: isTitle ? lines.slice(1).join("\n").trim() : trimmed,
-          isStart: index === 0,
-          isEndpoint: false,
-        });
-      });
-    } else {
-      passages.push({
-        number: 1,
-        content: normalizedText.trim(),
-        isStart: true,
-        isEndpoint: true,
-      });
-    }
-    return passages;
+  // Fill passage content
+  for (let idx = 0; idx < passageOrder.length; idx++) {
+    const num = passageOrder[idx];
+    const entry = passageMap.get(num)!;
+    const nextNum = passageOrder[idx + 1];
+    const nextEntry = nextNum !== undefined ? passageMap.get(nextNum) : undefined;
+    const endLine = nextEntry ? nextEntry.startLine : lines.length;
+    entry.lines = lines.slice(entry.startLine, endLine);
   }
 
-  const usedNumbers = new Set<number>();
-  let nextNumber = 1;
+  const passages: ParsedPassage[] = [];
 
-  for (let i = 0; i < cleanBoundaries.length; i++) {
-    const boundary = cleanBoundaries[i];
-    const nextBoundary = cleanBoundaries[i + 1];
+  for (const num of passageOrder) {
+    const entry = passageMap.get(num)!;
+    const rawLines = entry.lines;
 
-    const passageStart = boundary.isSeparator
-      ? boundary.pos + boundary.length
-      : boundary.pos;
-    const passageEnd = nextBoundary ? nextBoundary.pos : normalizedText.length;
+    let endIdx = rawLines.length;
+    while (endIdx > 0 && rawLines[endIdx - 1].trim() === "") endIdx--;
+    const trimmedLines = rawLines.slice(0, endIdx);
+    if (trimmedLines.length === 0) continue;
 
-    const passageText = normalizedText.slice(passageStart, passageEnd).trim();
-    if (passageText.length === 0) continue;
+    const content = trimmedLines.join("\n").trim();
 
-    let passageNumber: number;
-    if (boundary.number !== null) {
-      passageNumber = boundary.number;
-      usedNumbers.add(passageNumber);
-      if (passageNumber >= nextNumber) nextNumber = passageNumber + 1;
-    } else {
-      while (usedNumbers.has(nextNumber)) nextNumber++;
-      passageNumber = nextNumber;
-      usedNumbers.add(passageNumber);
-      nextNumber++;
-    }
+    // Detect endings
+    const isEndpoint = /\b[Ff][Ii][Nn]\b/.test(content);
 
-    const lines = passageText.split("\n");
-    const firstLine = lines[0].trim();
-    const titleMatch = firstLine.match(/^(?:\d+[\.\)]\s*|[Pp]asaje\s+\d+\s*|#{1,3}\s+\d+\s*)(.*)/);
-    const title = titleMatch?.[1]?.trim() || undefined;
-    const contentStart = title ? 1 : 0;
-    const content = lines.slice(contentStart).join("\n").trim();
+    const isStart = num === 1 || passageOrder.indexOf(num) === 0;
 
-    const isEndpoint = content.length === 0 ||
-      /\b(fin|termina|acaba|muerte|game\s*over|the\s*end)\b/i.test(content);
+    // Extract options from the passage
+    const options = extractOptionsFromContent(content);
 
     passages.push({
-      number: passageNumber,
-      title,
+      number: num,
       content,
-      isStart: passageNumber === 1,
+      isStart,
       isEndpoint,
+      options,
     });
   }
 
   passages.sort((a, b) => a.number - b.number);
   return passages;
+}
+
+function extractOptionsFromContent(content: string): PassageOption[] {
+  const options: PassageOption[] = [];
+  const lines = content.split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Tab-indented option (gamebook standard)
+    const isTabOption = line.startsWith("\t") && trimmed.length > 0;
+
+    // Arrow/bullet option
+    const isArrowOption = /^[→\-*>]\s+/.test(trimmed);
+
+    // "Si" conditional option
+    const isSiOption = /^Si\s+/i.test(trimmed);
+
+    if (isTabOption || isArrowOption || isSiOption) {
+      let optionText = trimmed;
+
+      // Clean up the option text
+      optionText = optionText.replace(/^[→\-*>]\s+/, "").trim();
+
+      // Skip empty or very short options
+      if (optionText.length < 2) continue;
+
+      // Skip "Nota:" lines (annotations)
+      if (/^Nota:/i.test(optionText)) continue;
+
+      // Determine option type
+      let type: "link" | "action" | "dice" = "action";
+      let targetNumber: number | undefined;
+
+      // Check for explicit passage number reference
+      const numRef = optionText.match(/(\d+(?:[.,]\d+)?)/);
+      if (numRef) {
+        const num = parseFloat(numRef[1].replace(",", "."));
+        if (!isNaN(num) && num > 0) {
+          targetNumber = num;
+          type = "link";
+        }
+      }
+
+      // Check for named passage references
+      if (!targetNumber) {
+        const namedRef = detectNamedReference(optionText);
+        if (namedRef) {
+          targetNumber = namedRef;
+          type = "link";
+        }
+      }
+
+      // Check for dice roll
+      if (/tirada|tira\s+el\s+dado|random/i.test(optionText)) {
+        type = "dice";
+      }
+
+      // Check for Twine goto
+      const gotoMatch = optionText.match(/<<goto\s+"([^"]+)">>/i);
+      if (gotoMatch) {
+        const numRef = gotoMatch[1].match(/(\d+(?:[.,]\d+)?)/);
+        if (numRef) {
+          targetNumber = parseFloat(numRef[1].replace(",", "."));
+          type = "link";
+        }
+      }
+
+      options.push({
+        text: optionText,
+        targetNumber,
+        type,
+      });
+    }
+  }
+
+  return options;
+}
+
+function detectNamedReference(text: string): number | undefined {
+  // Named passage references that map to specific numbers
+  const namedRefs: { pattern: RegExp; target: number }[] = [
+    // "Continuar" or "Continuar abajo" - doesn't have a fixed target, needs context
+    // "Hacia Raízcrecida" - maps to passage 12
+    { pattern: /Hacia\s+"?Raízcrecida"?/i, target: 12 },
+    // "Desde la muerte" - maps to passage 21
+    { pattern: /Desde\s+la\s+muerte/i, target: 21 },
+  ];
+
+  for (const ref of namedRefs) {
+    if (ref.pattern.test(text)) {
+      return ref.target;
+    }
+  }
+
+  return undefined;
 }
 
 export function detectLinksInPassage(
@@ -152,91 +192,64 @@ export function detectLinksInPassage(
 ): { targetNumber: number; text: string }[] {
   const links: { targetNumber: number; text: string }[] = [];
 
-  // Comprehensive patterns for gamebook links (Spanish + English)
-  const patterns: RegExp[] = [
-    // === SPANISH PATTERNS ===
-    // "ve al pasaje 25", "ves al 25", "ir al pasaje 25"
-    /(?:ve(?:s|r)?|ir)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
-    // "continua en el 25", "continuar al 25"
-    /(?:contin[uú](?:a|ar))\s+(?:en\s+(?:el\s+)?|al?\s+)?(?:pasaje\s+)?(\d+)/gi,
-    // "pasa al 25", "pasar al 25"
-    /(?:pasa(?:r)?)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
-    // "acude al 25"
-    /(?:acude(?:r)?)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
-    // "dirigete al 25", "dirígete al 25"
-    /(?:dirig(?:ete|irse))\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
-    // "si tienes X, ve al 25"
-    /(?:si\s+.+?,?\s+)?(?:ve|ir|continuar|pasar)\s+(?:al?\s+)?(\d+)/gi,
-    // "ve a la opcion 25"
-    /(?:ve|ir)\s+(?:a\s+)?(?:la\s+)?(?:opción|opcion|alternativa)\s+(\d+)/gi,
-    // "apartado 25", "al apartado 25"
-    /(?:al?\s+)?(?:apartado|punto|sección|seccion|párrafo)\s+(\d+)/gi,
-    // "puedes pasar al apartado 25", "puedes ir al pasaje 25"
-    /(?:puedes?\s+)?(?:pasar|ir|continuar|seguir)\s+(?:al?\s+)?(?:apartado|punto|sección|seccion|pasaje)\s+(\d+)/gi,
-    // "trata de atacarte" followed by "Ve al pasaje X"
-    /(?:trata|intenta)\s+.*?\s*(?:ve|pasa|continua)\s+(?:al?\s+)?(?:pasaje\s+)?(\d+)/gi,
-    // Standalone "pasaje X", "apartado X", "sección X" as reference
-    /(?:pasaje|apartado|punto|sección|seccion|párrafo)\s+(\d+)/gi,
+  // Extract options and get their targets
+  const options = extractOptionsFromContent(content);
+  for (const opt of options) {
+    if (opt.targetNumber && allPassageNumbers.includes(opt.targetNumber)) {
+      links.push({ targetNumber: opt.targetNumber, text: opt.text });
+    }
+  }
 
-    // === ENGLISH PATTERNS ===
-    // "go to passage 25", "go to 25"
-    /(?:go(?:es)?|turn|proceed|move)\s+(?:to\s+)?(?:passage\s+)?(\d+)/gi,
-    // "continue to 25", "continue at 25"
-    /(?:continue)\s+(?:to|at)\s+(?:passage\s+)?(\d+)/gi,
-    // "if X, go to 25"
-    /(?:if\s+.+?,?\s+)?(?:go|turn|continue|proceed)\s+(?:to\s+)?(\d+)/gi,
-
-    // === ARROW PATTERNS ===
-    // "1 -> 25", "1 → 25", "1 --> 25"
-    /(\d+)\s*(?:→|->|-->|—>)\s*(\d+)/g,
-    // "-> 25", "→ 25"
-    /(?:→|->|-->|—>)\s*(\d+)/g,
-
-    // === BRACKET PATTERNS ===
-    // "[25]", "[pasaje 25]"
-    /\[(?:pasaje\s+)?(\d+)\]/gi,
-    // "{25}"
-    /\{(\d+)\}/g,
-
-    // === PARENTHESIS PATTERNS ===
-    // "(25)", "(pasaje 25)"
-    /\((?:pasaje\s+)?(\d+)\)/gi,
-
-    // === NUMBER AT END OF LINE ===
-    // "25" at the end of a line (common in gamebooks)
-    /\b(\d+)\s*$/gm,
-
-    // === OPTION PATTERNS ===
-    // "opción 25", "alternativa 25"
-    /(?:opción|opcion|alternativa|opcao|alternative)\s+(\d+)/gi,
-    // "a) 25", "b) 25"
-    /[a-z]\)\s*(\d+)/gi,
-  ];
-
-  patterns.forEach(pattern => {
-    const regex = new RegExp(pattern.source, pattern.flags);
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-      // For arrow patterns with two numbers, use the second one
-      const targetNumber = match[2] ? parseInt(match[2]) : parseInt(match[1]);
-      if (targetNumber > 0 && allPassageNumbers.includes(targetNumber)) {
-        links.push({
-          targetNumber,
-          text: match[0],
-        });
+  // === TWINE-STYLE GOTO (inline, not in options) ===
+  const gotoRegex = /<<goto\s+"([^"]+)">>/gi;
+  let gotoMatch;
+  while ((gotoMatch = gotoRegex.exec(content)) !== null) {
+    const numMatch = gotoMatch[1].match(/(\d+(?:[.,]\d+)?)/);
+    if (numMatch) {
+      const target = parseFloat(numMatch[1].replace(",", "."));
+      if (!isNaN(target) && allPassageNumbers.includes(target)) {
+        links.push({ targetNumber: target, text: gotoMatch[0] });
       }
     }
-  });
+  }
 
-  // Remove duplicates (keep first occurrence)
+  // === ARROW PATTERNS in content (not options) ===
+  const arrowRegex = /(?:^|\n)(\d+(?:[.,]\d+)?)\s*(?:→|->|-->|—>)\s*(\d+(?:[.,]\d+)?)/g;
+  let arrowMatch;
+  while ((arrowMatch = arrowRegex.exec(content)) !== null) {
+    const target = parseFloat(arrowMatch[2].replace(",", "."));
+    if (!isNaN(target) && allPassageNumbers.includes(target)) {
+      links.push({ targetNumber: target, text: arrowMatch[0].trim() });
+    }
+  }
+
+  // === BRACKET/PARENTHESIS PATTERNS ===
+  const bracketRegex = /[\[\{(]\s*(?:pasaje\s+)?(\d+(?:[.,]\d+)?)\s*[\]\})]/gi;
+  let bracketMatch;
+  while ((bracketMatch = bracketRegex.exec(content)) !== null) {
+    const target = parseFloat(bracketMatch[1].replace(",", "."));
+    if (!isNaN(target) && allPassageNumbers.includes(target)) {
+      links.push({ targetNumber: target, text: bracketMatch[0] });
+    }
+  }
+
+  // === DIRECT PASSAGE REFERENCES in body text ===
+  const directRefRegex = /(?:ve(?:s|r)?|ir|continuar|pasar|acudir|dirigir(?:te|se)?)\s+(?:al?\s+)?(?:pasaje|apartado|punto|sección|seccion|párrafo)?\s*(\d+(?:[.,]\d+)?)/gi;
+  let directRefMatch;
+  while ((directRefMatch = directRefRegex.exec(content)) !== null) {
+    const target = parseFloat(directRefMatch[1].replace(",", "."));
+    if (!isNaN(target) && allPassageNumbers.includes(target)) {
+      links.push({ targetNumber: target, text: directRefMatch[0] });
+    }
+  }
+
+  // Remove duplicates
   const seen = new Set<number>();
-  const uniqueLinks = links.filter(link => {
+  return links.filter(link => {
     if (seen.has(link.targetNumber)) return false;
     seen.add(link.targetNumber);
     return true;
   });
-
-  return uniqueLinks;
 }
 
 export function autoDetectLinks(

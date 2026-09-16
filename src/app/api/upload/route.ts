@@ -94,7 +94,8 @@ export async function POST(req: Request) {
     const passageNumbers = allPassages.map(p => p.number);
     let linksCreated = 0;
 
-    for (const passage of allPassages) {
+    for (let i = 0; i < allPassages.length; i++) {
+      const passage = allPassages[i];
       const detectedLinks = detectLinksInPassage(passage.content, passageNumbers);
 
       for (const link of detectedLinks) {
@@ -120,6 +121,41 @@ export async function POST(req: Request) {
             },
           });
           linksCreated++;
+        }
+      }
+
+      // Also create implicit links for "Continuar" type options
+      // If passage has tab-indented options without explicit targets,
+      // and the next passage exists, create a link
+      const lines = passage.content.split("\n");
+      const hasTabOptions = lines.some(l => l.startsWith("\t") && l.trim().length > 0);
+      const hasContinuar = /continuar|proseguir|seguir/i.test(passage.content);
+
+      if ((hasTabOptions || hasContinuar) && i + 1 < allPassages.length) {
+        const nextPassage = allPassages[i + 1];
+
+        // Check if link already exists
+        const existingImplicitLink = await db.passageLink.findUnique({
+          where: {
+            sourceId_targetId: {
+              sourceId: passage.id,
+              targetId: nextPassage.id,
+            },
+          },
+        });
+
+        if (!existingImplicitLink) {
+          // Check if passage is not an endpoint
+          if (!passage.isEndpoint) {
+            await db.passageLink.create({
+              data: {
+                sourceId: passage.id,
+                targetId: nextPassage.id,
+                linkText: "Continuar",
+              },
+            });
+            linksCreated++;
+          }
         }
       }
     }
