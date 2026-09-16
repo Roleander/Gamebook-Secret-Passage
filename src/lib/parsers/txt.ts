@@ -11,10 +11,19 @@ export interface PassageOption {
   text: string;
   targetNumber?: number;
   type: "link" | "action" | "dice";
+  isNewPassage?: boolean;
 }
 
-export function extractPassagesFromText(text: string): ParsedPassage[] {
-  if (!text || text.trim().length === 0) return [];
+export interface ParseResult {
+  passages: ParsedPassage[];
+  links: { sourceNumber: number; targetNumber: number; text: string }[];
+  warnings: string[];
+}
+
+export function extractPassagesFromText(text: string): ParseResult {
+  if (!text || text.trim().length === 0) {
+    return { passages: [], links: [], warnings: [] };
+  }
 
   const normalizedText = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const lines = normalizedText.split("\n");
@@ -38,12 +47,16 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
   }
 
   if (passageMap.size === 0) {
-    return [{
-      number: 1,
-      content: normalizedText.trim(),
-      isStart: true,
-      isEndpoint: true,
-    }];
+    return {
+      passages: [{
+        number: 1,
+        content: normalizedText.trim(),
+        isStart: true,
+        isEndpoint: true,
+      }],
+      links: [],
+      warnings: [],
+    };
   }
 
   // Fill passage content
@@ -57,6 +70,7 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
   }
 
   const passages: ParsedPassage[] = [];
+  const warnings: string[] = [];
 
   for (const num of passageOrder) {
     const entry = passageMap.get(num)!;
@@ -69,7 +83,7 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
 
     const content = trimmedLines.join("\n").trim();
 
-    // Detect endings
+    // Detect endings (FIN, FIN I VOLUMEN, etc.)
     const isEndpoint = /\b[Ff][Ii][Nn]\b/.test(content);
 
     const isStart = num === 1 || passageOrder.indexOf(num) === 0;
@@ -86,15 +100,123 @@ export function extractPassagesFromText(text: string): ParsedPassage[] {
     });
   }
 
-  passages.sort((a, b) => a.number - b.number);
-  return passages;
+  // === AUTO-CREATE PASSAGES FOR UNNUMBERED OPTIONS ===
+  const expanded = createPassagesFromUnnumberedOptions(passages);
+
+  // Build links from all passages
+  const allNumbers = expanded.passages.map(p => p.number);
+  const links: { sourceNumber: number; targetNumber: number; text: string }[] = [];
+
+  for (const passage of expanded.passages) {
+    // Links from options with explicit targets
+    if (passage.options) {
+      for (const opt of passage.options) {
+        if (opt.targetNumber && allNumbers.includes(opt.targetNumber)) {
+          links.push({
+            sourceNumber: passage.number,
+            targetNumber: opt.targetNumber,
+            text: opt.text,
+          });
+        }
+      }
+    }
+
+    // Links from inline references in content
+    const inlineLinks = detectInlineLinks(passage.content, allNumbers);
+    for (const link of inlineLinks) {
+      const alreadyLinked = links.some(
+        l => l.sourceNumber === passage.number && l.targetNumber === link.targetNumber
+      );
+      if (!alreadyLinked) {
+        links.push({
+          sourceNumber: passage.number,
+          targetNumber: link.targetNumber,
+          text: link.text,
+        });
+      }
+    }
+  }
+
+  expanded.passages.sort((a, b) => a.number - b.number);
+
+  return {
+    passages: expanded.passages,
+    links,
+    warnings,
+  };
+}
+
+function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passages: ParsedPassage[]; newPassagesCount: number } {
+  const allPassages = [...passages];
+  const existingNumbers = new Set(passages.map(p => p.number));
+  let nextNumber = Math.max(...Array.from(existingNumbers), 0) + 1;
+  let newCount = 0;
+
+  for (const passage of passages) {
+    if (!passage.options || passage.options.length === 0) continue;
+    if (passage.isEndpoint) continue;
+
+    const unnumberedOptions = passage.options.filter(
+      opt => !opt.targetNumber && opt.type !== "dice"
+    );
+
+    if (unnumberedOptions.length === 0) continue;
+
+    // This passage has unnumbered options — create new passages for each
+    for (const option of unnumberedOptions) {
+      const newNumber = nextNumber++;
+      option.targetNumber = newNumber;
+      option.isNewPassage = true;
+
+      // Create a new passage with the option text as content hint
+      const newPassage: ParsedPassage = {
+        number: newNumber,
+        title: option.text,
+        content: `[Continúa desde pasaje ${passage.number}]\n\nOpción: ${option.text}\n\n(Escribe aquí el contenido de este pasaje)`,
+        isStart: false,
+        isEndpoint: false,
+        options: [],
+      };
+
+      allPassages.push(newPassage);
+      newCount++;
+    }
+
+    // Update passage content to reference new passage numbers
+    // Replace unnumbered option lines with numbered ones
+    const contentLines = passage.content.split("\n");
+    for (let i = 0; i < contentLines.length; i++) {
+      const trimmed = contentLines[i].trim();
+      for (const option of unnumberedOptions) {
+        if (option.targetNumber && trimmed === option.text) {
+          contentLines[i] = contentLines[i].replace(option.text, `${option.text} [→ ${option.targetNumber}]`);
+          break;
+        }
+      }
+    }
+    passage.content = contentLines.join("\n");
+  }
+
+  return { passages: allPassages, newPassagesCount: newCount };
 }
 
 function extractOptionsFromContent(content: string): PassageOption[] {
   const options: PassageOption[] = [];
   const lines = content.split("\n");
 
-  for (const line of lines) {
+  // Find where options start (usually after "Decide:", "Elige:", etc.)
+  let optionsStartIdx = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const trimmed = lines[i].trim();
+    if (/^(Decide|Elige|Opci[oó]n|Choose|Decision)/i.test(trimmed)) {
+      optionsStartIdx = i + 1;
+      break;
+    }
+  }
+
+  // Scan lines for options
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const trimmed = line.trim();
 
     // Tab-indented option (gamebook standard)
@@ -106,7 +228,17 @@ function extractOptionsFromContent(content: string): PassageOption[] {
     // "Si" conditional option
     const isSiOption = /^Si\s+/i.test(trimmed);
 
-    if (isTabOption || isArrowOption || isSiOption) {
+    // Short verb-only option at end of passage (e.g., "Interrogar", "Lanzar un Misil Mágico")
+    // These are typically the last few lines, short, and start with a verb
+    const isVerbOption = i >= lines.length - 6 &&
+      trimmed.length > 2 &&
+      trimmed.length < 80 &&
+      !/^\d/.test(trimmed) &&
+      !/^(FIN|Nota|Recuerda|Pierdes|Recupera|Has|Te|Los|Las|El|La|Lo|Un|Una)/i.test(trimmed) &&
+      !/\./.test(trimmed) && // No periods = likely an option
+      /^[A-ZÁÉÍÓÚÑ]/.test(trimmed); // Starts with capital letter
+
+    if (isTabOption || isArrowOption || isSiOption || isVerbOption) {
       let optionText = trimmed;
 
       // Clean up the option text
@@ -117,6 +249,9 @@ function extractOptionsFromContent(content: string): PassageOption[] {
 
       // Skip "Nota:" lines (annotations)
       if (/^Nota:/i.test(optionText)) continue;
+
+      // Skip lines that look like narrative text (contain commas, long sentences)
+      if (optionText.includes(",") && optionText.length > 60) continue;
 
       // Determine option type
       let type: "link" | "action" | "dice" = "action";
@@ -149,9 +284,9 @@ function extractOptionsFromContent(content: string): PassageOption[] {
       // Check for Twine goto
       const gotoMatch = optionText.match(/<<goto\s+"([^"]+)">>/i);
       if (gotoMatch) {
-        const numRef = gotoMatch[1].match(/(\d+(?:[.,]\d+)?)/);
-        if (numRef) {
-          targetNumber = parseFloat(numRef[1].replace(",", "."));
+        const numMatch = gotoMatch[1].match(/(\d+(?:[.,]\d+)?)/);
+        if (numMatch) {
+          targetNumber = parseFloat(numMatch[1].replace(",", "."));
           type = "link";
         }
       }
@@ -168,12 +303,8 @@ function extractOptionsFromContent(content: string): PassageOption[] {
 }
 
 function detectNamedReference(text: string): number | undefined {
-  // Named passage references that map to specific numbers
   const namedRefs: { pattern: RegExp; target: number }[] = [
-    // "Continuar" or "Continuar abajo" - doesn't have a fixed target, needs context
-    // "Hacia Raízcrecida" - maps to passage 12
     { pattern: /Hacia\s+"?Raízcrecida"?/i, target: 12 },
-    // "Desde la muerte" - maps to passage 21
     { pattern: /Desde\s+la\s+muerte/i, target: 21 },
   ];
 
@@ -186,21 +317,13 @@ function detectNamedReference(text: string): number | undefined {
   return undefined;
 }
 
-export function detectLinksInPassage(
+function detectInlineLinks(
   content: string,
   allPassageNumbers: number[]
 ): { targetNumber: number; text: string }[] {
   const links: { targetNumber: number; text: string }[] = [];
 
-  // Extract options and get their targets
-  const options = extractOptionsFromContent(content);
-  for (const opt of options) {
-    if (opt.targetNumber && allPassageNumbers.includes(opt.targetNumber)) {
-      links.push({ targetNumber: opt.targetNumber, text: opt.text });
-    }
-  }
-
-  // === TWINE-STYLE GOTO (inline, not in options) ===
+  // TWINE-STYLE GOTO
   const gotoRegex = /<<goto\s+"([^"]+)">>/gi;
   let gotoMatch;
   while ((gotoMatch = gotoRegex.exec(content)) !== null) {
@@ -213,17 +336,17 @@ export function detectLinksInPassage(
     }
   }
 
-  // === ARROW PATTERNS in content (not options) ===
-  const arrowRegex = /(?:^|\n)(\d+(?:[.,]\d+)?)\s*(?:→|->|-->|—>)\s*(\d+(?:[.,]\d+)?)/g;
+  // ARROW PATTERNS: "→ 25" or "-> 25"
+  const arrowRegex = /(?:→|->|-->|—>)\s*(\d+(?:[.,]\d+)?)/g;
   let arrowMatch;
   while ((arrowMatch = arrowRegex.exec(content)) !== null) {
-    const target = parseFloat(arrowMatch[2].replace(",", "."));
+    const target = parseFloat(arrowMatch[1].replace(",", "."));
     if (!isNaN(target) && allPassageNumbers.includes(target)) {
       links.push({ targetNumber: target, text: arrowMatch[0].trim() });
     }
   }
 
-  // === BRACKET/PARENTHESIS PATTERNS ===
+  // BRACKET PATTERNS: "[25]", "(25)"
   const bracketRegex = /[\[\{(]\s*(?:pasaje\s+)?(\d+(?:[.,]\d+)?)\s*[\]\})]/gi;
   let bracketMatch;
   while ((bracketMatch = bracketRegex.exec(content)) !== null) {
@@ -233,7 +356,7 @@ export function detectLinksInPassage(
     }
   }
 
-  // === DIRECT PASSAGE REFERENCES in body text ===
+  // DIRECT PASSAGE REFERENCES: "ve al 25", "pasaje 25"
   const directRefRegex = /(?:ve(?:s|r)?|ir|continuar|pasar|acudir|dirigir(?:te|se)?)\s+(?:al?\s+)?(?:pasaje|apartado|punto|sección|seccion|párrafo)?\s*(\d+(?:[.,]\d+)?)/gi;
   let directRefMatch;
   while ((directRefMatch = directRefRegex.exec(content)) !== null) {
@@ -252,6 +375,14 @@ export function detectLinksInPassage(
   });
 }
 
+// Keep backward-compatible function signature
+export function detectLinksInPassage(
+  content: string,
+  allPassageNumbers: number[]
+): { targetNumber: number; text: string }[] {
+  return detectInlineLinks(content, allPassageNumbers);
+}
+
 export function autoDetectLinks(
   passages: { number: number; content: string }[]
 ): { sourceNumber: number; targetNumber: number; text: string }[] {
@@ -259,7 +390,7 @@ export function autoDetectLinks(
   const detectedLinks: { sourceNumber: number; targetNumber: number; text: string }[] = [];
 
   for (const passage of passages) {
-    const links = detectLinksInPassage(passage.content, allNumbers);
+    const links = detectInlineLinks(passage.content, allNumbers);
     for (const link of links) {
       detectedLinks.push({
         sourceNumber: passage.number,

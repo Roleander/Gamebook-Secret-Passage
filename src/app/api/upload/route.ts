@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { parseFile } from "@/lib/parsers";
-import { detectLinksInPassage } from "@/lib/parsers/txt";
 
 export async function POST(req: Request) {
   try {
@@ -53,7 +52,7 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Parse file
+    // Parse file — this now includes auto-created passages from unnumbered options
     const result = await parseFile(buffer, file.name);
 
     if (result.errors.length > 0 && result.passages.length === 0) {
@@ -73,68 +72,70 @@ export async function POST(req: Request) {
     const startNumber = (maxPassage?.number || 0) + 1;
 
     // Create passages in database
-    const createdPassages = await db.passage.createMany({
-      data: result.passages.map((passage, index) => ({
-        projectId,
-        number: startNumber + index,
-        title: passage.title,
-        content: passage.content,
-        sortOrder: index,
-        isStart: passage.isStart && index === 0,
-        isEndpoint: passage.isEndpoint,
-      })),
+    // Preserve original passage numbers (including auto-created ones)
+    const passageData = result.passages.map((passage, index) => ({
+      projectId,
+      number: passage.number,
+      title: passage.title,
+      content: passage.content,
+      sortOrder: index,
+      isStart: passage.isStart && index === 0,
+      isEndpoint: passage.isEndpoint,
+    }));
+
+    await db.passage.createMany({
+      data: passageData,
     });
 
-    // Now auto-detect and create links
+    // Get all created passages
     const allPassages = await db.passage.findMany({
       where: { projectId },
       orderBy: { number: "asc" },
     });
 
-    const passageNumbers = allPassages.map(p => p.number);
     let linksCreated = 0;
 
-    for (let i = 0; i < allPassages.length; i++) {
-      const passage = allPassages[i];
-      const detectedLinks = detectLinksInPassage(passage.content, passageNumbers);
+    // Create links from parsed result
+    for (const link of result.links) {
+      const sourcePassage = allPassages.find(p => p.number === link.sourceNumber);
+      const targetPassage = allPassages.find(p => p.number === link.targetNumber);
 
-      for (const link of detectedLinks) {
-        const targetPassage = allPassages.find(p => p.number === link.targetNumber);
-        if (!targetPassage) continue;
+      if (!sourcePassage || !targetPassage) continue;
 
-        // Check if link already exists
-        const existingLink = await db.passageLink.findUnique({
-          where: {
-            sourceId_targetId: {
-              sourceId: passage.id,
-              targetId: targetPassage.id,
-            },
+      // Check if link already exists
+      const existingLink = await db.passageLink.findUnique({
+        where: {
+          sourceId_targetId: {
+            sourceId: sourcePassage.id,
+            targetId: targetPassage.id,
+          },
+        },
+      });
+
+      if (!existingLink) {
+        await db.passageLink.create({
+          data: {
+            sourceId: sourcePassage.id,
+            targetId: targetPassage.id,
+            linkText: link.text,
           },
         });
-
-        if (!existingLink) {
-          await db.passageLink.create({
-            data: {
-              sourceId: passage.id,
-              targetId: targetPassage.id,
-              linkText: link.text,
-            },
-          });
-          linksCreated++;
-        }
+        linksCreated++;
       }
+    }
 
-      // Also create implicit links for "Continuar" type options
-      // If passage has tab-indented options without explicit targets,
-      // and the next passage exists, create a link
-      const lines = passage.content.split("\n");
-      const hasTabOptions = lines.some(l => l.startsWith("\t") && l.trim().length > 0);
-      const hasContinuar = /continuar|proseguir|seguir/i.test(passage.content);
+    // Also create implicit "Continuar" links for passages with options
+    for (let i = 0; i < allPassages.length; i++) {
+      const passage = allPassages[i];
+      if (passage.isEndpoint) continue;
 
-      if ((hasTabOptions || hasContinuar) && i + 1 < allPassages.length) {
+      const hasOptions = result.passages.find(
+        p => p.number === passage.number
+      )?.options?.some(o => o.type !== "dice");
+
+      if (hasOptions && i + 1 < allPassages.length) {
         const nextPassage = allPassages[i + 1];
 
-        // Check if link already exists
         const existingImplicitLink = await db.passageLink.findUnique({
           where: {
             sourceId_targetId: {
@@ -145,17 +146,14 @@ export async function POST(req: Request) {
         });
 
         if (!existingImplicitLink) {
-          // Check if passage is not an endpoint
-          if (!passage.isEndpoint) {
-            await db.passageLink.create({
-              data: {
-                sourceId: passage.id,
-                targetId: nextPassage.id,
-                linkText: "Continuar",
-              },
-            });
-            linksCreated++;
-          }
+          await db.passageLink.create({
+            data: {
+              sourceId: passage.id,
+              targetId: nextPassage.id,
+              linkText: "Continuar",
+            },
+          });
+          linksCreated++;
         }
       }
     }
@@ -166,16 +164,17 @@ export async function POST(req: Request) {
         projectId,
         filename: file.name,
         fileType: file.name.split(".").pop() || "unknown",
-        passagesCount: createdPassages.count,
+        passagesCount: result.passages.length,
         rawContent: result.rawText.substring(0, 10000),
       },
     });
 
     return NextResponse.json({
       message: "Archivo importado exitosamente",
-      passagesCount: createdPassages.count,
+      passagesCount: result.passages.length,
       linksCreated,
       errors: result.errors,
+      warnings: result.warnings,
     });
   } catch (error) {
     console.error("Upload error:", error);

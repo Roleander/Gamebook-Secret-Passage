@@ -1,19 +1,21 @@
 import { parseDocx } from "./docx";
 import { parseOdt } from "./odt";
-import { extractPassagesFromText, detectLinksInPassage, type ParsedPassage } from "./txt";
+import { extractPassagesFromText, detectLinksInPassage, type ParsedPassage, type ParseResult } from "./txt";
 
-export type { ParsedPassage };
+export type { ParsedPassage, ParseResult };
 
-export interface ParseResult {
+export interface FileParseResult {
   passages: ParsedPassage[];
+  links: { sourceNumber: number; targetNumber: number; text: string }[];
   rawText: string;
   errors: string[];
+  warnings: string[];
 }
 
 export async function parseFile(
   buffer: Buffer,
   filename: string
-): Promise<ParseResult> {
+): Promise<FileParseResult> {
   const errors: string[] = [];
   let rawText = "";
 
@@ -31,7 +33,6 @@ export async function parseFile(
         rawText = await parseOdt(buffer);
         break;
       case "doc":
-        // .doc files (old format) - try mammoth first, may fail
         try {
           rawText = await parseDocx(buffer);
         } catch {
@@ -41,16 +42,15 @@ export async function parseFile(
         }
         break;
       case "rtf":
-        // Basic RTF stripping
         rawText = buffer.toString("utf-8")
-          .replace(/\{[^{}]*\}/g, "") // Remove groups
-          .replace(/\\[a-z]+\d*\s?/g, "") // Remove commands
-          .replace(/[{}]/g, ""); // Remove braces
+          .replace(/\{[^{}]*\}/g, "")
+          .replace(/\\[a-z]+\d*\s?/g, "")
+          .replace(/[{}]/g, "");
         break;
       case "html":
       case "htm":
         rawText = buffer.toString("utf-8")
-          .replace(/<[^>]+>/g, " ") // Remove tags
+          .replace(/<[^>]+>/g, " ")
           .replace(/&nbsp;/g, " ")
           .replace(/&[a-z]+;/g, "")
           .replace(/\s+/g, " ")
@@ -63,12 +63,14 @@ export async function parseFile(
     errors.push(`Error al parsear ${ext}: ${error}`);
   }
 
-  const passages = extractPassagesFromText(rawText);
+  const result = extractPassagesFromText(rawText);
 
   return {
-    passages,
+    passages: result.passages,
+    links: result.links,
     rawText,
     errors,
+    warnings: result.warnings || [],
   };
 }
 
