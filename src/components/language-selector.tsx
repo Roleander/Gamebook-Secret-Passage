@@ -1,7 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
-import { useRouter, usePathname } from "@/i18n/navigation";
+import { useI18n } from "@/lib/i18n";
 import { useState, useRef, useEffect } from "react";
 
 const locales = [
@@ -19,9 +18,7 @@ const locales = [
 ];
 
 export function LanguageSelector() {
-  const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
+  const { locale, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -38,7 +35,7 @@ export function LanguageSelector() {
   const current = locales.find((l) => l.code === locale) || locales[0];
 
   function handleSelect(code: string) {
-    router.replace(pathname, { locale: code });
+    setLocale(code);
     setOpen(false);
   }
 

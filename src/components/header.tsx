@@ -1,23 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { usePathname } from "@/i18n/navigation";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { BookOpen, Home, Plus, Settings, CreditCard, Download } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 
 export function Header() {
-  const t = useTranslations("Navigation");
-  const pathname = usePathname();
+  const { t } = useI18n();
 
   const navigation = [
-    { name: t("home"), href: "/", icon: Home },
-    { name: t("myProjects"), href: "/projects", icon: BookOpen },
-    { name: t("newProject"), href: "/projects/new", icon: Plus },
-    { name: t("downloads"), href: "/downloads", icon: Download },
-    { name: t("pricing"), href: "/pricing", icon: CreditCard },
-    { name: t("admin"), href: "/admin", icon: Settings },
+    { name: t("Navigation.home"), href: "/", icon: Home },
+    { name: t("Navigation.myProjects"), href: "/projects", icon: BookOpen },
+    { name: t("Navigation.newProject"), href: "/projects/new", icon: Plus },
+    { name: t("Navigation.downloads"), href: "/downloads", icon: Download },
+    { name: t("Navigation.pricing"), href: "/pricing", icon: CreditCard },
+    { name: t("Navigation.admin"), href: "/admin", icon: Settings },
   ];
 
   return (
@@ -35,7 +33,7 @@ export function Header() {
 
           <nav className="flex items-center space-x-1">
             {navigation.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = false;
               return (
                 <Link
                   key={item.href}
