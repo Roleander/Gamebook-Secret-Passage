@@ -32,77 +32,185 @@ export async function generateDOC(projectId: string): Promise<string> {
     throw new Error("Proyecto no encontrado");
   }
 
-  // Generate RTF format with bookmarks for navigation
-  let rtf = `{\\rtf1\\ansi\\deff0
-{\\fonttbl{\\f0 Times New Roman;}{\\f1 Courier New;}}
-{\\colortbl;\\red139\\green69\\blue19;\\red0\\green0\\blue0;\\red34\\green197\\blue94;\\red239\\green68\\blue68;\\red0\\green0\\blue255;}
-\\paperw12240\\paperh15840\\margl1440\\margr1440\\margt1440\\margb1440
+  const escapeHtml = (text: string) =>
+    text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  let html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(project.title)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Times New Roman', Georgia, serif;
+      font-size: 12pt;
+      line-height: 1.6;
+      color: #333;
+      background: white;
+      padding: 40px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    .cover {
+      text-align: center;
+      padding: 60px 20px;
+      border-bottom: 3px double #8b4513;
+      margin-bottom: 40px;
+      page-break-after: always;
+    }
+    .cover h1 {
+      font-size: 28pt;
+      color: #8b4513;
+      margin-bottom: 10px;
+    }
+    .cover .subtitle { 
+      font-size: 12pt; 
+      color: #666; 
+      font-style: italic; 
+    }
+    
+    .toc {
+      margin-bottom: 40px;
+      page-break-after: always;
+    }
+    .toc h2 {
+      font-size: 18pt;
+      color: #8b4513;
+      border-bottom: 2px solid #c9a96e;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+    .toc ul {
+      list-style: none;
+      padding: 0;
+    }
+    .toc li {
+      margin-bottom: 8px;
+    }
+    .toc a {
+      color: #8b4513;
+      text-decoration: none;
+    }
+    .toc a:hover {
+      text-decoration: underline;
+    }
+    
+    .passage {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0d5c5;
+      page-break-inside: avoid;
+    }
+    .passage:last-child { border-bottom: none; }
+    
+    .passage-header {
+      font-size: 14pt;
+      font-weight: bold;
+      color: #8b4513;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      background: #f5f0e8;
+      border-left: 4px solid #c9a96e;
+    }
+    
+    .passage-content {
+      text-align: justify;
+      margin-bottom: 15px;
+      white-space: pre-wrap;
+    }
+    
+    .passage-links {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #faf8f5;
+      border: 1px solid #e0d5c5;
+      border-radius: 4px;
+    }
+    .passage-links strong { 
+      color: #8b4513;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .passage-links a {
+      color: #8b4513;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .passage-links a:hover { text-decoration: underline; }
+    
+    .start-marker { 
+      color: #22c55e; 
+      font-size: 10pt; 
+      font-weight: bold; 
+    }
+    .end-marker { 
+      color: #ef4444; 
+      font-size: 10pt; 
+      font-weight: bold; 
+    }
+    
+    @media print {
+      body { padding: 0; }
+      .passage { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="cover">
+      <h1>${escapeHtml(project.title)}</h1>
+      <p class="subtitle">Librojuego generado por Secret Passage</p>
+    </div>
+
+    <div class="toc">
+      <h2>Índice</h2>
+      <ul>
 `;
 
-  // Title
-  rtf += `{\\fs48\\b\\cf1 ${escapeRTF(project.title)}}\\par\\par`;
-  rtf += `{\\fs24\\i Librojuego generado por Secret Passage}\\par\\par\\par`;
-
   // Table of contents with hyperlinks
-  rtf += `{\\fs32\\b\\cf1 \'CDNDICE}\\par\\par`;
   project.passages.forEach((passage) => {
-    rtf += `{\\fs24\\cf5 {\\field{\\*\\fldinst{HYPERLINK "#passage${passage.number}"}}{\\fldrslt{\\cf5 Pasaje ${passage.number}`;
-    if (passage.title) rtf += ` - ${escapeRTF(passage.title)}`;
-    rtf += `}}}\\par`;
+    html += `        <li>
+          <a href="#passage-${passage.number}">
+            Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}
+          </a>
+        </li>\n`;
   });
-  rtf += `\\par\\par`;
 
-  // Passages with bookmarks
+  html += `      </ul>
+    </div>
+
+`;
+
+  // Passages
   project.passages.forEach((passage) => {
-    // Bookmark for this passage
-    rtf += `{\\bkmkstart passage${passage.number}}`;
-    
-    // Passage header
-    rtf += `{\\fs28\\b\\cf1 ---- PASAJE ${passage.number}`;
-    if (passage.title) rtf += ` \\u8212  ${escapeRTF(passage.title)}`;
-    if (passage.number === 1) rtf += ` {\\cf3 [INICIO]}`;
-    if (passage.isEndpoint) rtf += ` {\\cf4 [FIN]}`;
-    rtf += ` ----}\\par\\par`;
+    const markers = [];
+    if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+    if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
 
-    // Content (preserve line breaks)
-    const lines = passage.content.split("\n");
-    lines.forEach((line) => {
-      // Detect and convert inline references to hyperlinks
-      let processedLine = escapeRTF(line);
-      
-      // Match patterns like "pasaje 123", "apartado 123", etc.
-      processedLine = processedLine.replace(
-        /(?:pasaje|apartado|punto|secci[oó]n)\\s+(\\d+)/gi,
-        (match, num) => `{\\field{\\*\\fldinst{HYPERLINK "#passage${num}"}}{\\fldrslt{\\cf5 ${match}}}}`
-      );
-      
-      rtf += `{\\fs24\\cf2 ${processedLine}}\\par`;
-    });
+    html += `    <div class="passage" id="passage-${passage.number}">
+      <div class="passage-header">
+        Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""} ${markers.join(" ")}
+      </div>
+      <div class="passage-content">${escapeHtml(passage.content)}</div>\n`;
 
-    rtf += `\\par`;
-
-    // Links with hyperlinks
     if (passage.outgoingLinks.length > 0) {
-      rtf += `{\\fs24\\b\\cf1 Opciones:}\\par`;
+      html += `      <div class="passage-links">
+        <strong>Opciones:</strong>\n`;
       passage.outgoingLinks.forEach((link) => {
         const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-        rtf += `{\\fs24   \\u9658  {\\field{\\*\\fldinst{HYPERLINK "#passage${link.target.number}"}}{\\fldrslt{\\cf5\\ul ${escapeRTF(text)}}}}\\par`;
+        html += `        → <a href="#passage-${link.target.number}">${escapeHtml(text)}</a><br>\n`;
       });
-      rtf += `\\par`;
+      html += `      </div>\n`;
     }
 
-    rtf += `{\\bkmkend passage${passage.number}}`;
+    html += `    </div>\n\n`;
   });
 
-  rtf += `}`;
+  html += `  </div>
+</body>
+</html>`;
 
-  return rtf;
-}
-
-function escapeRTF(text: string): string {
-  return text
-    .replace(/\\/g, "\\\\")
-    .replace(/\{/g, "\\{")
-    .replace(/\}/g, "\\}")
-    .replace(/\n/g, "\\par ");
+  return html;
 }
