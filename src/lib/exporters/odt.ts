@@ -122,7 +122,7 @@ export async function generateODT(projectId: string, readingMode = false): Promi
 
     if (readingMode) {
       if (idx > 0) {
-        content += `      <text:p text:style-name="Separator" text:style-name="Separator">* * *</text:p>\n`;
+        content += `      <text:p text:style-name="Separator">——————————————</text:p>\n`;
       }
       const lines = passage.content.split("\n");
       lines.forEach((line) => {

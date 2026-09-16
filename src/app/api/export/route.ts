@@ -179,7 +179,7 @@ h2 {
 a { color: #8b4513; text-decoration: none; }
 .start-marker { color: #22c55e; font-size: 0.9em; }
 .end-marker { color: #ef4444; font-size: 0.9em; }
-.separator { text-align: center; color: #c9a96e; margin: 25px 0; font-size: 1.2em; letter-spacing: 8px; }
+.separator { text-align: center; color: #c9a96e; margin: 30px auto; width: 120px; border-top: 1px solid #c9a96e; }
 .inline-links { font-size: 0.9em; color: #666; font-style: italic; margin-top: 10px; }
 .inline-links a { font-weight: bold; font-style: normal; }`);
 
@@ -228,7 +228,7 @@ a { color: #8b4513; text-decoration: none; }
 
     let bodyContent: string;
     if (readingMode) {
-      const separator = index > 0 ? `<div class="separator">* * *</div>` : "";
+      const separator = index > 0 ? `<div class="separator"></div>` : "";
       bodyContent = `
   ${separator}
   <div class="content">${escapeXml(passage.content)}</div>

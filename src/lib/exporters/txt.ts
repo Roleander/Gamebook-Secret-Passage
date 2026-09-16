@@ -38,7 +38,7 @@ export async function generateTXT(projectId: string, readingMode = false): Promi
 
   project.passages.forEach((passage, idx) => {
     if (readingMode) {
-      if (idx > 0) txt += `\n* * *\n\n`;
+      if (idx > 0) txt += `\n——————————————\n\n`;
       txt += `${passage.content}\n`;
       if (passage.outgoingLinks.length > 0) {
         txt += `\n`;

@@ -107,7 +107,10 @@ function generateHTML(project: { title: string; passages: Passage[] }, readingMo
     .passage-links a:hover { text-decoration: underline; }
     .start-marker { color: #22c55e; font-size: 11px; font-weight: bold; }
     .end-marker { color: #ef4444; font-size: 11px; font-weight: bold; }
-    .separator { text-align: center; color: #c9a96e; margin: 25px 0; font-size: 18px; letter-spacing: 8px; }
+    .separator {
+      text-align: center; color: #c9a96e; margin: 30px auto; width: 120px;
+      border-top: 1px solid #c9a96e;
+    }
     .inline-links { font-size: 13px; color: #666; font-style: italic; margin-top: 10px; }
     .inline-links a { color: #8b4513; text-decoration: none; font-weight: bold; font-style: normal; }
     @media print {
@@ -129,7 +132,7 @@ function generateHTML(project: { title: string; passages: Passage[] }, readingMo
     if (readingMode) {
       // Reading mode: integrated, no headers
       if (idx > 0) {
-        html += `    <div class="separator">* * *</div>\n`;
+        html += `    <div class="separator"></div>\n`;
       }
       html += `    <div class="passage" id="passage-${passage.number}">\n`;
       html += `      <div class="passage-content">${escapeHtml(passage.content)}</div>\n`;
