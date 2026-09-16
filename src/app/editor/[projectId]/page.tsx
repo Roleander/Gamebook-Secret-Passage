@@ -54,6 +54,7 @@ export default function EditorPage() {
   const [autoFixing, setAutoFixing] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [readingMode, setReadingMode] = useState(true);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -123,7 +124,7 @@ export default function EditorPage() {
       const response = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, format }),
+        body: JSON.stringify({ projectId, format, readingMode }),
       });
 
       if (!response.ok) throw new Error("Error al exportar");
@@ -261,7 +262,19 @@ export default function EditorPage() {
                   className="absolute right-0 top-full mt-1 z-50"
                   onMouseLeave={() => setShowExportMenu(false)}
                 >
-                  <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[180px]">
+                  <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[220px]">
+                    <div className="px-4 py-2 border-b border-border">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={readingMode}
+                          onChange={(e) => setReadingMode(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        <span>Lectura fluida</span>
+                      </label>
+                      <p className="text-xs text-muted-foreground mt-1">Sin titulares por pasaje</p>
+                    </div>
                     <button
                       onClick={() => { handleExport("pdf"); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"

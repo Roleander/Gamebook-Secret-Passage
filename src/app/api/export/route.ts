@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { projectId, format } = await req.json();
+    const { projectId, format, readingMode } = await req.json();
 
     if (!projectId || !format) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     switch (format) {
       case "pdf": {
-        const html = await generatePDF(projectId);
+        const html = await generatePDF(projectId, readingMode);
         return new NextResponse(html, {
           headers: {
             "Content-Type": "text/html; charset=utf-8",
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         });
       }
       case "epub": {
-        const epubBuffer = await generateEPUB(project);
+        const epubBuffer = await generateEPUB(project, readingMode);
         return new NextResponse(new Uint8Array(epubBuffer), {
           headers: {
             "Content-Type": "application/epub+zip",
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
         });
       }
       case "txt": {
-        const txt = await generateTXT(projectId);
+        const txt = await generateTXT(projectId, readingMode);
         return new NextResponse(txt, {
           headers: {
             "Content-Type": "text/plain; charset=utf-8",
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
         });
       }
       case "odt": {
-        const odtBuffer = await generateODT(projectId);
+        const odtBuffer = await generateODT(projectId, readingMode);
         return new NextResponse(new Uint8Array(odtBuffer), {
           headers: {
             "Content-Type": "application/vnd.oasis.opendocument.text",
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         });
       }
       case "doc": {
-        const docContent = await generateDOC(projectId);
+        const docContent = await generateDOC(projectId, readingMode);
         return new NextResponse(docContent, {
           headers: {
             "Content-Type": "application/rtf",
@@ -120,7 +120,7 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-async function generateEPUB(project: any): Promise<Buffer> {
+async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer> {
   const zip = new JSZip();
 
   zip.file("mimetype", "application/epub+zip", { compression: "STORE" as any });
@@ -178,7 +178,10 @@ h2 {
 .links strong { color: #8b4513; display: block; margin-bottom: 8px; }
 a { color: #8b4513; text-decoration: none; }
 .start-marker { color: #22c55e; font-size: 0.9em; }
-.end-marker { color: #ef4444; font-size: 0.9em; }`);
+.end-marker { color: #ef4444; font-size: 0.9em; }
+.separator { text-align: center; color: #c9a96e; margin: 25px 0; font-size: 1.2em; letter-spacing: 8px; }
+.inline-links { font-size: 0.9em; color: #666; font-style: italic; margin-top: 10px; }
+.inline-links a { font-weight: bold; font-style: normal; }`);
 
   const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -201,17 +204,41 @@ a { color: #8b4513; text-decoration: none; }
   project.passages.forEach((passage: any, index: number) => {
     let linksHtml = "";
     if (passage.outgoingLinks.length > 0) {
-      linksHtml = `<div class="links"><strong>Opciones:</strong>\n`;
-      passage.outgoingLinks.forEach((link: any) => {
-        const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-        linksHtml += `<p>→ <a href="chapter${link.target.number}.xhtml">${escapeXml(text)}</a></p>\n`;
-      });
-      linksHtml += `</div>`;
+      if (readingMode) {
+        linksHtml = `<div class="inline-links">`;
+        passage.outgoingLinks.forEach((link: any, linkIdx: number) => {
+          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
+          if (linkIdx > 0) linksHtml += ` · `;
+          linksHtml += `<a href="chapter${link.target.number}.xhtml">${escapeXml(text)}</a>`;
+        });
+        linksHtml += `</div>`;
+      } else {
+        linksHtml = `<div class="links"><strong>Opciones:</strong>\n`;
+        passage.outgoingLinks.forEach((link: any) => {
+          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
+          linksHtml += `<p>→ <a href="chapter${link.target.number}.xhtml">${escapeXml(text)}</a></p>\n`;
+        });
+        linksHtml += `</div>`;
+      }
     }
 
     const markers = [];
     if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
     if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+
+    let bodyContent: string;
+    if (readingMode) {
+      const separator = index > 0 ? `<div class="separator">* * *</div>` : "";
+      bodyContent = `
+  ${separator}
+  <div class="content">${escapeXml(passage.content)}</div>
+  ${linksHtml}`;
+    } else {
+      bodyContent = `
+  <h2>Pasaje ${passage.number}${passage.title ? ` — ${escapeXml(passage.title)}` : ""} ${markers.join(" ")}</h2>
+  <div class="content">${escapeXml(passage.content)}</div>
+  ${linksHtml}`;
+    }
 
     const chapterXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -220,10 +247,7 @@ a { color: #8b4513; text-decoration: none; }
   <title>Pasaje ${passage.number}</title>
   <link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
-<body>
-  <h2>Pasaje ${passage.number}${passage.title ? ` — ${escapeXml(passage.title)}` : ""} ${markers.join(" ")}</h2>
-  <div class="content">${escapeXml(passage.content)}</div>
-  ${linksHtml}
+<body>${bodyContent}
 </body>
 </html>`;
 
