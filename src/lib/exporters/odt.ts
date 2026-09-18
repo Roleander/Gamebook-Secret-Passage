@@ -72,23 +72,44 @@ export async function generateODT(projectId: string, readingMode = false): Promi
     <style:style style:name="Heading2" style:family="paragraph" style:parent-style-name="Heading_2">
       <style:text-properties fo:font-size="14pt" fo:font-style="italic" fo:color="#666666"/>
     </style:style>
-    <style:style style:name="PassageTitle" style:family="paragraph">
-      <style:text-properties fo:font-size="14pt" fo:font-weight="bold" fo:color="#8B4513"/>
+    <style:style style:name="PassageNumber" style:family="paragraph">
+      <style:text-properties fo:font-size="11pt" fo:font-weight="bold" fo:color="#8B4513"/>
     </style:style>
     <style:style style:name="PassageContent" style:family="paragraph">
       <style:text-properties fo:font-size="12pt"/>
     </style:style>
-    <style:style style:name="Separator" style:family="paragraph">
-      <style:text-properties fo:font-size="12pt" fo:color="#999999"/>
-    </style:style>
-    <style:style style:name="InlineLinks" style:family="paragraph">
-      <style:text-properties fo:font-size="11pt" fo:font-style="italic" fo:color="#666666"/>
-    </style:style>
     <style:style style:name="Hyperlink" style:family="text">
-      <style:text-properties fo:color="#0000FF" style:text-underline-style="solid"/>
+      <style:text-properties fo:color="#8B4513" style:text-underline-style="solid"/>
     </style:style>
   </office:styles>
 </office:document-styles>`);
+
+  const passageNumbers = new Set(project.passages.map(p => p.number));
+  const linkMap = new Map<number, { targetNumber: number }[]>();
+  for (const p of project.passages) {
+    if (p.outgoingLinks.length > 0) {
+      linkMap.set(p.number, p.outgoingLinks.map(l => ({ targetNumber: l.target.number })));
+    }
+  }
+
+  function convertInlineLinks(line: string): string {
+    let result = escapeXml(line);
+    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    let out = "";
+    let lastIdx = 0;
+    let m;
+    while ((m = regex.exec(line)) !== null) {
+      const numStr = m[1].replace(",", ".");
+      const num = parseFloat(numStr);
+      if (passageNumbers.has(num)) {
+        out += escapeXml(line.slice(lastIdx, m.index));
+        out += `<text:a xlink:href="#passage${num}" text:style-name="Hyperlink">${escapeXml(m[0])}</text:a>`;
+        lastIdx = m.index + m[0].length;
+      }
+    }
+    out += escapeXml(line.slice(lastIdx));
+    return out;
+  }
 
   let content = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
@@ -105,48 +126,28 @@ export async function generateODT(projectId: string, readingMode = false): Promi
       <text:p text:style-name="PassageContent"/>
 `;
 
-  if (!readingMode) {
-    content += `      <text:p text:style-name="Heading2">Índice</text:p>\n`;
-    project.passages.forEach((passage) => {
-      content += `      <text:p text:style-name="PassageContent">`;
-      content += `<text:a xlink:href="#passage${passage.number}" text:style-name="Hyperlink">`;
-      content += `Pasaje ${passage.number}`;
-      if (passage.title) content += ` - ${escapeXml(passage.title)}`;
-      content += `</text:a></text:p>\n`;
-    });
-    content += `      <text:p text:style-name="PassageContent"/>\n`;
-  }
-
-  project.passages.forEach((passage, idx) => {
+  project.passages.forEach((passage) => {
     content += `      <text:bookmark text:name="passage${passage.number}"/>\n`;
 
     if (readingMode) {
-      if (idx > 0) {
-        content += `      <text:p text:style-name="Separator">——————————————</text:p>\n`;
-      }
+      const markers = [];
+      if (passage.number === 1) markers.push("[INICIO]");
+      if (passage.isEndpoint) markers.push("[FIN]");
+      const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
+
+      content += `      <text:p text:style-name="PassageNumber">Pasaje ${passage.number}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
       lines.forEach((line) => {
         content += `      <text:p text:style-name="PassageContent">`;
         content += convertInlineLinks(line);
         content += `</text:p>\n`;
       });
-      if (passage.outgoingLinks.length > 0) {
-        content += `      <text:p text:style-name="InlineLinks">`;
-        passage.outgoingLinks.forEach((link, linkIdx) => {
-          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          if (linkIdx > 0) content += ` · `;
-          content += `<text:a xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">`;
-          content += `${escapeXml(text)}`;
-          content += `</text:a>`;
-        });
-        content += `</text:p>\n`;
-      }
     } else {
-      content += `      <text:p text:style-name="PassageTitle">--- PASAJE ${passage.number}`;
+      content += `      <text:p text:style-name="PassageNumber">Pasaje ${passage.number}`;
       if (passage.title) content += ` — ${escapeXml(passage.title)}`;
       if (passage.number === 1) content += " [INICIO]";
       if (passage.isEndpoint) content += " [FIN]";
-      content += ` ---</text:p>\n`;
+      content += `</text:p>\n`;
 
       const lines = passage.content.split("\n");
       lines.forEach((line) => {
@@ -156,7 +157,7 @@ export async function generateODT(projectId: string, readingMode = false): Promi
       });
 
       if (passage.outgoingLinks.length > 0) {
-        content += `      <text:p text:style-name="PassageTitle">Opciones:</text:p>\n`;
+        content += `      <text:p text:style-name="PassageNumber">Opciones:</text:p>\n`;
         passage.outgoingLinks.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           content += `      <text:p text:style-name="PassageContent">  → `;
@@ -178,22 +179,6 @@ export async function generateODT(projectId: string, readingMode = false): Promi
 
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
   return Buffer.from(buffer);
-}
-
-function convertInlineLinks(line: string): string {
-  const patterns = [
-    /((?:pasaje|apartado|punto|sección|seccion|párrafo)\s+)(\d+)/gi,
-  ];
-
-  let result = escapeXml(line);
-
-  patterns.forEach(pattern => {
-    result = result.replace(pattern, (match, prefix, num) => {
-      return `<text:a xlink:href="#passage${num}" text:style-name="Hyperlink">${escapeXml(prefix)}${num}</text:a>`;
-    });
-  });
-
-  return result;
 }
 
 function escapeXml(text: string): string {

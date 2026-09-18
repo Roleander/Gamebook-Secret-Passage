@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { BookOpen, Home, Plus, Settings, CreditCard, Download } from "lucide-react";
+import { BookOpen, Home, Plus, Settings, CreditCard, Download, LogOut } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
+import { signOut, useSession } from "next-auth/react";
 
 export function Header() {
   const { t } = useI18n();
+  const { data: session } = useSession();
 
   const navigation = [
     { name: t("Navigation.home"), href: "/", icon: Home },
@@ -53,6 +55,16 @@ export function Header() {
             <div className="ml-2">
               <LanguageSelector />
             </div>
+            {session && (
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100 transition-colors ml-2"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Salir</span>
+              </button>
+            )}
           </nav>
         </div>
       </div>

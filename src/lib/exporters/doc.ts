@@ -36,6 +36,27 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
   const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+  const passageNumbers = new Set(project.passages.map(p => p.number));
+
+  function linkifyContent(content: string): string {
+    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    let result = "";
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      const numStr = match[1].replace(",", ".");
+      const num = parseFloat(numStr);
+      if (passageNumbers.has(num)) {
+        result += escapeHtml(content.slice(lastIndex, match.index));
+        result += `<a href="#passage-${num}" style="color:#8b4513;text-decoration:none;border-bottom:1px solid #c9a96e;font-weight:bold">${escapeHtml(match[0])}</a>`;
+        lastIndex = match.index + match[0].length;
+      }
+    }
+    result += escapeHtml(content.slice(lastIndex));
+    return result;
+  }
+
   let html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -72,10 +93,12 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
     .toc a { color: #8b4513; text-decoration: none; }
     .passage {
       margin-bottom: 30px; padding-bottom: 20px;
-      border-bottom: 1px solid #e0d5c5;
       page-break-inside: avoid;
     }
-    .passage:last-child { border-bottom: none; }
+    .passage-number {
+      font-size: 13pt; font-weight: bold; color: #8b4513;
+      margin-bottom: 8px;
+    }
     .passage-header {
       font-size: 14pt; font-weight: bold; color: #8b4513;
       margin-bottom: 10px; padding: 5px 10px;
@@ -90,12 +113,6 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
     .passage-links a { color: #8b4513; text-decoration: none; font-weight: bold; }
     .start-marker { color: #22c55e; font-size: 10pt; font-weight: bold; }
     .end-marker { color: #ef4444; font-size: 10pt; font-weight: bold; }
-    .separator {
-      text-align: center; color: #c9a96e; margin: 30px auto; width: 120px;
-      border-top: 1px solid #c9a96e;
-    }
-    .inline-links { font-size: 10pt; color: #666; font-style: italic; margin-top: 10px; }
-    .inline-links a { color: #8b4513; text-decoration: none; font-weight: bold; font-style: normal; }
     @media print { body { padding: 0; } .passage { page-break-inside: avoid; } }
   </style>
 </head>
@@ -117,34 +134,20 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
     html += `      </ul>\n    </div>\n\n`;
   }
 
-  project.passages.forEach((passage, idx) => {
+  project.passages.forEach((passage) => {
+    const markers = [];
+    if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+    if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+
     if (readingMode) {
-      if (idx > 0) {
-        html += `    <div class="separator"></div>\n`;
-      }
       html += `    <div class="passage" id="passage-${passage.number}">\n`;
-      html += `      <div class="passage-content">${escapeHtml(passage.content)}</div>\n`;
-      if (passage.outgoingLinks.length > 0) {
-        html += `      <div class="inline-links">`;
-        passage.outgoingLinks.forEach((link, linkIdx) => {
-          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          if (linkIdx > 0) html += ` · `;
-          html += `<a href="#passage-${link.target.number}">${escapeHtml(text)}</a>`;
-        });
-        html += `</div>\n`;
-      }
+      html += `      <div class="passage-number">Pasaje ${passage.number} ${markers.join(" ")}</div>\n`;
+      html += `      <div class="passage-content">${linkifyContent(passage.content)}</div>\n`;
       html += `    </div>\n\n`;
     } else {
-      const markers = [];
-      if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
-      if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
-
-      html += `    <div class="passage" id="passage-${passage.number}">
-      <div class="passage-header">
-        Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""} ${markers.join(" ")}
-      </div>
-      <div class="passage-content">${escapeHtml(passage.content)}</div>\n`;
-
+      html += `    <div class="passage" id="passage-${passage.number}">\n`;
+      html += `      <div class="passage-number">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""} ${markers.join(" ")}</div>\n`;
+      html += `      <div class="passage-content">${linkifyContent(passage.content)}</div>\n`;
       if (passage.outgoingLinks.length > 0) {
         html += `      <div class="passage-links">
         <strong>Opciones:</strong>\n`;

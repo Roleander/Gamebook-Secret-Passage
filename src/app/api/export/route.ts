@@ -123,6 +123,39 @@ function escapeXml(text: string): string {
 async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer> {
   const zip = new JSZip();
 
+  const passageNumbers = new Set(project.passages.map((p: any) => p.number));
+  const linkMap = new Map<number, { targetNumber: number; text: string }[]>();
+  for (const p of project.passages) {
+    if (p.outgoingLinks.length > 0) {
+      linkMap.set(p.number, p.outgoingLinks.map((l: any) => ({
+        targetNumber: l.target.number,
+        text: l.linkText || `Pasaje ${l.target.number}`,
+      })));
+    }
+  }
+
+  function linkifyContent(content: string, passageNumber: number): string {
+    const links = linkMap.get(passageNumber);
+    if (!links || links.length === 0) return escapeXml(content);
+
+    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    let result = "";
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      const numStr = match[1].replace(",", ".");
+      const num = parseFloat(numStr);
+      if (passageNumbers.has(num) && num !== passageNumber) {
+        result += escapeXml(content.slice(lastIndex, match.index));
+        result += `<a href="chapter${num}.xhtml" style="color:#8b4513;border-bottom:1px solid #c9a96e">${escapeXml(match[0])}</a>`;
+        lastIndex = match.index + match[0].length;
+      }
+    }
+    result += escapeXml(content.slice(lastIndex));
+    return result;
+  }
+
   zip.file("mimetype", "application/epub+zip", { compression: "STORE" as any });
 
   zip.file("META-INF/container.xml", `<?xml version="1.0" encoding="UTF-8"?>
@@ -158,15 +191,15 @@ async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer>
   padding: 20px;
   color: #1a1410;
 }
-h2 {
+.passage-number {
+  font-size: 0.9em;
+  font-weight: bold;
   color: #8b4513;
-  border-bottom: 2px solid #c9a96e;
-  padding-bottom: 5px;
-  margin-bottom: 15px;
+  margin-bottom: 6px;
 }
 .content {
   text-align: justify;
-  margin: 15px 0;
+  margin: 10px 0;
   white-space: pre-wrap;
 }
 .links {
@@ -177,11 +210,8 @@ h2 {
 }
 .links strong { color: #8b4513; display: block; margin-bottom: 8px; }
 a { color: #8b4513; text-decoration: none; }
-.start-marker { color: #22c55e; font-size: 0.9em; }
-.end-marker { color: #ef4444; font-size: 0.9em; }
-.separator { text-align: center; color: #c9a96e; margin: 30px auto; width: 120px; border-top: 1px solid #c9a96e; }
-.inline-links { font-size: 0.9em; color: #666; font-style: italic; margin-top: 10px; }
-.inline-links a { font-weight: bold; font-style: normal; }`);
+.start-marker { color: #22c55e; font-size: 0.85em; }
+.end-marker { color: #ef4444; font-size: 0.85em; }`);
 
   const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -202,42 +232,26 @@ a { color: #8b4513; text-decoration: none; }
   zip.file("OEBPS/nav.xhtml", navXhtml);
 
   project.passages.forEach((passage: any, index: number) => {
-    let linksHtml = "";
-    if (passage.outgoingLinks.length > 0) {
-      if (readingMode) {
-        linksHtml = `<div class="inline-links">`;
-        passage.outgoingLinks.forEach((link: any, linkIdx: number) => {
-          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          if (linkIdx > 0) linksHtml += ` · `;
-          linksHtml += `<a href="chapter${link.target.number}.xhtml">${escapeXml(text)}</a>`;
-        });
-        linksHtml += `</div>`;
-      } else {
-        linksHtml = `<div class="links"><strong>Opciones:</strong>\n`;
-        passage.outgoingLinks.forEach((link: any) => {
-          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          linksHtml += `<p>→ <a href="chapter${link.target.number}.xhtml">${escapeXml(text)}</a></p>\n`;
-        });
-        linksHtml += `</div>`;
-      }
-    }
-
     const markers = [];
     if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
     if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+    const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
-    let bodyContent: string;
+    let linksHtml = "";
+    if (!readingMode && passage.outgoingLinks.length > 0) {
+      linksHtml = `<div class="links"><strong>Opciones:</strong>\n`;
+      passage.outgoingLinks.forEach((link: any) => {
+        const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
+        linksHtml += `<p>→ <a href="chapter${link.target.number}.xhtml">${escapeXml(text)}</a></p>\n`;
+      });
+      linksHtml += `</div>`;
+    }
+
+    let titleLine: string;
     if (readingMode) {
-      const separator = index > 0 ? `<div class="separator"></div>` : "";
-      bodyContent = `
-  ${separator}
-  <div class="content">${escapeXml(passage.content)}</div>
-  ${linksHtml}`;
+      titleLine = `<p class="passage-number">Pasaje ${passage.number}${markerStr}</p>`;
     } else {
-      bodyContent = `
-  <h2>Pasaje ${passage.number}${passage.title ? ` — ${escapeXml(passage.title)}` : ""} ${markers.join(" ")}</h2>
-  <div class="content">${escapeXml(passage.content)}</div>
-  ${linksHtml}`;
+      titleLine = `<p class="passage-number">Pasaje ${passage.number}${passage.title ? ` — ${escapeXml(passage.title)}` : ""}${markerStr}</p>`;
     }
 
     const chapterXhtml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -247,7 +261,10 @@ a { color: #8b4513; text-decoration: none; }
   <title>Pasaje ${passage.number}</title>
   <link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
-<body>${bodyContent}
+<body>
+  ${titleLine}
+  <div class="content">${linkifyContent(passage.content, passage.number)}</div>
+  ${linksHtml}
 </body>
 </html>`;
 

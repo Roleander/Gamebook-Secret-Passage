@@ -36,9 +36,47 @@ export async function generatePDF(projectId: string, readingMode = false): Promi
   return generateHTML(project, readingMode);
 }
 
+function buildLinkMap(passages: Passage[]): Map<number, { targetNumber: number; text: string }[]> {
+  const map = new Map<number, { targetNumber: number; text: string }[]>();
+  for (const p of passages) {
+    if (p.outgoingLinks.length > 0) {
+      map.set(p.number, p.outgoingLinks.map(l => ({
+        targetNumber: l.target.number,
+        text: l.linkText || `Pasaje ${l.target.number}`,
+      })));
+    }
+  }
+  return map;
+}
+
+function linkifyContent(content: string, passageNumber: number, linkMap: Map<number, { targetNumber: number; text: string }[]>, escapeHtml: (t: string) => string): string {
+  const links = linkMap.get(passageNumber);
+  if (!links || links.length === 0) return escapeHtml(content);
+
+  const passageNumbers = new Set(linkMap.keys());
+  const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+  let result = "";
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    const numStr = match[1].replace(",", ".");
+    const num = parseFloat(numStr);
+    if (passageNumbers.has(num) && num !== passageNumber) {
+      result += escapeHtml(content.slice(lastIndex, match.index));
+      result += `<a href="#passage-${num}" style="color:#8b4513;text-decoration:none;border-bottom:1px solid #c9a96e;font-weight:bold">${escapeHtml(match[0])}</a>`;
+      lastIndex = match.index + match[0].length;
+    }
+  }
+  result += escapeHtml(content.slice(lastIndex));
+  return result;
+}
+
 function generateHTML(project: { title: string; passages: Passage[] }, readingMode: boolean): string {
   const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const linkMap = buildLinkMap(project.passages);
 
   let html = `<!DOCTYPE html>
 <html lang="es">
@@ -63,20 +101,19 @@ function generateHTML(project: { title: string; passages: Passage[] }, readingMo
       border-bottom: 3px double #8b4513;
       margin-bottom: 40px;
     }
-    .cover h1 {
-      font-size: 32px;
-      color: #8b4513;
-      margin-bottom: 10px;
-      letter-spacing: 2px;
-    }
+    .cover h1 { font-size: 32px; color: #8b4513; margin-bottom: 10px; letter-spacing: 2px; }
     .cover .subtitle { font-size: 14px; color: #666; font-style: italic; }
     .passage {
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 1px solid #e0d5c5;
       page-break-inside: avoid;
     }
-    .passage:last-child { border-bottom: none; }
+    .passage-number {
+      font-size: 13px;
+      font-weight: bold;
+      color: #8b4513;
+      margin-bottom: 6px;
+    }
     .passage-header {
       font-size: 16px;
       font-weight: bold;
@@ -99,20 +136,9 @@ function generateHTML(project: { title: string; passages: Passage[] }, readingMo
       border-radius: 4px;
     }
     .passage-links strong { color: #8b4513; }
-    .passage-links a {
-      color: #8b4513;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .passage-links a:hover { text-decoration: underline; }
+    .passage-links a { color: #8b4513; text-decoration: none; font-weight: bold; }
     .start-marker { color: #22c55e; font-size: 11px; font-weight: bold; }
     .end-marker { color: #ef4444; font-size: 11px; font-weight: bold; }
-    .separator {
-      text-align: center; color: #c9a96e; margin: 30px auto; width: 120px;
-      border-top: 1px solid #c9a96e;
-    }
-    .inline-links { font-size: 13px; color: #666; font-style: italic; margin-top: 10px; }
-    .inline-links a { color: #8b4513; text-decoration: none; font-weight: bold; font-style: normal; }
     @media print {
       body { background: white; padding: 0; }
       .container { box-shadow: none; padding: 0; }
@@ -128,36 +154,21 @@ function generateHTML(project: { title: string; passages: Passage[] }, readingMo
     </div>
 `;
 
-  project.passages.forEach((passage, idx) => {
+  project.passages.forEach((passage) => {
     if (readingMode) {
-      // Reading mode: integrated, no headers
-      if (idx > 0) {
-        html += `    <div class="separator"></div>\n`;
-      }
+      const markers = [];
+      if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+      if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+
       html += `    <div class="passage" id="passage-${passage.number}">\n`;
-      html += `      <div class="passage-content">${escapeHtml(passage.content)}</div>\n`;
-
-      // Inline links at the end, integrated
-      if (passage.outgoingLinks.length > 0) {
-        html += `      <div class="inline-links">`;
-        passage.outgoingLinks.forEach((link, linkIdx) => {
-          const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          if (linkIdx > 0) html += ` · `;
-          html += `<a href="#passage-${link.target.number}">${escapeHtml(text)}</a>`;
-        });
-        html += `</div>\n`;
-      }
-
+      html += `      <div class="passage-number">Pasaje ${passage.number} ${markers.join(" ")}</div>\n`;
+      html += `      <div class="passage-content">${linkifyContent(passage.content, passage.number, linkMap, escapeHtml)}</div>\n`;
       html += `    </div>\n`;
     } else {
-      // Structured mode: original with headers
       html += `
     <div class="passage" id="passage-${passage.number}">
-      <div class="passage-header">
-        Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}
-        ${passage.number === 1 ? ' <span class="start-marker">[INICIO]</span>' : ""}
-      </div>
-      <div class="passage-content">${escapeHtml(passage.content)}</div>
+      <div class="passage-number">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}</div>
+      <div class="passage-content">${linkifyContent(passage.content, passage.number, linkMap, escapeHtml)}</div>
 `;
       if (passage.outgoingLinks.length > 0) {
         html += `
