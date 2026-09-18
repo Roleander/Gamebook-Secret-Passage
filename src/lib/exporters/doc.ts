@@ -19,9 +19,7 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
       passages: {
         include: {
           outgoingLinks: {
-            include: {
-              target: { select: { number: true } },
-            },
+            include: { target: { select: { number: true } } },
           },
         },
         orderBy: { number: "asc" },
@@ -29,16 +27,33 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
     },
   });
 
-  if (!project) {
-    throw new Error("Proyecto no encontrado");
-  }
-
-  const escapeHtml = (text: string) =>
-    text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (!project) throw new Error("Proyecto no encontrado");
 
   const passageNumbers = new Set(project.passages.map(p => p.number));
 
-  function linkifyContent(content: string): string {
+  // RTF helper: escape special RTF characters
+  function rtfEscape(text: string): string {
+    return text
+      .replace(/\\/g, "\\\\")
+      .replace(/\{/g, "\\{")
+      .replace(/\}/g, "\\}")
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+  }
+
+  function rtfEncode(text: string): string {
+    let result = "";
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code > 127) {
+        result += `\\u${code >= 32768 ? code - 65536 : code}?`;
+      } else {
+        result += text[i];
+      }
+    }
+    return result;
+  }
+
+  function linkifyRtf(content: string, passageNumber: number): string {
     const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
     let result = "";
     let lastIndex = 0;
@@ -47,123 +62,65 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
     while ((match = regex.exec(content)) !== null) {
       const numStr = match[1].replace(",", ".");
       const num = parseFloat(numStr);
-      if (passageNumbers.has(num)) {
-        result += escapeHtml(content.slice(lastIndex, match.index));
-        result += `<a href="#passage-${num}" style="color:#8b4513;text-decoration:none;border-bottom:1px solid #c9a96e;font-weight:bold">${escapeHtml(match[0])}</a>`;
+      if (passageNumbers.has(num) && num !== passageNumber) {
+        result += rtfEncode(content.slice(lastIndex, match.index));
+        // RTF hyperlink: {\field{\*\fldinst{HYPERLINK "#passage-N"}}{\fldrslt{TEXT}}}
+        result += `{\\field{\\*\\fldinst{HYPERLINK "#passage${num}"}}{\\fldrslt{\\cf8\\b ${rtfEncode(match[0])}}}}`;
         lastIndex = match.index + match[0].length;
       }
     }
-    result += escapeHtml(content.slice(lastIndex));
+    result += rtfEncode(content.slice(lastIndex));
     return result;
   }
 
-  let html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(project.title)}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Times New Roman', Georgia, serif;
-      font-size: 12pt;
-      line-height: 1.6;
-      color: #333;
-      background: white;
-      padding: 40px;
-    }
-    .container { max-width: 800px; margin: 0 auto; }
-    .cover {
-      text-align: center;
-      padding: 60px 20px;
-      border-bottom: 3px double #8b4513;
-      margin-bottom: 40px;
-      page-break-after: always;
-    }
-    .cover h1 { font-size: 28pt; color: #8b4513; margin-bottom: 10px; }
-    .cover .subtitle { font-size: 12pt; color: #666; font-style: italic; }
-    .toc { margin-bottom: 40px; page-break-after: always; }
-    .toc h2 {
-      font-size: 18pt; color: #8b4513;
-      border-bottom: 2px solid #c9a96e; padding-bottom: 5px; margin-bottom: 15px;
-    }
-    .toc ul { list-style: none; padding: 0; }
-    .toc li { margin-bottom: 8px; }
-    .toc a { color: #8b4513; text-decoration: none; }
-    .passage {
-      margin-bottom: 30px; padding-bottom: 20px;
-      page-break-inside: avoid;
-    }
-    .passage-number {
-      font-size: 13pt; font-weight: bold; color: #8b4513;
-      margin-bottom: 8px;
-    }
-    .passage-header {
-      font-size: 14pt; font-weight: bold; color: #8b4513;
-      margin-bottom: 10px; padding: 5px 10px;
-      background: #f5f0e8; border-left: 4px solid #c9a96e;
-    }
-    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; }
-    .passage-links {
-      margin-top: 15px; padding: 10px 15px;
-      background: #faf8f5; border: 1px solid #e0d5c5; border-radius: 4px;
-    }
-    .passage-links strong { color: #8b4513; display: block; margin-bottom: 8px; }
-    .passage-links a { color: #8b4513; text-decoration: none; font-weight: bold; }
-    .start-marker { color: #22c55e; font-size: 10pt; font-weight: bold; }
-    .end-marker { color: #ef4444; font-size: 10pt; font-weight: bold; }
-    @media print { body { padding: 0; } .passage { page-break-inside: avoid; } }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="cover">
-      <h1>${escapeHtml(project.title)}</h1>
-      <p class="subtitle">Librojuego generado por Secret Passage</p>
-    </div>
-`;
+  // Build RTF document
+  let rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1034`;
+  rtf += `{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}}`;
+  rtf += `{\\stylesheet{\\f0\\fs24\\cf8\\b Heading1;}{}{\\f0\\fs20\\cf8 PassageNumber;}{}{\\f0\\fs22 PassageContent;}{}{\\f0\\fs20\\cf8\\b Links;}{}{\\f0\\fs20\\cf2 StartMarker;}{}{\\f0\\fs20\\cf6 EndMarker;}}`;
+  rtf += `\\paperw11900\\paperh16840\\margl1440\\margr1440\\margt1440\\margb1440`;
+  rtf += `\\deftab720\\plateline`;
 
-  if (!readingMode) {
-    html += `    <div class="toc">
-      <h2>Índice</h2>
-      <ul>\n`;
-    project.passages.forEach((passage) => {
-      html += `        <li><a href="#passage-${passage.number}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}</a></li>\n`;
-    });
-    html += `      </ul>\n    </div>\n\n`;
-  }
+  // Title
+  rtf += `{\\pard\\qc\\plain\\f0\\fs40\\cf8\\b ${rtfEncode(project.title)}\\par}`;
+  rtf += `{\\pard\\qc\\plain\\f0\\fs20\\i Librojuego generado por Secret Passage\\par}`;
+  rtf += `{\\pard\\plain\\fs20\\par}`;
 
   project.passages.forEach((passage) => {
     const markers = [];
-    if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
-    if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+    if (passage.number === 1) markers.push("\\cf2\\b [INICIO]\\b0");
+    if (passage.isEndpoint) markers.push("\\cf6\\b [FIN]\\b0");
+    const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     if (readingMode) {
-      html += `    <div class="passage" id="passage-${passage.number}">\n`;
-      html += `      <div class="passage-number">Pasaje ${passage.number} ${markers.join(" ")}</div>\n`;
-      html += `      <div class="passage-content">${linkifyContent(passage.content)}</div>\n`;
-      html += `    </div>\n\n`;
+      // Passage number centered
+      rtf += `{\\pard\\qc\\plain\\f0\\fs24\\cf8\\b ${passage.number}${markerStr}\\par}`;
+      // Content
+      const lines = passage.content.split("\n");
+      lines.forEach((line) => {
+        rtf += `{\\pard\\qr\\plain\\f0\\fs22 ${linkifyRtf(line, passage.number)}\\par}`;
+      });
     } else {
-      html += `    <div class="passage" id="passage-${passage.number}">\n`;
-      html += `      <div class="passage-number">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""} ${markers.join(" ")}</div>\n`;
-      html += `      <div class="passage-content">${linkifyContent(passage.content)}</div>\n`;
+      // Passage header
+      let header = `Pasaje ${passage.number}`;
+      if (passage.title) header += ` — ${rtfEncode(passage.title)}`;
+      rtf += `{\\pard\\plain\\f0\\fs28\\cf8\\b ${header}${markerStr}\\par}`;
+      // Content
+      const lines = passage.content.split("\n");
+      lines.forEach((line) => {
+        rtf += `{\\pard\\qr\\plain\\f0\\fs22 ${linkifyRtf(line, passage.number)}\\par}`;
+      });
+      // Links
       if (passage.outgoingLinks.length > 0) {
-        html += `      <div class="passage-links">
-        <strong>Opciones:</strong>\n`;
+        rtf += `{\\pard\\plain\\f0\\fs20\\cf8\\b Opciones:\\par}`;
         passage.outgoingLinks.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          html += `        → <a href="#passage-${link.target.number}">${escapeHtml(text)}</a><br>\n`;
+          rtf += `{\\pard\\plain\\f0\\fs20 \\tab \\u9658? ${rtfEncode(text)}\\par}`;
         });
-        html += `      </div>\n`;
       }
-      html += `    </div>\n\n`;
     }
+    rtf += `{\\pard\\plain\\fs20\\par}`;
   });
 
-  html += `  </div>
-</body>
-</html>`;
-
-  return html;
+  rtf += `}`;
+  return rtf;
 }

@@ -91,8 +91,8 @@ export async function POST(req: Request) {
         const docContent = await generateDOC(projectId, readingMode);
         return new NextResponse(docContent, {
           headers: {
-            "Content-Type": "application/rtf",
-            "Content-Disposition": `attachment; filename="${safeTitle}.doc"`,
+            "Content-Type": "application/rtf; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${safeTitle}.rtf"`,
           },
         });
       }
@@ -135,9 +135,6 @@ async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer>
   }
 
   function linkifyContent(content: string, passageNumber: number): string {
-    const links = linkMap.get(passageNumber);
-    if (!links || links.length === 0) return escapeXml(content);
-
     const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
     let result = "";
     let lastIndex = 0;
@@ -148,7 +145,7 @@ async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer>
       const num = parseFloat(numStr);
       if (passageNumbers.has(num) && num !== passageNumber) {
         result += escapeXml(content.slice(lastIndex, match.index));
-        result += `<a href="chapter${num}.xhtml" style="color:#8b4513;border-bottom:1px solid #c9a96e">${escapeXml(match[0])}</a>`;
+        result += `<a href="chapter${num}.xhtml" style="color:#8b4513;border-bottom:1px dotted #c9a96e">${escapeXml(match[0])}</a>`;
         lastIndex = match.index + match[0].length;
       }
     }
@@ -196,6 +193,13 @@ async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer>
   font-weight: bold;
   color: #8b4513;
   margin-bottom: 6px;
+}
+.passage-number-center {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #8b4513;
+  margin-bottom: 6px;
+  text-align: center;
 }
 .content {
   text-align: justify;
@@ -249,7 +253,7 @@ a { color: #8b4513; text-decoration: none; }
 
     let titleLine: string;
     if (readingMode) {
-      titleLine = `<p class="passage-number">Pasaje ${passage.number}${markerStr}</p>`;
+      titleLine = `<p class="passage-number-center">${passage.number}${markerStr}</p>`;
     } else {
       titleLine = `<p class="passage-number">Pasaje ${passage.number}${passage.title ? ` — ${escapeXml(passage.title)}` : ""}${markerStr}</p>`;
     }

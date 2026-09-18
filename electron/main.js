@@ -7,22 +7,25 @@ const PORT = process.env.PORT || 3000;
 let mainWindow;
 
 function createWindow() {
+  const iconPath = path.join(__dirname, '..', 'public', 'icon.png');
+  const fs = require('fs');
+  const iconExists = fs.existsSync(iconPath);
+
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 800,
     minHeight: 600,
     title: 'Secret Passage - Editor de Librojuegos',
-    icon: path.join(__dirname, 'public', 'icon.png'),
+    icon: iconExists ? iconPath : undefined,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     },
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     show: false,
   });
 
-  // Menu personalizado
   const template = [
     {
       label: 'Archivo',
@@ -69,11 +72,9 @@ function createWindow() {
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  // En desarrollo, cargar desde el servidor local
-  // En producción, cargar el archivo HTML compilado
   const startUrl = isDev
     ? `http://localhost:${PORT}`
-    : `file://${path.join(__dirname, 'out', 'index.html')}`;
+    : `file://${path.join(__dirname, '..', 'out', 'index.html')}`;
 
   mainWindow.loadURL(startUrl);
 

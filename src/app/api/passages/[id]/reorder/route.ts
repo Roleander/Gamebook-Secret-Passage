@@ -3,6 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 
+function updateNumberInText(content: string, oldNumber: number, newNumber: number): string {
+  const oldStr = String(oldNumber);
+  const newStr = String(newNumber);
+  const regex = new RegExp(`\\b${oldStr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g");
+  return content.replace(regex, newStr);
+}
+
 export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> }
@@ -15,7 +22,7 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { direction } = await req.json(); // "up" or "down"
+    const { direction } = await req.json();
 
     if (!direction || !["up", "down"].includes(direction)) {
       return NextResponse.json(
@@ -24,13 +31,10 @@ export async function POST(
       );
     }
 
-    // Get the passage to move
     const passage = await db.passage.findUnique({
       where: { id: passageId },
       include: {
-        project: {
-          select: { userId: true },
-        },
+        project: { select: { userId: true } },
       },
     });
 
@@ -38,7 +42,6 @@ export async function POST(
       return NextResponse.json({ error: "Pasaje no encontrado" }, { status: 404 });
     }
 
-    // Find the adjacent passage
     const targetNumber = direction === "up" ? passage.number - 1 : passage.number + 1;
 
     if (targetNumber < 1) {
@@ -62,32 +65,43 @@ export async function POST(
       );
     }
 
-    // Swap numbers using temporary negative values
+    // Swap numbers
     await db.$transaction([
-      db.passage.update({
-        where: { id: passage.id },
-        data: { number: -passage.number },
-      }),
-      db.passage.update({
-        where: { id: adjacentPassage.id },
-        data: { number: passage.number },
-      }),
-      db.passage.update({
-        where: { id: passage.id },
-        data: { number: targetNumber },
-      }),
+      db.passage.update({ where: { id: passage.id }, data: { number: -passage.number } }),
+      db.passage.update({ where: { id: adjacentPassage.id }, data: { number: passage.number } }),
+      db.passage.update({ where: { id: passage.id }, data: { number: targetNumber } }),
     ]);
+
+    // Update number references in all passage content
+    const allPassages = await db.passage.findMany({
+      where: { projectId: passage.projectId },
+    });
+
+    const updates: Promise<any>[] = [];
+    for (const p of allPassages) {
+      let newContent = p.content;
+      newContent = updateNumberInText(newContent, passage.number, targetNumber);
+      newContent = updateNumberInText(newContent, adjacentPassage.number, passage.number);
+      if (newContent !== p.content) {
+        updates.push(
+          db.passage.update({ where: { id: p.id }, data: { content: newContent } })
+        );
+      }
+    }
+    if (updates.length > 0) {
+      for (const update of updates) {
+        await update;
+      }
+    }
 
     return NextResponse.json({
       message: `Pasaje movido ${direction === "up" ? "arriba" : "abajo"}`,
       oldNumber: passage.number,
       newNumber: targetNumber,
+      contentUpdates: updates.length,
     });
   } catch (error) {
     console.error("Error reordering passage:", error);
-    return NextResponse.json(
-      { error: "Error al reordenar el pasaje" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error al reordenar el pasaje" }, { status: 500 });
   }
 }

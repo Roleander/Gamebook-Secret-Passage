@@ -82,9 +82,11 @@ export default function DownloadsPage() {
   const [downloadStarted, setDownloadStarted] = useState<Platform | null>(null);
 
   const handleDownload = (platform: DownloadInfo, format: typeof platform.formats[0]) => {
+    if (format.url === "#") {
+      return;
+    }
     setDownloadStarted(platform.id);
     
-    // Track download (optional)
     fetch("/api/downloads/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -94,9 +96,6 @@ export default function DownloadsPage() {
       }),
     }).catch(() => {});
 
-    // For now, show alert. Replace with actual download URL
-    alert(`Descarga iniciada: ${platform.name} ${format.name}${format.extension}\n\nNota: Reemplaza las URLs de descarga en downloads/page.tsx con tus archivos reales.`);
-    
     setTimeout(() => setDownloadStarted(null), 3000);
   };
 
@@ -185,7 +184,7 @@ export default function DownloadsPage() {
                       variant={selectedPlatform === platform.id ? "default" : "outline"}
                       className="w-full justify-between"
                       onClick={() => handleDownload(platform, format)}
-                      disabled={downloadStarted === platform.id}
+                      disabled={downloadStarted === platform.id || format.url === "#"}
                     >
                       <span className="flex items-center gap-2">
                         {downloadStarted === platform.id ? (
@@ -194,6 +193,9 @@ export default function DownloadsPage() {
                           <Download className="w-4 h-4" />
                         )}
                         {format.name}
+                        {format.url === "#" && (
+                          <span className="text-xs bg-muted px-2 py-0.5 rounded">Próximamente</span>
+                        )}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {format.extension} • {format.size}

@@ -20,9 +20,7 @@ export async function generateODT(projectId: string, readingMode = false): Promi
       passages: {
         include: {
           outgoingLinks: {
-            include: {
-              target: { select: { number: true } },
-            },
+            include: { target: { select: { number: true } } },
           },
         },
         orderBy: { number: "asc" },
@@ -30,12 +28,11 @@ export async function generateODT(projectId: string, readingMode = false): Promi
     },
   });
 
-  if (!project) {
-    throw new Error("Proyecto no encontrado");
-  }
+  if (!project) throw new Error("Proyecto no encontrado");
 
   const zip = new JSZip();
 
+  // mimetype MUST be first and uncompressed
   zip.file("mimetype", "application/vnd.oasis.opendocument.text", { compression: "STORE" as any });
 
   zip.file("META-INF/manifest.xml", `<?xml version="1.0" encoding="UTF-8"?>
@@ -72,6 +69,10 @@ export async function generateODT(projectId: string, readingMode = false): Promi
     <style:style style:name="Heading2" style:family="paragraph" style:parent-style-name="Heading_2">
       <style:text-properties fo:font-size="14pt" fo:font-style="italic" fo:color="#666666"/>
     </style:style>
+    <style:style style:name="PassageNumberCenter" style:family="paragraph">
+      <style:text-properties fo:font-size="11pt" fo:font-weight="bold" fo:color="#8B4513"/>
+      <style:paragraph-properties fo:text-align="center"/>
+    </style:style>
     <style:style style:name="PassageNumber" style:family="paragraph">
       <style:text-properties fo:font-size="11pt" fo:font-weight="bold" fo:color="#8B4513"/>
     </style:style>
@@ -85,30 +86,33 @@ export async function generateODT(projectId: string, readingMode = false): Promi
 </office:document-styles>`);
 
   const passageNumbers = new Set(project.passages.map(p => p.number));
-  const linkMap = new Map<number, { targetNumber: number }[]>();
-  for (const p of project.passages) {
-    if (p.outgoingLinks.length > 0) {
-      linkMap.set(p.number, p.outgoingLinks.map(l => ({ targetNumber: l.target.number })));
-    }
+
+  function escapeXml(text: string): string {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
   }
 
   function convertInlineLinks(line: string): string {
-    let result = escapeXml(line);
     const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
-    let out = "";
+    let result = "";
     let lastIdx = 0;
     let m;
+
     while ((m = regex.exec(line)) !== null) {
       const numStr = m[1].replace(",", ".");
       const num = parseFloat(numStr);
       if (passageNumbers.has(num)) {
-        out += escapeXml(line.slice(lastIdx, m.index));
-        out += `<text:a xlink:href="#passage${num}" text:style-name="Hyperlink">${escapeXml(m[0])}</text:a>`;
+        result += escapeXml(line.slice(lastIdx, m.index));
+        result += `<text:a xlink:href="#passage${num}" text:style-name="Hyperlink">${escapeXml(m[0])}</text:a>`;
         lastIdx = m.index + m[0].length;
       }
     }
-    out += escapeXml(line.slice(lastIdx));
-    return out;
+    result += escapeXml(line.slice(lastIdx));
+    return result;
   }
 
   let content = `<?xml version="1.0" encoding="UTF-8"?>
@@ -129,45 +133,34 @@ export async function generateODT(projectId: string, readingMode = false): Promi
   project.passages.forEach((passage) => {
     content += `      <text:bookmark text:name="passage${passage.number}"/>\n`;
 
-    if (readingMode) {
-      const markers = [];
-      if (passage.number === 1) markers.push("[INICIO]");
-      if (passage.isEndpoint) markers.push("[FIN]");
-      const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
+    const markers = [];
+    if (passage.number === 1) markers.push("[INICIO]");
+    if (passage.isEndpoint) markers.push("[FIN]");
+    const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
-      content += `      <text:p text:style-name="PassageNumber">Pasaje ${passage.number}${markerStr}</text:p>\n`;
+    if (readingMode) {
+      content += `      <text:p text:style-name="PassageNumberCenter">${passage.number}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
       lines.forEach((line) => {
-        content += `      <text:p text:style-name="PassageContent">`;
-        content += convertInlineLinks(line);
-        content += `</text:p>\n`;
+        content += `      <text:p text:style-name="PassageContent">${convertInlineLinks(line)}</text:p>\n`;
       });
     } else {
-      content += `      <text:p text:style-name="PassageNumber">Pasaje ${passage.number}`;
-      if (passage.title) content += ` — ${escapeXml(passage.title)}`;
-      if (passage.number === 1) content += " [INICIO]";
-      if (passage.isEndpoint) content += " [FIN]";
-      content += `</text:p>\n`;
-
+      let header = `Pasaje ${passage.number}`;
+      if (passage.title) header += ` — ${escapeXml(passage.title)}`;
+      content += `      <text:p text:style-name="PassageNumber">${header}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
       lines.forEach((line) => {
-        content += `      <text:p text:style-name="PassageContent">`;
-        content += convertInlineLinks(line);
-        content += `</text:p>\n`;
+        content += `      <text:p text:style-name="PassageContent">${convertInlineLinks(line)}</text:p>\n`;
       });
-
       if (passage.outgoingLinks.length > 0) {
         content += `      <text:p text:style-name="PassageNumber">Opciones:</text:p>\n`;
         passage.outgoingLinks.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           content += `      <text:p text:style-name="PassageContent">  → `;
-          content += `<text:a xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">`;
-          content += `${escapeXml(text)}`;
-          content += `</text:a></text:p>\n`;
+          content += `<text:a xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">${escapeXml(text)}</text:a></text:p>\n`;
         });
       }
     }
-
     content += `      <text:p text:style-name="PassageContent"/>\n`;
   });
 
@@ -179,13 +172,4 @@ export async function generateODT(projectId: string, readingMode = false): Promi
 
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
   return Buffer.from(buffer);
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
 }

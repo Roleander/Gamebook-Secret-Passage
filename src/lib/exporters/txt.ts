@@ -19,9 +19,7 @@ export async function generateTXT(projectId: string, readingMode = false): Promi
       passages: {
         include: {
           outgoingLinks: {
-            include: {
-              target: { select: { number: true } },
-            },
+            include: { target: { select: { number: true } } },
           },
         },
         orderBy: { number: "asc" },
@@ -29,25 +27,11 @@ export async function generateTXT(projectId: string, readingMode = false): Promi
     },
   });
 
-  if (!project) {
-    throw new Error("Proyecto no encontrado");
-  }
+  if (!project) throw new Error("Proyecto no encontrado");
 
   const passageNumbers = new Set(project.passages.map(p => p.number));
-  const linkMap = new Map<number, { targetNumber: number; text: string }[]>();
-  for (const p of project.passages) {
-    if (p.outgoingLinks.length > 0) {
-      linkMap.set(p.number, p.outgoingLinks.map(l => ({
-        targetNumber: l.target.number,
-        text: l.linkText || `Pasaje ${l.target.number}`,
-      })));
-    }
-  }
 
-  function linkifyContent(content: string, passageNumber: number): string {
-    const links = linkMap.get(passageNumber);
-    if (!links || links.length === 0) return content;
-
+  function annotateContent(content: string, passageNumber: number): string {
     const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
     let result = "";
     let lastIndex = 0;
@@ -58,7 +42,7 @@ export async function generateTXT(projectId: string, readingMode = false): Promi
       const num = parseFloat(numStr);
       if (passageNumbers.has(num) && num !== passageNumber) {
         result += content.slice(lastIndex, match.index);
-        result += `${match[0]} → pasaje ${num}`;
+        result += match[0];
         lastIndex = match.index + match[0].length;
       }
     }
@@ -76,15 +60,15 @@ export async function generateTXT(projectId: string, readingMode = false): Promi
       if (passage.isEndpoint) markers.push("[FIN]");
       const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
-      txt += `Pasaje ${passage.number}${markerStr}\n\n`;
-      txt += `${linkifyContent(passage.content, passage.number)}\n\n`;
+      txt += `${passage.number}${markerStr}\n\n`;
+      txt += `${passage.content}\n\n`;
     } else {
       txt += `\n--- PASAJE ${passage.number}`;
       if (passage.title) txt += ` — ${passage.title}`;
       if (passage.number === 1) txt += " [INICIO]";
       if (passage.isEndpoint) txt += " [FIN]";
       txt += ` ---\n\n`;
-      txt += `${linkifyContent(passage.content, passage.number)}\n\n`;
+      txt += `${passage.content}\n\n`;
       if (passage.outgoingLinks.length > 0) {
         txt += `Opciones:\n`;
         passage.outgoingLinks.forEach((link) => {

@@ -138,7 +138,7 @@ export default function EditorPage() {
         epub: "epub",
         txt: "txt",
         odt: "odt",
-        doc: "doc",
+        doc: "rtf",
       };
       a.download = `${project?.title || "gamebook"}.${extensions[format]}`;
       document.body.appendChild(a);
@@ -308,7 +308,7 @@ export default function EditorPage() {
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                      DOC (Word)
+                      RTF (Word/LibreOffice)
                     </button>
                   </div>
                 </div>

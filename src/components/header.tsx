@@ -11,13 +11,15 @@ export function Header() {
   const { t } = useI18n();
   const { data: session } = useSession();
 
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
+
   const navigation = [
     { name: t("Navigation.home"), href: "/", icon: Home },
     { name: t("Navigation.myProjects"), href: "/projects", icon: BookOpen },
     { name: t("Navigation.newProject"), href: "/projects/new", icon: Plus },
     { name: t("Navigation.downloads"), href: "/downloads", icon: Download },
     { name: t("Navigation.pricing"), href: "/pricing", icon: CreditCard },
-    { name: t("Navigation.admin"), href: "/admin", icon: Settings },
+    ...(isAdmin ? [{ name: t("Navigation.admin"), href: "/admin", icon: Settings }] : []),
   ];
 
   return (

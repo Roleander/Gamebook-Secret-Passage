@@ -3,6 +3,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 
+function updateAllNumberReferences(content: string, mapping: Map<number, number>): string {
+  const tempPrefix = "§REF§";
+  const tempSuffix = "§/REF§";
+  let result = content;
+  for (const [oldNum, newNum] of mapping) {
+    const regex = new RegExp(`\\b${oldNum}\\b`, "g");
+    result = result.replace(regex, `${tempPrefix}${newNum}${tempSuffix}`);
+  }
+  const tempRegex = new RegExp(`${tempPrefix}(\\d+)${tempSuffix}`, "g");
+  result = result.replace(tempRegex, "$1");
+  return result;
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ projectId: string }> }
@@ -17,19 +30,14 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const { startFrom = 1, step = 1 } = body;
 
-    // Verify project belongs to user
     const project = await db.project.findFirst({
-      where: {
-        id: projectId,
-        userId: (session.user as any).id,
-      },
+      where: { id: projectId, userId: (session.user as any).id },
     });
 
     if (!project) {
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
 
-    // Get all passages ordered by current number
     const passages = await db.passage.findMany({
       where: { projectId },
       orderBy: { number: "asc" },
@@ -39,22 +47,44 @@ export async function POST(
       return NextResponse.json({ message: "No hay pasajes para renumerar" });
     }
 
-    // Renumber sequentially
-    const updates = passages.map((passage, index) => {
-      const newNumber = startFrom + (index * step);
-      return db.passage.update({
-        where: { id: passage.id },
-        data: { number: newNumber },
-      });
+    // Build old→new mapping
+    const numberMapping = new Map<number, number>();
+    passages.forEach((passage, index) => {
+      numberMapping.set(passage.number, startFrom + index * step);
     });
 
+    // Renumber
+    const updates = passages.map((passage, index) => {
+      return db.passage.update({
+        where: { id: passage.id },
+        data: { number: startFrom + index * step },
+      });
+    });
     await db.$transaction(updates);
+
+    // Update content references
+    const allPassages = await db.passage.findMany({ where: { projectId } });
+    const contentUpdates: Promise<any>[] = [];
+    for (const p of allPassages) {
+      const newContent = updateAllNumberReferences(p.content, numberMapping);
+      if (newContent !== p.content) {
+        contentUpdates.push(
+          db.passage.update({ where: { id: p.id }, data: { content: newContent } })
+        );
+      }
+    }
+    if (contentUpdates.length > 0) {
+      for (const update of contentUpdates) {
+        await update;
+      }
+    }
 
     return NextResponse.json({
       message: `Pasajes renumerados: ${passages.length} pasajes (${startFrom} a ${startFrom + (passages.length - 1) * step})`,
       count: passages.length,
       from: startFrom,
       to: startFrom + (passages.length - 1) * step,
+      contentUpdates: contentUpdates.length,
     });
   } catch (error) {
     console.error("Renumber error:", error);

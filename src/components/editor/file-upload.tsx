@@ -95,6 +95,11 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
         body: formData,
       });
 
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("Error del servidor: respuesta inesperada. Intenta con otro archivo.");
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
