@@ -6,17 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function updateAllNumberReferences(content: string, mapping: Map<number, number>): string {
-  const tempPrefix = "§REF§";
-  const tempSuffix = "§/REF§";
-  let result = content;
+  if (mapping.size === 0) return content;
 
-  for (const [oldNum, newNum] of mapping) {
-    const regex = new RegExp(`\\b${oldNum}\\b`, "g");
-    result = result.replace(regex, `${tempPrefix}${newNum}${tempSuffix}`);
-  }
+  const keys = Array.from(mapping.keys()).sort((a, b) => b - a);
+  const pattern = new RegExp(`\\b(${keys.join("|")})\\b`, "g");
 
-  const tempRegex = new RegExp(`${tempPrefix}(\\d+)${tempSuffix}`, "g");
-  result = result.replace(tempRegex, "$1");
-
-  return result;
+  return content.replace(pattern, (match) => {
+    const newNum = mapping.get(Number(match));
+    return newNum !== undefined ? String(newNum) : match;
+  });
 }

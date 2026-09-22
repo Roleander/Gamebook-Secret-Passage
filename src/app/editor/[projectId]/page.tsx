@@ -57,6 +57,7 @@ export default function EditorPage() {
   const [readingMode, setReadingMode] = useState(true);
   const [preserveStart, setPreserveStart] = useState(true);
   const [canUndo, setCanUndo] = useState(false);
+  const [shuffling, setShuffling] = useState(false);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -94,6 +95,16 @@ export default function EditorPage() {
     fetchSnapshots();
   }, [fetchProject, fetchSnapshots]);
 
+  // Sync selectedPassage when project data changes (e.g., after shuffle)
+  useEffect(() => {
+    if (project && selectedPassage) {
+      const updated = project.passages.find((p) => p.id === selectedPassage.id);
+      if (updated && (updated.content !== selectedPassage.content || updated.title !== selectedPassage.title)) {
+        setSelectedPassage(updated);
+      }
+    }
+  }, [project]);
+
   const handlePassageUpdate = async (updatedPassage: Partial<Passage>) => {
     if (!selectedPassage) return;
     try {
@@ -125,20 +136,26 @@ export default function EditorPage() {
   const handleContentShuffle = async () => {
     if (!project) return;
     if (!confirm("¿Barajar el contenido entre pasajes? Los números se mantienen, pero el texto y enlaces se reorganizan aleatoriamente.")) return;
+    setShuffling(true);
     try {
       const response = await fetch(`/api/projects/${projectId}/content-shuffle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preserveStart }),
       });
+      const result = await response.json();
       if (response.ok) {
-        const result = await response.json();
         alert(`Contenido barajado: ${result.passageCount} pasajes, ${result.linksCreated} enlaces recreados${result.startPreserved ? " (pasaje de inicio preservado)" : ""}`);
-        fetchProject();
+        await fetchProject();
         fetchSnapshots();
+      } else {
+        alert(`Error: ${result.error || "Error al barajar"}`);
       }
     } catch (error) {
       console.error("Error shuffling content:", error);
+      alert("Error de conexión al barajar");
+    } finally {
+      setShuffling(false);
     }
   };
 
@@ -149,14 +166,17 @@ export default function EditorPage() {
       const response = await fetch(`/api/projects/${projectId}/content-shuffle/undo`, {
         method: "POST",
       });
+      const result = await response.json();
       if (response.ok) {
-        const result = await response.json();
         alert(`Deshacer completado: ${result.passageCount} pasajes restaurados, ${result.linksRestored} enlaces restaurados`);
         fetchProject();
         fetchSnapshots();
+      } else {
+        alert(`Error: ${result.error || "Error al deshacer"}`);
       }
     } catch (error) {
       console.error("Error undoing shuffle:", error);
+      alert("Error de conexión al deshacer");
     }
   };
 
@@ -283,9 +303,9 @@ export default function EditorPage() {
               Previsualizar
             </Button>
 
-            <Button variant="outline" onClick={handleContentShuffle} disabled={project.passages.length < 2}>
-              <Shuffle className="w-4 h-4 mr-2" />
-              Barajar Contenido
+            <Button variant="outline" onClick={handleContentShuffle} disabled={project.passages.length < 2 || shuffling}>
+              <Shuffle className={`w-4 h-4 mr-2 ${shuffling ? "animate-spin" : ""}`} />
+              {shuffling ? "Barajando..." : "Barajar Contenido"}
             </Button>
 
             <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer" title="Preservar el pasaje marcado como inicio durante el barajado">

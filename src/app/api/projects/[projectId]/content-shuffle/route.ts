@@ -89,42 +89,28 @@ export async function POST(
       return NextResponse.json({ error: "No hay suficientes pasajes para barajar" }, { status: 400 });
     }
 
+    // Save original order BEFORE shuffling
+    const originalNumbers = passagesToShuffle.map((p) => p.number);
+
     // Fisher-Yates shuffle
     for (let i = passagesToShuffle.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [passagesToShuffle[i], passagesToShuffle[j]] = [passagesToShuffle[j], passagesToShuffle[i]];
     }
 
-    // Build shuffled content array
-    const shuffledContents = passagesToShuffle.map((p) => ({
-      id: p.id,
-      number: p.number,
-      content: p.content,
-      title: p.title,
-      isEndpoint: p.isEndpoint,
-      outgoingLinks: p.outgoingLinks.map((l) => ({
-        targetId: l.targetId,
-        linkText: l.linkText,
-        condition: l.condition,
-      })),
-    }));
-
-    // Assign shuffled content to passage slots
-    // shuffledContents[i] gets the content from passagesToShuffle[i]
-    // It gets placed into the passage slot of passagesToShuffle[i] (same number, same id)
-    const numberToContent = new Map<number, (typeof shuffledContents)[0]>();
+    // Assign shuffled content to passage slots:
+    // originalNumbers[i] = number of the passage slot that receives
+    // passagesToShuffle[i] = shuffled content that goes into that slot
+    const numberToContent = new Map<number, (typeof passagesToShuffle)[0]>();
     for (let i = 0; i < passagesToShuffle.length; i++) {
-      numberToContent.set(passagesToShuffle[i].number, shuffledContents[i]);
+      numberToContent.set(originalNumbers[i], passagesToShuffle[i]);
     }
 
-    // Build inline reference mapping: oldNumber → newNumber for each passage
-    // passage X had content C, content C referenced passage Y
-    // After shuffle: content C is in passage slot Z
-    // So inline references to Y should become references to wherever Y's content moved to
+    // Build inline reference mapping: oldNumber → newNumber
+    // The content that was in passage originalNumbers[i] now lives in passage passagesToShuffle[i].number
     const inlineMapping = new Map<number, number>();
     for (let i = 0; i < passagesToShuffle.length; i++) {
-      // passagesToShuffle[i].number receives content from shuffledContents[i].number
-      inlineMapping.set(shuffledContents[i].number, passagesToShuffle[i].number);
+      inlineMapping.set(originalNumbers[i], passagesToShuffle[i].number);
     }
 
     // === PHASE 1: Update content and inline text references ===
