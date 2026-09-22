@@ -55,6 +55,8 @@ export default function EditorPage() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [readingMode, setReadingMode] = useState(true);
+  const [preserveStart, setPreserveStart] = useState(true);
+  const [canUndo, setCanUndo] = useState(false);
 
   const fetchProject = useCallback(async () => {
     try {
@@ -72,9 +74,25 @@ export default function EditorPage() {
     }
   }, [projectId, router]);
 
+  // Check for available snapshots (for undo)
+  const fetchSnapshots = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/content-shuffle/undo`, {
+        method: "GET",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCanUndo(data.hasSnapshot);
+      }
+    } catch {
+      setCanUndo(false);
+    }
+  }, [projectId]);
+
   useEffect(() => {
     fetchProject();
-  }, [fetchProject]);
+    fetchSnapshots();
+  }, [fetchProject, fetchSnapshots]);
 
   const handlePassageUpdate = async (updatedPassage: Partial<Passage>) => {
     if (!selectedPassage) return;
@@ -104,22 +122,45 @@ export default function EditorPage() {
     }
   };
 
-  const handleShuffle = async () => {
+  const handleContentShuffle = async () => {
     if (!project) return;
-    if (!confirm("¿Reordenar aleatoriamente los pasajes? Los números cambiarán.")) return;
+    if (!confirm("¿Barajar el contenido entre pasajes? Los números se mantienen, pero el texto y enlaces se reorganizan aleatoriamente.")) return;
     try {
-      const response = await fetch(`/api/projects/${projectId}/shuffle`, { method: "POST" });
+      const response = await fetch(`/api/projects/${projectId}/content-shuffle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preserveStart }),
+      });
       if (response.ok) {
         const result = await response.json();
-        alert(`Reordenado: ${result.passageCount} pasajes reordenados`);
+        alert(`Contenido barajado: ${result.passageCount} pasajes, ${result.linksCreated} enlaces recreados${result.startPreserved ? " (pasaje de inicio preservado)" : ""}`);
         fetchProject();
+        fetchSnapshots();
       }
     } catch (error) {
-      console.error("Error shuffling passages:", error);
+      console.error("Error shuffling content:", error);
     }
   };
 
-  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc") => {
+  const handleUndoShuffle = async () => {
+    if (!project) return;
+    if (!confirm("¿Deshacer el último barajado de contenido?")) return;
+    try {
+      const response = await fetch(`/api/projects/${projectId}/content-shuffle/undo`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Deshacer completado: ${result.passageCount} pasajes restaurados, ${result.linksRestored} enlaces restaurados`);
+        fetchProject();
+        fetchSnapshots();
+      }
+    } catch (error) {
+      console.error("Error undoing shuffle:", error);
+    }
+  };
+
+  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx") => {
     try {
       const response = await fetch("/api/export", {
         method: "POST",
@@ -138,7 +179,8 @@ export default function EditorPage() {
         epub: "epub",
         txt: "txt",
         odt: "odt",
-        doc: "rtf",
+        doc: "doc",
+        docx: "docx",
       };
       a.download = `${project?.title || "gamebook"}.${extensions[format]}`;
       document.body.appendChild(a);
@@ -241,9 +283,29 @@ export default function EditorPage() {
               Previsualizar
             </Button>
 
-            <Button variant="outline" onClick={handleShuffle} disabled={project.passages.length === 0}>
+            <Button variant="outline" onClick={handleContentShuffle} disabled={project.passages.length < 2}>
               <Shuffle className="w-4 h-4 mr-2" />
-              Reordenar
+              Barajar Contenido
+            </Button>
+
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer" title="Preservar el pasaje marcado como inicio durante el barajado">
+              <input
+                type="checkbox"
+                checked={preserveStart}
+                onChange={(e) => setPreserveStart(e.target.checked)}
+                className="w-3 h-3 rounded border-gray-300"
+              />
+              Inicio fijo
+            </label>
+
+            <Button
+              variant="outline"
+              onClick={handleUndoShuffle}
+              disabled={!canUndo}
+              title="Deshacer último barajado"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Deshacer
             </Button>
 
             <div className="relative">
@@ -308,7 +370,14 @@ export default function EditorPage() {
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                      RTF (Word/LibreOffice)
+                      Word (.doc)
+                    </button>
+                    <button
+                      onClick={() => { handleExport("docx"); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-indigo-600 rounded-full mr-2"></span>
+                      Word (.docx)
                     </button>
                   </div>
                 </div>

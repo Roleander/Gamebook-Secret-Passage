@@ -1,10 +1,12 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
 
 const isDev = process.env.NODE_ENV === 'development';
-const PORT = process.env.PORT || 3000;
+const PORT = isDev ? (process.env.PORT || 3000) : 3847;
 
 let mainWindow;
+let serverProcess;
 
 function createWindow() {
   const iconPath = path.join(__dirname, '..', 'public', 'icon.png');
@@ -21,6 +23,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     show: false,
@@ -67,16 +70,30 @@ function createWindow() {
         { role: 'close', label: 'Cerrar' },
       ],
     },
+    {
+      label: 'Ayuda',
+      submenu: [
+        {
+          label: 'Buscar actualizaciones',
+          click: () => {
+            if (mainWindow) {
+              mainWindow.webContents.send('check-for-updates');
+            }
+          },
+        },
+      ],
+    },
   ];
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  const startUrl = isDev
-    ? `http://localhost:${PORT}`
-    : `file://${path.join(__dirname, '..', 'out', 'index.html')}`;
+  const startUrl = `http://localhost:${PORT}`;
 
-  mainWindow.loadURL(startUrl);
+  // Wait for server to be ready before loading
+  const loadApp = () => {
+    mainWindow.loadURL(startUrl);
+  };
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
@@ -85,11 +102,64 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // Auto-updater (only in production)
+  if (!isDev) {
+    try {
+      const { autoUpdater } = require('electron-updater');
+      autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+    } catch (e) {
+      // Auto-updater not available
+    }
+  }
+
+  return loadApp;
 }
 
-app.whenReady().then(createWindow);
+// IPC handlers
+ipcMain.handle('get-app-version', () => app.getVersion());
+ipcMain.handle('get-platform', () => process.platform);
+ipcMain.on('window-minimize', () => mainWindow?.minimize());
+ipcMain.on('window-maximize', () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow?.maximize();
+  }
+});
+ipcMain.on('window-close', () => mainWindow?.close());
+
+app.whenReady().then(() => {
+  if (!isDev) {
+    // Start Next.js server in production
+    const serverPath = path.join(__dirname, 'server.js');
+    serverProcess = spawn(process.execPath, [serverPath], {
+      stdio: 'pipe',
+      env: { ...process.env, NODE_ENV: 'production', PORT: String(PORT) },
+    });
+    serverProcess.stdout?.on('data', (data) => console.log(`[server] ${data}`));
+    serverProcess.stderr?.on('data', (data) => console.error(`[server] ${data}`));
+
+    // Wait for server to be ready
+    const checkServer = () => {
+      const http = require('http');
+      const req = http.get(`http://localhost:${PORT}`, (res) => {
+        res.resume();
+        createWindow();
+      });
+      req.on('error', () => setTimeout(checkServer, 500));
+      req.end();
+    };
+    setTimeout(checkServer, 1000);
+  } else {
+    createWindow();
+  }
+});
 
 app.on('window-all-closed', () => {
+  if (serverProcess) {
+    serverProcess.kill();
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }

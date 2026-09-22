@@ -3,6 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({

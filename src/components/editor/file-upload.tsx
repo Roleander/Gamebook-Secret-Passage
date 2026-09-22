@@ -82,6 +82,16 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
       return;
     }
 
+    // Client-side size check (max 4MB — Vercel Hobby plan limit)
+    const maxSize = 4 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setResult({
+        success: false,
+        message: `Archivo demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo 4MB.`,
+      });
+      return;
+    }
+
     setIsUploading(true);
     setResult(null);
 
@@ -90,14 +100,35 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
       formData.append("file", file);
       formData.append("projectId", projectId);
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      let response: Response;
+      try {
+        response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") {
+          throw new Error("La subida tardó demasiado (>60s). Intenta con un archivo más pequeño.");
+        }
+        throw new Error("Error de conexión con el servidor. Verifica tu conexión a internet.");
+      }
+      clearTimeout(timeoutId);
 
       const contentType = response.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
-        throw new Error("Error del servidor: respuesta inesperada. Intenta con otro archivo.");
+        let detail = "";
+        try {
+          const text = await response.text();
+          detail = text.substring(0, 200);
+        } catch {}
+        throw new Error(
+          `Error del servidor (${response.status}). ${detail || "Respuesta inesperada."} Intenta con otro archivo.`
+        );
       }
 
       const data = await response.json();

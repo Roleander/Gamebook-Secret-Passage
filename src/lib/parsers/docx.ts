@@ -1,6 +1,12 @@
 import mammoth from "mammoth";
 
 export async function parseDocx(buffer: Buffer): Promise<string> {
+  // For large files, skip mammoth to avoid OOM — use binary fallback (under 4MB Vercel limit)
+  if (buffer.length > 3 * 1024 * 1024) {
+    console.warn("DOCX too large for mammoth, using binary fallback");
+    return extractRawTextFromBinary(buffer);
+  }
+
   try {
     const result = await mammoth.extractRawText({ buffer });
 
@@ -10,7 +16,6 @@ export async function parseDocx(buffer: Buffer): Promise<string> {
 
     return result.value;
   } catch (error) {
-    // If mammoth fails (e.g., old .doc binary format), try to extract raw text
     console.warn("DOCX parsing failed, attempting raw text extraction:", error);
     return extractRawTextFromBinary(buffer);
   }

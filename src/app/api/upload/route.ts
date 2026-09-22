@@ -48,18 +48,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (max 4MB — Vercel Hobby plan limit)
+    const maxSize = 4 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: `Archivo demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo 10MB.` },
+        { error: `Archivo demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo 4MB.` },
         { status: 400 }
       );
     }
 
     // Read file buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    let buffer: Buffer;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    } catch {
+      return NextResponse.json(
+        { error: "No se pudo leer el archivo. Puede estar corrupto o ser demasiado grande." },
+        { status: 400 }
+      );
+    }
 
     // Parse file
     let result;

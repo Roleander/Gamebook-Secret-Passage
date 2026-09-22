@@ -16,7 +16,7 @@ export async function parseOdt(buffer: Buffer): Promise<string> {
     if (error instanceof Error && error.message.includes("content.xml")) {
       throw error;
     }
-    throw new Error(`Error al procesar archivo ODT: ${error}`);
+    throw new Error(`Error al procesar archivo ODT: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

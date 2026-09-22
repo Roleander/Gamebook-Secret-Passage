@@ -123,14 +123,19 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Mark endpoints
+    // 3. Mark endpoints — only passages with no outgoing links AND no content suggesting continuation
     for (const passage of refreshedProject.passages) {
       if (passage.outgoingLinks.length === 0 && !passage.isEndpoint) {
-        await db.passage.update({
-          where: { id: passage.id },
-          data: { isEndpoint: true },
-        });
-        endpointsMarked++;
+        // Check if content contains words that suggest it's NOT an ending
+        const contentLower = (passage.content || "").toLowerCase();
+        const looksLikeContinuation = /\b(ve(?:s|r)?\s+al|pas(?:a|ar)?\s+al|continuar|sigue\s+en|ir\s+al|dirigir)\b/i.test(contentLower);
+        if (!looksLikeContinuation) {
+          await db.passage.update({
+            where: { id: passage.id },
+            data: { isEndpoint: true },
+          });
+          endpointsMarked++;
+        }
       }
     }
 

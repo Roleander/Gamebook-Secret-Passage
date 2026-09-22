@@ -1,15 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { BookOpen, Home, Plus, Settings, CreditCard, Download, LogOut } from "lucide-react";
+import { BookOpen, Home, Plus, Settings, CreditCard, Download, LogOut, User } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { signOut, useSession } from "next-auth/react";
 
 export function Header() {
   const { t } = useI18n();
   const { data: session } = useSession();
+  const pathname = usePathname();
+  const [siteLogo, setSiteLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.siteLogo) setSiteLogo(data.siteLogo);
+      })
+      .catch(() => {});
+  }, []);
 
   const isAdmin = (session?.user as any)?.role === "ADMIN";
 
@@ -27,9 +40,13 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gold-500 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-dungeon-900" />
-            </div>
+            {siteLogo ? (
+              <img src={siteLogo} alt="Logo" className="w-10 h-10 rounded-lg object-contain" />
+            ) : (
+              <div className="w-10 h-10 bg-gold-500 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-dungeon-900" />
+              </div>
+            )}
             <span className="font-bold text-xl text-gold-400 hidden sm:block font-medieval">
               Secret Passage
             </span>
@@ -37,7 +54,7 @@ export function Header() {
 
           <nav className="flex items-center space-x-1">
             {navigation.map((item) => {
-              const isActive = false;
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
@@ -57,6 +74,21 @@ export function Header() {
             <div className="ml-2">
               <LanguageSelector />
             </div>
+            {session && (
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ml-2",
+                  pathname === "/profile"
+                    ? "bg-gold-500 text-dungeon-900"
+                    : "text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100"
+                )}
+                title="Mi perfil"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden md:inline">Perfil</span>
+              </Link>
+            )}
             {session && (
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}

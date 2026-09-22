@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Check, Heart, Zap, Crown } from "lucide-react";
+import { Check, Heart, Zap, Crown, CreditCard } from "lucide-react";
 import { PayPalDonate } from "@/components/paypal-donate";
+import { StripeCheckout } from "@/components/stripe-checkout";
 import Link from "next/link";
 
 interface Plan {
@@ -164,11 +165,23 @@ export default function PricingPage() {
                     <Link href="/auth/register">Empezar Gratis</Link>
                   </Button>
                 ) : plan.name === "lifetime" ? (
-                  <PayPalDonate className="w-full" />
+                  <div className="space-y-2">
+                    <StripeCheckout
+                      type="donation"
+                      amount={plan.price}
+                      label={`Pagar ${plan.price}€ con Stripe`}
+                    />
+                    <PayPalDonate amount={plan.price} />
+                  </div>
                 ) : (
-                  <Button className="w-full">
-                    <Link href="/auth/register?plan=pro">Suscribirse</Link>
-                  </Button>
+                  <div className="space-y-2">
+                    <Button className="w-full">
+                      <Link href={`/auth/register?plan=${plan.name}`}>Suscribirse</Link>
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Pago con Stripe o PayPal disponible al registrarte
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -183,7 +196,10 @@ export default function PricingPage() {
               <p className="text-muted-foreground mb-4">
                 Si disfrutas de Secret Passage, considera hacer una donación para ayudarnos a seguir mejorando.
               </p>
-              <PayPalDonate size="lg" />
+              <div className="flex gap-2 justify-center">
+                <StripeCheckout type="donation" amount={5} label="Donar 5€ con Stripe" />
+                <PayPalDonate amount={5} />
+              </div>
             </CardContent>
           </Card>
         </div>

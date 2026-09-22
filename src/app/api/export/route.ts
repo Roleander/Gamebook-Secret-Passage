@@ -6,6 +6,7 @@ import { generatePDF } from "@/lib/exporters/pdf";
 import { generateTXT } from "@/lib/exporters/txt";
 import { generateODT } from "@/lib/exporters/odt";
 import { generateDOC } from "@/lib/exporters/doc";
+import { generateDOCX } from "@/lib/exporters/docx";
 import JSZip from "jszip";
 
 export async function POST(req: Request) {
@@ -91,14 +92,23 @@ export async function POST(req: Request) {
         const docContent = await generateDOC(projectId, readingMode);
         return new NextResponse(docContent, {
           headers: {
-            "Content-Type": "application/rtf; charset=utf-8",
-            "Content-Disposition": `attachment; filename="${safeTitle}.rtf"`,
+            "Content-Type": "application/msword; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${safeTitle}.doc"`,
+          },
+        });
+      }
+      case "docx": {
+        const docxBuffer = await generateDOCX(projectId, readingMode);
+        return new NextResponse(new Uint8Array(docxBuffer), {
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "Content-Disposition": `attachment; filename="${safeTitle}.docx"`,
           },
         });
       }
       default:
         return NextResponse.json(
-          { error: "Formato no soportado. Usa 'pdf', 'epub', 'txt', 'odt' o 'doc'" },
+          { error: "Formato no soportado. Usa 'pdf', 'epub', 'txt', 'odt', 'doc' o 'docx'" },
           { status: 400 }
         );
     }

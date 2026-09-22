@@ -81,7 +81,7 @@ export function extractPassagesFromText(text: string): ParseResult {
     const trimmedLines = rawLines.slice(0, endIdx);
     if (trimmedLines.length === 0) continue;
 
-    const content = trimmedLines.join("\n").trim();
+    const content = stripTrailingStandaloneNumbers(trimmedLines.join("\n").trim());
 
     // Detect endings (FIN, FIN I VOLUMEN, etc.)
     const isEndpoint = /\b[Ff][Ii][Nn]\b/.test(content);
@@ -355,6 +355,16 @@ function detectNamedReference(text: string): number | undefined {
   }
 
   return undefined;
+}
+
+// Remove trailing standalone numbers from passage content (e.g., "846" alone on last line)
+function stripTrailingStandaloneNumbers(content: string): string {
+  const lines = content.split("\n");
+  let endIdx = lines.length;
+  while (endIdx > 0 && /^\s*\d+(?:[.,]\d+)?\s*$/.test(lines[endIdx - 1])) {
+    endIdx--;
+  }
+  return lines.slice(0, endIdx).join("\n").trim();
 }
 
 function detectInlineLinks(

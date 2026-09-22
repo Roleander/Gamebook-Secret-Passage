@@ -2,25 +2,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { updateAllNumberReferences } from "@/lib/utils";
 
-function updateAllNumberReferences(content: string, mapping: Map<number, number>): string {
-  // Use temporary placeholders to avoid double-replacement
-  const tempPrefix = "§REF§";
-  const tempSuffix = "§/REF§";
-  let result = content;
-
-  // Replace all old numbers with temporary markers
-  for (const [oldNum, newNum] of mapping) {
-    const regex = new RegExp(`\\b${oldNum}\\b`, "g");
-    result = result.replace(regex, `${tempPrefix}${newNum}${tempSuffix}`);
-  }
-
-  // Convert temporary markers back to numbers
-  const tempRegex = new RegExp(`${tempPrefix}(\\d+)${tempSuffix}`, "g");
-  result = result.replace(tempRegex, "$1");
-
-  return result;
-}
+export const dynamic = "force-dynamic";
 
 export async function POST(
   req: Request,

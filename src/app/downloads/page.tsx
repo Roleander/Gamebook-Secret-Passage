@@ -20,6 +20,8 @@ interface DownloadInfo {
   }[];
 }
 
+const GITHUB_REPO = "https://github.com/Roleander/Gamebook-Secret-Passage";
+
 const downloads: DownloadInfo[] = [
   {
     id: "windows",
@@ -31,13 +33,13 @@ const downloads: DownloadInfo[] = [
         name: "Instalador",
         extension: ".exe",
         size: "~85 MB",
-        url: "#", // Replace with actual download URL
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage-Setup.exe`,
       },
       {
         name: "Portable",
         extension: ".exe",
         size: "~80 MB",
-        url: "#",
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage-Portable.exe`,
       },
     ],
   },
@@ -51,7 +53,7 @@ const downloads: DownloadInfo[] = [
         name: "Disk Image",
         extension: ".dmg",
         size: "~90 MB",
-        url: "#",
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.dmg`,
       },
     ],
   },
@@ -65,13 +67,13 @@ const downloads: DownloadInfo[] = [
         name: "AppImage",
         extension: ".AppImage",
         size: "~85 MB",
-        url: "#",
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.AppImage`,
       },
       {
         name: "Debian/Ubuntu",
         extension: ".deb",
         size: "~80 MB",
-        url: "#",
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.deb`,
       },
     ],
   },
@@ -86,15 +88,6 @@ export default function DownloadsPage() {
       return;
     }
     setDownloadStarted(platform.id);
-    
-    fetch("/api/downloads/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        platform: platform.id,
-        format: format.extension,
-      }),
-    }).catch(() => {});
 
     setTimeout(() => setDownloadStarted(null), 3000);
   };
@@ -179,14 +172,26 @@ export default function DownloadsPage() {
               <CardContent>
                 <div className="space-y-3">
                   {platform.formats.map((format, index) => (
-                    <Button
+                    <a
                       key={`${platform.id}-${index}`}
-                      variant={selectedPlatform === platform.id ? "default" : "outline"}
-                      className="w-full justify-between"
-                      onClick={() => handleDownload(platform, format)}
-                      disabled={downloadStarted === platform.id || format.url === "#"}
+                      href={format.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`block w-full text-center p-3 rounded-md border transition-colors ${
+                        selectedPlatform === platform.id
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:bg-muted"
+                      }`}
+                      onClick={(e) => {
+                        if (format.url === "#") {
+                          e.preventDefault();
+                          return;
+                        }
+                        setDownloadStarted(platform.id);
+                        setTimeout(() => setDownloadStarted(null), 3000);
+                      }}
                     >
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center gap-2">
                         {downloadStarted === platform.id ? (
                           <Check className="w-4 h-4" />
                         ) : (
@@ -197,10 +202,10 @@ export default function DownloadsPage() {
                           <span className="text-xs bg-muted px-2 py-0.5 rounded">Próximamente</span>
                         )}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs opacity-70">
                         {format.extension} • {format.size}
                       </span>
-                    </Button>
+                    </a>
                   ))}
                 </div>
               </CardContent>

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 function updateAllNumberReferences(content: string, mapping: Map<number, number>): string {
   const tempPrefix = "§REF§";
   const tempSuffix = "§/REF§";

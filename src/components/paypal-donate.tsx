@@ -1,36 +1,72 @@
 "use client";
 
 import { useState } from "react";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Button } from "@/components/ui/button";
-import { Heart, ExternalLink } from "lucide-react";
 
 interface PayPalDonateProps {
-  variant?: "default" | "outline" | "ghost";
-  size?: "default" | "sm" | "lg";
-  className?: string;
+  amount?: number;
+  onSuccess?: () => void;
 }
 
-export function PayPalDonate({ variant = "outline", size = "default", className }: PayPalDonateProps) {
-  const [isHovered, setIsHovered] = useState(false);
+export function PayPalDonate({ amount = 5, onSuccess }: PayPalDonateProps) {
+  const [sdkReady, setSdkReady] = useState(false);
 
-  const handleDonate = () => {
-    // Replace with your actual PayPal.me link or PayPal donation page
-    const paypalUrl = "https://www.paypal.com/donate?hosted_button_id=YOUR_BUTTON_ID";
-    window.open(paypalUrl, "_blank");
-  };
+  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
+    return (
+      <Button variant="outline" disabled>
+        PayPal no configurado
+      </Button>
+    );
+  }
 
   return (
-    <Button
-      variant={variant}
-      size={size}
-      onClick={handleDonate}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`gap-2 ${className || ""}`}
+    <PayPalScriptProvider
+      options={{
+        clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+        currency: "EUR",
+      }}
     >
-      <Heart className={`w-4 h-4 ${isHovered ? "fill-current text-red-500" : ""}`} />
-      Donar con PayPal
-      <ExternalLink className="w-3 h-3 opacity-50" />
-    </Button>
+      <div className="w-full">
+        <PayPalButtons
+          style={{ layout: "vertical", color: "blue" }}
+          createOrder={(data, actions) => {
+            return actions.order.create({
+              intent: "CAPTURE",
+              purchase_units: [
+                {
+                  amount: { value: amount.toString(), currency_code: "EUR" },
+                  description: "Donación a Secret Passage",
+                },
+              ],
+            });
+          }}
+          onApprove={async (data, actions) => {
+            const details = await actions.order!.capture();
+            // Record donation
+            try {
+              await fetch("/api/donations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  amount,
+                  currency: "EUR",
+                  paymentMethod: "paypal",
+                  paypalOrderId: details.id,
+                }),
+              });
+            } catch (error) {
+              console.error("Error recording donation:", error);
+            }
+            alert(`¡Gracias por tu donación de ${amount} EUR, ${details.payer?.name?.given_name}!`);
+            onSuccess?.();
+          }}
+          onError={(err) => {
+            console.error("PayPal error:", err);
+            alert("Error al procesar el pago con PayPal");
+          }}
+        />
+      </div>
+    </PayPalScriptProvider>
   );
 }

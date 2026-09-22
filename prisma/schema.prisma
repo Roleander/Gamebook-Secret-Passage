@@ -8,17 +8,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  password      String
-  role          String    @default("USER")
-  projects      Project[]
-  subscription  Subscription?
-  donations     Donation[]
-  passwordResets PasswordReset[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String          @id @default(cuid())
+  email             String          @unique
+  name              String?
+  password          String
+  role              String          @default("USER")
+  avatar            String?
+  bio               String?
+  theme             String?
+  stripeCustomerId  String?         @unique
+  projects          Project[]
+  subscription      Subscription?
+  donations         Donation[]
+  passwordResets    PasswordReset[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model Project {
@@ -29,6 +33,7 @@ model Project {
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   passages      Passage[]
   imports       ImportHistory[]
+  snapshots     ShuffleSnapshot[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -97,18 +102,19 @@ model SubscriptionPlan {
 }
 
 model Subscription {
-  id            String    @id @default(cuid())
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId        String
-  plan          SubscriptionPlan @relation(fields: [planId], references: [id])
-  status        String    @default("active") // active, canceled, past_due, trialing
-  paypalSubscriptionId String? @unique
-  startDate     DateTime  @default(now())
-  endDate       DateTime?
-  canceledAt    DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                String
+  plan                  SubscriptionPlan @relation(fields: [planId], references: [id])
+  status                String    @default("active") // active, canceled, past_due, trialing
+  paypalSubscriptionId  String?   @unique
+  stripeSubscriptionId  String?   @unique
+  startDate             DateTime  @default(now())
+  endDate               DateTime?
+  canceledAt            DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -132,14 +138,31 @@ model Donation {
 }
 
 model PasswordReset {
-  id            String    @id @default(cuid())
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token         String    @unique
-  expiresAt     DateTime
-  used          Boolean   @default(false)
-  createdAt     DateTime  @default(now())
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  expiresAt   DateTime
+  used        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
 
   @@index([token])
   @@index([userId])
+}
+
+model ShuffleSnapshot {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  label       String   @default("Barajar Contenido")
+  passageData Json     // { [passageId]: { content, title, isEndpoint, links: [...] } }
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+}
+
+model SiteConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
