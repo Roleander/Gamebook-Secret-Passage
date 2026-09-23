@@ -23,8 +23,10 @@ export async function GET() {
         theme: true,
         role: true,
         createdAt: true,
-        subscription: {
+        subscriptions: {
+          where: { status: { in: ["active", "trialing"] } },
           include: { plan: true },
+          take: 1,
         },
         donations: {
           orderBy: { createdAt: "desc" },
@@ -37,7 +39,8 @@ export async function GET() {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    const { subscriptions, ...rest } = user;
+    return NextResponse.json({ ...rest, subscription: subscriptions[0] || null });
   } catch (error) {
     console.error("Error fetching profile:", error);
     return NextResponse.json({ error: "Error al obtener perfil" }, { status: 500 });

@@ -28,37 +28,74 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.userId;
+        const userId = session.metadata?.userId && session.metadata.userId !== "anonymous"
+          ? session.metadata.userId
+          : null;
         const planId = session.metadata?.planId;
+        const message = session.metadata?.message;
 
-        if (session.mode === "payment" && userId) {
-          // One-time donation
+        if (session.mode === "payment") {
+          const stripePaymentId = session.payment_intent as string;
+
+          // If planId exists, this is a one-time subscription (e.g., Lifetime)
+          if (userId && planId) {
+            const existingSub = await db.subscription.findFirst({
+              where: { userId, planId, status: { in: ["active", "trialing"] } },
+            });
+            if (existingSub) break;
+
+            const plan = await db.subscriptionPlan.findUnique({ where: { id: planId } });
+            await db.subscription.create({
+              data: {
+                userId,
+                planId,
+                status: "active",
+                stripeSubscriptionId: stripePaymentId,
+                startDate: new Date(),
+                endDate: plan?.interval === "one-time" ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              },
+            });
+            break;
+          }
+
+          // Otherwise, it's a donation
+          const existing = await db.donation.findUnique({
+            where: { stripePaymentId },
+          });
+          if (existing) break;
+
           await db.donation.create({
             data: {
               userId,
               amount: (session.amount_total || 0) / 100,
               currency: session.currency || "eur",
               paymentMethod: "stripe",
-              stripePaymentId: session.payment_intent as string,
+              stripePaymentId,
               status: "completed",
+              message: message || null,
             },
           });
         }
 
         if (session.mode === "subscription" && userId && planId) {
-          // Subscription created
-          const subscription = await getStripe().subscriptions.retrieve(
-            session.subscription as string
-          );
+          const stripeSubId = session.subscription as string;
 
-          const periodEnd = (subscription as any).current_period_end || Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+          // Idempotency: skip if already recorded
+          const existingSub = await db.subscription.findUnique({
+            where: { stripeSubscriptionId: stripeSubId },
+          });
+          if (existingSub) break;
+
+          const subscription = await getStripe().subscriptions.retrieve(stripeSubId);
+          const periodEnd = (subscription as any).current_period_end
+            || Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
 
           await db.subscription.create({
             data: {
               userId,
               planId,
               status: "active",
-              stripeSubscriptionId: subscription.id,
+              stripeSubscriptionId: stripeSubId,
               startDate: new Date(),
               endDate: new Date(periodEnd * 1000),
             },
@@ -74,12 +111,22 @@ export async function POST(req: Request) {
         });
 
         if (dbSubscription) {
-          const periodEnd = (subscription as any).current_period_end;
+          const periodEnd = (subscription as any).current_period_end
+            || (subscription as any).items?.data?.[0]?.current_period_end;
+          const statusMap: Record<string, string> = {
+            active: "active",
+            trialing: "trialing",
+            past_due: "past_due",
+            canceled: "canceled",
+            unpaid: "past_due",
+            incomplete: "past_due",
+            incomplete_expired: "canceled",
+            paused: "canceled",
+          };
           await db.subscription.update({
             where: { id: dbSubscription.id },
             data: {
-              status: subscription.status === "active" ? "active" :
-                      subscription.status === "past_due" ? "past_due" : "canceled",
+              status: statusMap[subscription.status] || "canceled",
               ...(periodEnd ? { endDate: new Date(periodEnd * 1000) } : {}),
             },
           });
@@ -98,6 +145,16 @@ export async function POST(req: Request) {
         });
         break;
       }
+
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const paymentIntentId = charge.payment_intent as string;
+        await db.donation.updateMany({
+          where: { stripePaymentId: paymentIntentId },
+          data: { status: "refunded" },
+        });
+        break;
+      }
     }
 
     return NextResponse.json({ received: true });
@@ -107,5 +164,5 @@ export async function POST(req: Request) {
   }
 }
 
-// Use raw body for webhook signature verification
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";

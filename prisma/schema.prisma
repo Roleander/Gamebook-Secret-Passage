@@ -18,7 +18,7 @@ model User {
   theme             String?
   stripeCustomerId  String?         @unique
   projects          Project[]
-  subscription      Subscription?
+  subscriptions     Subscription[]
   donations         Donation[]
   passwordResets    PasswordReset[]
   createdAt         DateTime        @default(now())
@@ -103,7 +103,7 @@ model SubscriptionPlan {
 
 model Subscription {
   id                    String    @id @default(cuid())
-  userId                String    @unique
+  userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   planId                String
   plan                  SubscriptionPlan @relation(fields: [planId], references: [id])

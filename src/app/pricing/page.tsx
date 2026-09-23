@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Check, Heart, Zap, Crown, CreditCard } from "lucide-react";
+import { Check, Heart, Zap, Crown } from "lucide-react";
 import { PayPalDonate } from "@/components/paypal-donate";
 import { StripeCheckout } from "@/components/stripe-checkout";
 import Link from "next/link";
@@ -70,9 +70,10 @@ export default function PricingPage() {
       features: [
         "Proyectos ilimitados",
         "Pasajes ilimitados",
-        "Exportar PDF, EPUB, ODT, DOC",
+        "Exportar PDF, EPUB, ODT, DOC, DOCX",
         "Auto-fix avanzado",
         "Agentes de IA",
+        "Barajar contenido",
         "Soporte prioritario",
       ],
       maxProjects: null,
@@ -83,7 +84,7 @@ export default function PricingPage() {
       name: "lifetime",
       displayName: "De por vida",
       description: "Pago único, acceso para siempre",
-      price: 99,
+      price: 49,
       currency: "EUR",
       interval: "one-time",
       features: [
@@ -167,19 +168,24 @@ export default function PricingPage() {
                 ) : plan.name === "lifetime" ? (
                   <div className="space-y-2">
                     <StripeCheckout
-                      type="donation"
-                      amount={plan.price}
+                      type="one-time-subscription"
+                      planId={plan.id}
                       label={`Pagar ${plan.price}€ con Stripe`}
                     />
                     <PayPalDonate amount={plan.price} />
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Button className="w-full">
-                      <Link href={`/auth/register?plan=${plan.name}`}>Suscribirse</Link>
-                    </Button>
+                    <StripeCheckout
+                      type="subscription"
+                      planId={plan.id}
+                      label={`Suscribirse con Stripe (${plan.price}€/mes)`}
+                    />
                     <p className="text-xs text-muted-foreground text-center">
-                      Pago con Stripe o PayPal disponible al registrarte
+                      ¿Ya tienes cuenta?{" "}
+                      <Link href="/pricing" className="underline">
+                        Inicia sesión primero
+                      </Link>
                     </p>
                   </div>
                 )}

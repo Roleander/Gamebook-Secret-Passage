@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import Stripe from "stripe";
+
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2026-08-26.dahlia",
+  });
+}
 
 // GET - Get user's current subscription
 export async function GET() {
@@ -33,8 +40,8 @@ export async function GET() {
   }
 }
 
-// POST - Create new subscription
-export async function POST(req: Request) {
+// POST - Create Stripe Billing Portal session (for managing/canceling)
+export async function POST() {
   try {
     const session = await getServerSession(authOptions);
 
@@ -42,66 +49,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { planId, paypalSubscriptionId } = await req.json();
+    const userId = (session.user as any).id;
+    const user = await db.user.findUnique({ where: { id: userId } });
 
-    // Check if plan exists
-    const plan = await db.subscriptionPlan.findUnique({
-      where: { id: planId },
-    });
-
-    if (!plan) {
-      return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 });
-    }
-
-    // Check if user already has active subscription
-    const existing = await db.subscription.findFirst({
-      where: {
-        userId: (session.user as any).id,
-        status: { in: ["active", "trialing"] },
-      },
-    });
-
-    if (existing) {
+    if (!user?.stripeCustomerId) {
       return NextResponse.json(
-        { error: "Ya tienes una suscripción activa" },
+        { error: "No tienes cuenta de Stripe" },
         { status: 400 }
       );
     }
 
-    // Calculate end date
-    const startDate = new Date();
-    const endDate = new Date();
-    if (plan.interval === "month") {
-      endDate.setMonth(endDate.getMonth() + 1);
-    } else if (plan.interval === "year") {
-      endDate.setFullYear(endDate.getFullYear() + 1);
-    }
+    const origin = process.env.NEXTAUTH_URL || "https://gamebook-secret-passage.vercel.app";
 
-    const subscription = await db.subscription.create({
-      data: {
-        userId: (session.user as any).id,
-        planId,
-        paypalSubscriptionId,
-        status: "active",
-        startDate,
-        endDate: plan.interval === "one-time" ? null : endDate,
-      },
-      include: {
-        plan: true,
-      },
+    const portalSession = await getStripe().billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: `${origin}/profile`,
     });
 
-    return NextResponse.json(subscription);
+    return NextResponse.json({ url: portalSession.url });
   } catch (error) {
-    console.error("Error creating subscription:", error);
+    console.error("Error creating portal session:", error);
     return NextResponse.json(
-      { error: "Error al crear suscripción" },
+      { error: "Error al crear sesión de gestión" },
       { status: 500 }
     );
   }
 }
 
-// DELETE - Cancel subscription
+// DELETE - Cancel subscription (cancels at Stripe first)
 export async function DELETE() {
   try {
     const session = await getServerSession(authOptions);
@@ -124,7 +99,47 @@ export async function DELETE() {
       );
     }
 
-    // Update subscription status
+    // Cancel at Stripe if it's a Stripe subscription
+    if (subscription.stripeSubscriptionId && !subscription.stripeSubscriptionId.startsWith("pi_")) {
+      try {
+        await getStripe().subscriptions.cancel(subscription.stripeSubscriptionId);
+      } catch (stripeError) {
+        console.error("Stripe cancel error:", stripeError);
+        // Continue with DB cancel even if Stripe fails
+      }
+    }
+
+    // Cancel at PayPal if it's a PayPal subscription
+    if (subscription.paypalSubscriptionId) {
+      try {
+        const auth = Buffer.from(
+          `${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
+        ).toString("base64");
+        const tokenRes = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: "grant_type=client_credentials",
+        });
+        const { access_token } = await tokenRes.json();
+        await fetch(
+          `https://api-m.paypal.com/v1/billing/subscriptions/${subscription.paypalSubscriptionId}/cancel`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ reason: "Canceled by user" }),
+          }
+        );
+      } catch (paypalError) {
+        console.error("PayPal cancel error:", paypalError);
+      }
+    }
+
     const updated = await db.subscription.update({
       where: { id: subscription.id },
       data: {
@@ -136,8 +151,6 @@ export async function DELETE() {
       },
     });
 
-    // TODO: Cancel PayPal subscription via API
-
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Error canceling subscription:", error);
@@ -147,3 +160,5 @@ export async function DELETE() {
     );
   }
 }
+
+export const dynamic = "force-dynamic";

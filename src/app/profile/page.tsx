@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { ThemeCustomizer } from "@/components/theme-customizer";
 import { LogoUpload } from "@/components/logo-upload";
-import { User, Lock, CreditCard, Palette, Settings, Globe } from "lucide-react";
+import { User, Lock, CreditCard, Palette, Settings, Globe, CheckCircle } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [siteConfig, setSiteConfig] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -56,6 +57,15 @@ export default function ProfilePage() {
     if (status === "authenticated") {
       fetchProfile();
       fetchSiteConfig();
+    }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscribed") === "true") {
+      setSuccessMessage("¡Suscripción activada correctamente!");
+    } else if (params.get("donated") === "true") {
+      setSuccessMessage("¡Gracias por tu donación!");
+    }
+    if (params.get("subscribed") || params.get("donated")) {
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, [status, router]);
 
@@ -155,6 +165,38 @@ export default function ProfilePage() {
     }
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      const response = await fetch("/api/subscriptions/manage", { method: "POST" });
+      const data = await response.json();
+      if (response.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "No se pudo gestionar la suscripción");
+      }
+    } catch (error) {
+      console.error("Error managing subscription:", error);
+      alert("Error de conexión");
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm("¿Seguro que quieres cancelar tu suscripción?")) return;
+    try {
+      const response = await fetch("/api/subscriptions/manage", { method: "DELETE" });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Suscripción cancelada");
+        fetchProfile();
+      } else {
+        alert(data.error || "Error al cancelar");
+      }
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      alert("Error de conexión");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-dungeon">
@@ -179,6 +221,13 @@ export default function ProfilePage() {
           <User className="w-8 h-8" />
           Mi Perfil
         </h1>
+
+        {successMessage && (
+          <div className="mb-6 p-4 rounded border border-green-500 bg-green-500/10 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+            <p className="text-green-500 font-semibold">{successMessage}</p>
+          </div>
+        )}
 
         {/* Avatar + Basic Info */}
         <Card className="mb-6">
@@ -285,8 +334,16 @@ export default function ProfilePage() {
                   Estado: {profile.subscription.status}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Precio: {profile.subscription.plan?.price} EUR/mes
+                  Precio: {profile.subscription.plan?.price} EUR
                 </p>
+                <div className="mt-3 flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleManageSubscription}>
+                    Gestionar suscripción
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={handleCancelSubscription}>
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             ) : (
               <div>

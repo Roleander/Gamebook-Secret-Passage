@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Button } from "@/components/ui/button";
 
@@ -10,11 +9,11 @@ interface PayPalDonateProps {
 }
 
 export function PayPalDonate({ amount = 5, onSuccess }: PayPalDonateProps) {
-  const [sdkReady, setSdkReady] = useState(false);
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
-  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
+  if (!clientId) {
     return (
-      <Button variant="outline" disabled>
+      <Button variant="outline" disabled className="w-full">
         PayPal no configurado
       </Button>
     );
@@ -23,7 +22,7 @@ export function PayPalDonate({ amount = 5, onSuccess }: PayPalDonateProps) {
   return (
     <PayPalScriptProvider
       options={{
-        clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+        clientId,
         currency: "EUR",
       }}
     >
@@ -42,24 +41,28 @@ export function PayPalDonate({ amount = 5, onSuccess }: PayPalDonateProps) {
             });
           }}
           onApprove={async (data, actions) => {
-            const details = await actions.order!.capture();
-            // Record donation
             try {
-              await fetch("/api/donations", {
+              // Server-side verification before recording
+              const response = await fetch("/api/donations/paypal", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                  orderId: data.orderID,
                   amount,
-                  currency: "EUR",
-                  paymentMethod: "paypal",
-                  paypalOrderId: details.id,
                 }),
               });
+
+              if (response.ok) {
+                alert(`¡Gracias por tu donación de ${amount} EUR!`);
+                onSuccess?.();
+              } else {
+                const err = await response.json().catch(() => ({}));
+                alert(`Error al registrar la donación: ${err.error || "Error desconocido"}`);
+              }
             } catch (error) {
-              console.error("Error recording donation:", error);
+              console.error("Error verifying PayPal donation:", error);
+              alert("Error al verificar el pago con PayPal");
             }
-            alert(`¡Gracias por tu donación de ${amount} EUR, ${details.payer?.name?.given_name}!`);
-            onSuccess?.();
           }}
           onError={(err) => {
             console.error("PayPal error:", err);

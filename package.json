@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
     "export": "node scripts/export-epub.js",
     "electron:dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "next build && electron-builder",
@@ -101,6 +103,9 @@
       "category": "Game"
     }
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@paypal/react-paypal-js": "^10.5.0",
     "@prisma/client": "^5.22.0",
@@ -143,6 +148,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "wait-on": "^8.0.5"
   }

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       success_url: `${origin}/profile?donated=true`,
       cancel_url: `${origin}/pricing`,
       metadata: {
-        userId: session?.user ? (session.user as any).id : "anonymous",
+        userId: session?.user ? (session.user as any).id : "",
         message: message || "",
       },
     });

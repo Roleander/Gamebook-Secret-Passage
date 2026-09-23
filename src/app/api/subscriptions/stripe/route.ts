@@ -57,28 +57,28 @@ export async function POST(req: Request) {
 
     const origin = req.headers.get("origin") || "https://gamebook-secret-passage.vercel.app";
 
-    // Determine Stripe price based on interval
+    const isOneTime = plan.interval === "one-time";
     const isYearly = plan.interval === "year";
     const interval = isYearly ? "year" : "month";
+
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+      price_data: {
+        currency: plan.currency.toLowerCase(),
+        product_data: {
+          name: plan.displayName,
+          description: plan.description || `Suscripción ${plan.displayName}`,
+        },
+        unit_amount: Math.round(plan.price * 100),
+        ...(isOneTime ? {} : { recurring: { interval } }),
+      },
+      quantity: 1,
+    };
 
     const checkoutSession = await getStripe().checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: plan.currency.toLowerCase(),
-            product_data: {
-              name: plan.displayName,
-              description: plan.description || `Suscripción ${plan.displayName}`,
-            },
-            unit_amount: Math.round(plan.price * 100),
-            recurring: { interval },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
+      line_items: [lineItem],
+      mode: isOneTime ? "payment" : "subscription",
       success_url: `${origin}/profile?subscribed=true`,
       cancel_url: `${origin}/pricing`,
       metadata: {
