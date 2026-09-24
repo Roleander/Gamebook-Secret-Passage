@@ -1,4 +1,5 @@
 import { Header } from "@/components/header";
+import { HeroLogo } from "@/components/hero-logo";
 import { BookOpen, Sparkles, FileText, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-primary/20 rounded-full mb-6 glow-gold">
-            <BookOpen className="w-12 h-12 text-primary" />
-          </div>
+          <HeroLogo />
           <h1 className="text-5xl font-bold mb-4 text-primary font-pixel">
             Gamebook Secret Passage
           </h1>
