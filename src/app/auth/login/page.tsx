@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setRegistered(true);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +39,8 @@ export default function LoginPage() {
       setError("Email o contraseña incorrectos");
       setLoading(false);
     } else {
-      router.push("/projects");
+      const callbackUrl = searchParams.get("callbackUrl") || "/projects";
+      router.push(callbackUrl.startsWith("/") ? callbackUrl : "/projects");
       router.refresh();
     }
   };
@@ -52,6 +61,11 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {registered && !error && (
+              <div className="p-3 text-sm text-green-500 bg-green-500/10 rounded-md border border-green-500/30">
+                Cuenta creada correctamente. Inicia sesión para continuar.
+              </div>
+            )}
             {error && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
                 {error}
@@ -95,7 +109,14 @@ export default function LoginPage() {
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               ¿No tienes cuenta?{" "}
-              <Link href="/auth/register" className="text-primary hover:underline">
+              <Link
+                href={
+                  searchParams.get("callbackUrl")
+                    ? `/auth/register?callbackUrl=${encodeURIComponent(searchParams.get("callbackUrl")!)}`
+                    : "/auth/register"
+                }
+                className="text-primary hover:underline"
+              >
                 Regístrate aquí
               </Link>
             </p>
@@ -103,5 +124,13 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-dungeon" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

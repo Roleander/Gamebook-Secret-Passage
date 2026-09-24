@@ -51,7 +51,9 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/auth/login?registered=true");
+      const params = new URLSearchParams(window.location.search);
+      const callbackUrl = params.get("callbackUrl");
+      router.push(callbackUrl ? `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&registered=true` : "/auth/login?registered=true");
     } catch (err) {
       setError("Error de conexión");
       setLoading(false);

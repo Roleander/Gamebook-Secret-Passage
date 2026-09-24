@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Check, Heart, Zap, Crown } from "lucide-react";
 import { PayPalDonate } from "@/components/paypal-donate";
@@ -162,9 +161,12 @@ export default function PricingPage() {
                 </ul>
 
                 {plan.name === "free" ? (
-                  <Button variant="outline" className="w-full">
-                    <Link href="/auth/register">Empezar Gratis</Link>
-                  </Button>
+                  <Link
+                    href="/auth/register"
+                    className="inline-flex w-full h-10 items-center justify-center rounded-md border border-border bg-transparent hover:bg-muted text-sm font-medium transition-colors btn-medieval"
+                  >
+                    Empezar Gratis
+                  </Link>
                 ) : plan.name === "lifetime" ? (
                   <div className="space-y-2">
                     <StripeCheckout
@@ -183,7 +185,7 @@ export default function PricingPage() {
                     />
                     <p className="text-xs text-muted-foreground text-center">
                       ¿Ya tienes cuenta?{" "}
-                      <Link href="/pricing" className="underline">
+                      <Link href="/auth/login?callbackUrl=/pricing" className="text-primary underline">
                         Inicia sesión primero
                       </Link>
                     </p>

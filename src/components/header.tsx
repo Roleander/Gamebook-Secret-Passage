@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { BookOpen, Home, Plus, Settings, CreditCard, Download, LogOut, User } from "lucide-react";
+import { BookOpen, Home, Plus, Settings, CreditCard, Download, LogOut, User, LogIn, UserPlus } from "lucide-react";
 import { LanguageSelector } from "@/components/language-selector";
 import { signOut, useSession } from "next-auth/react";
 
 export function Header() {
   const { t } = useI18n();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
 
@@ -74,6 +74,36 @@ export function Header() {
             <div className="ml-2">
               <LanguageSelector />
             </div>
+            {!session && status !== "loading" && (
+              <>
+                <Link
+                  href="/auth/login"
+                  className={cn(
+                    "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ml-2",
+                    pathname === "/auth/login"
+                      ? "bg-gold-500 text-dungeon-900"
+                      : "text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100"
+                  )}
+                  title={t("Auth.login")}
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span className="hidden md:inline">{t("Auth.login")}</span>
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className={cn(
+                    "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ml-1",
+                    pathname === "/auth/register"
+                      ? "bg-gold-500 text-dungeon-900"
+                      : "bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 hover:text-gold-300"
+                  )}
+                  title={t("Auth.register")}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden md:inline">{t("Auth.register")}</span>
+                </Link>
+              </>
+            )}
             {session && (
               <Link
                 href="/profile"
