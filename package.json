@@ -19,11 +19,11 @@
     "db:seed": "tsx prisma/seed.ts",
     "export": "node scripts/export-epub.js",
     "electron:dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "next build && electron-builder",
-    "electron:build:win": "next build && electron-builder --win",
-    "electron:build:mac": "next build && electron-builder --mac",
-    "electron:build:linux": "next build && electron-builder --linux",
-    "electron:build:all": "next build && electron-builder -wml"
+    "electron:build": "next build && electron-builder --publish never",
+    "electron:build:win": "next build && electron-builder --win --publish never",
+    "electron:build:mac": "next build && electron-builder --mac --publish never",
+    "electron:build:linux": "next build && electron-builder --linux --publish never",
+    "electron:build:all": "next build && electron-builder -wml --publish never"
   },
   "build": {
     "appId": "com.secretpassage.app",
