@@ -15,9 +15,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://gamebook-secret-passage.vercel.app";
+const SITE_NAME = "Gamebook Secret Passage";
+const SITE_DESCRIPTION =
+  "Forja librosjuegos que hipnotizan. Crea, edita y exporta a PDF/EPUB con detección de errores y estilo medieval.";
+const OG_IMAGE =
+  "https://0qd6kvwc4iqbiywd.public.blob.vercel-storage.com/logo/cmu5boi0i000010wkg0uerexs.jpg";
+
 export const metadata: Metadata = {
-  title: "Gamebook Secret Passage",
-  description: "Create, edit and export interactive gamebooks",
+  title: {
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  metadataBase: new URL(SITE_URL),
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [{ url: OG_IMAGE, width: 512, height: 512, alt: "Logo de Secret Passage" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 export default function RootLayout({

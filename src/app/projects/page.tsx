@@ -6,6 +6,17 @@ import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, BookOpen, Calendar, FileText, Trash2 } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
+
+const stagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
 
 interface Project {
   id: string;
@@ -69,7 +80,7 @@ export default function ProjectsPage() {
               Mis Proyectos
             </h1>
             <p className="text-muted-foreground mt-1">
-              Gestiona tus librosjuegos
+              Gestiona tus librojuegos
             </p>
           </div>
           <Link href="/projects/new">
@@ -112,9 +123,15 @@ export default function ProjectsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            initial="hidden"
+            animate="show"
+            variants={stagger}
+          >
             {projects.map((project) => (
-              <Link key={project.id} href={`/editor/${project.id}`}>
+              <motion.div key={project.id} variants={fadeUp}>
+              <Link href={`/editor/${project.id}`}>
                 <Card className="h-full hover:border-primary/50 transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -149,8 +166,9 @@ export default function ProjectsPage() {
                   </CardContent>
                 </Card>
               </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </main>
     </div>

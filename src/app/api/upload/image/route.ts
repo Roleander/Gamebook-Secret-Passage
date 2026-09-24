@@ -37,6 +37,16 @@ export async function POST(req: Request) {
     }
 
     const userId = (session.user as any).id;
+    const role = (session.user as any).role;
+
+    // Authorize BEFORE uploading so invalid requests never hit Blob storage
+    if (type === "logo" && role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Solo los administradores pueden cambiar el logo" },
+        { status: 403 }
+      );
+    }
+
     const ext = file.name.split(".").pop() || "jpg";
     const pathname = `${type}/${userId}.${ext}`;
 
@@ -46,27 +56,19 @@ export async function POST(req: Request) {
       allowOverwrite: true,
     });
 
-    // Update user avatar or site config logo
     if (type === "avatar") {
       await db.user.update({
         where: { id: userId },
         data: { avatar: blob.url },
       });
-    } else if (type === "logo") {
-      // Only admins can change the site logo
-      if ((session.user as any).role !== "ADMIN") {
-        return NextResponse.json({ error: "Solo los administradores pueden cambiar el logo" }, { status: 403 });
-      }
-      await db.siteConfig.upsert({
-        where: { key: "siteLogo" },
-        update: { value: blob.url },
-        create: { key: "siteLogo", value: blob.url },
-      });
     }
+    // type === "logo": URL returned only — persisted via PUT /api/admin/config
+    // when the admin presses "Guardar logo" in the profile page.
 
     return NextResponse.json({
       url: blob.url,
       pathname: blob.pathname,
+      persisted: type !== "logo",
     });
   } catch (error) {
     console.error("Error uploading image:", error);

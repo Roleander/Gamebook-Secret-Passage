@@ -10,7 +10,7 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Gamebook Editor",
-    "description": "Create, edit and export your own interactive gamebooks",
+    "description": "Forge captivating gamebooks: import, link passages without broken links and export to PDF/EPUB in medieval style",
     "startButton": "Start Now",
     "features": {
       "create": "Create passages",

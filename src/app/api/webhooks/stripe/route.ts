@@ -155,6 +155,48 @@ export async function POST(req: Request) {
         });
         break;
       }
+
+      case "invoice.paid": {
+        const invoice = event.data.object as Stripe.Invoice & {
+          subscription?: string | { id: string } | null;
+          parent?: { subscription_details?: { subscription?: string | { id: string } | null } | null };
+        };
+        const stripeSubId =
+          (typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription?.id) ??
+          (typeof invoice.parent?.subscription_details?.subscription === "string"
+            ? invoice.parent.subscription_details.subscription
+            : invoice.parent?.subscription_details?.subscription?.id);
+        if (stripeSubId && typeof stripeSubId === "string") {
+          await db.subscription.updateMany({
+            where: { stripeSubscriptionId: stripeSubId },
+            data: { status: "active" },
+          });
+        }
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice & {
+          subscription?: string | { id: string } | null;
+          parent?: { subscription_details?: { subscription?: string | { id: string } | null } | null };
+        };
+        const stripeSubId =
+          (typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription?.id) ??
+          (typeof invoice.parent?.subscription_details?.subscription === "string"
+            ? invoice.parent.subscription_details.subscription
+            : invoice.parent?.subscription_details?.subscription?.id);
+        if (stripeSubId && typeof stripeSubId === "string") {
+          await db.subscription.updateMany({
+            where: { stripeSubscriptionId: stripeSubId },
+            data: { status: "past_due" },
+          });
+        }
+        break;
+      }
     }
 
     return NextResponse.json({ received: true });

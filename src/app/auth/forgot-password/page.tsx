@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -53,6 +54,12 @@ export default function ForgotPasswordPage() {
           Volver al inicio de sesión
         </Link>
 
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="max-w-md mx-auto"
+        >
         <Card className="max-w-md mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -115,6 +122,7 @@ export default function ForgotPasswordPage() {
             </CardFooter>
           </form>
         </Card>
+        </motion.div>
       </main>
     </div>
   );

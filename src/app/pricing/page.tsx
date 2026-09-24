@@ -6,6 +6,17 @@ import { Check, Heart, Zap, Crown } from "lucide-react";
 import { PayPalDonate } from "@/components/paypal-donate";
 import { StripeCheckout } from "@/components/stripe-checkout";
 import Link from "next/link";
+import { motion, type Variants } from "framer-motion";
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const stagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12 } },
+};
 
 interface Plan {
   id: string;
@@ -100,20 +111,40 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-4">
+        <motion.div
+          className="text-center mb-12"
+          initial="hidden"
+          animate="show"
+          variants={stagger}
+        >
+          <motion.h1
+            variants={fadeUp}
+            className="text-4xl font-bold text-primary mb-4"
+          >
             Planes y Precios
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Elige el plan que mejor se adapte a tus necesidades
-          </p>
-        </div>
+          </motion.h1>
+          <motion.p
+            variants={fadeUp}
+            className="text-muted-foreground text-lg max-w-2xl mx-auto"
+          >
+            Empieza gratis. Pasa a Pro cuando tu obra lo pida. Sin sorpresas.
+          </motion.p>
+        </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <motion.div
+          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+          initial="hidden"
+          animate="show"
+          variants={stagger}
+        >
           {displayPlans.map((plan) => (
-            <Card
+            <motion.div
               key={plan.id}
-              className={`relative ${
+              variants={fadeUp}
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+            >
+            <Card
+              className={`relative h-full ${
                 plan.name === "pro"
                   ? "border-primary shadow-lg scale-105"
                   : ""
@@ -193,8 +224,9 @@ export default function PricingPage() {
                 )}
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         <div className="mt-16 text-center">
           <Card className="max-w-2xl mx-auto">

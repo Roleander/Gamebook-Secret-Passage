@@ -4,6 +4,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Monitor, Apple, Terminal, Download, ExternalLink, Check } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const stagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12 } },
+};
 
 type Platform = "windows" | "mac" | "linux";
 
@@ -96,17 +107,34 @@ export default function DownloadsPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-primary mb-4">
+        <motion.div
+          className="text-center mb-12"
+          initial="hidden"
+          animate="show"
+          variants={stagger}
+        >
+          <motion.h1
+            variants={fadeUp}
+            className="text-4xl font-bold text-primary mb-4"
+          >
             Descargar Secret Passage
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Descarga la versión de escritorio para tu sistema operativo.
-            Misma aplicación, mejor rendimiento.
-          </p>
-        </div>
+          </motion.h1>
+          <motion.p
+            variants={fadeUp}
+            className="text-muted-foreground text-lg max-w-2xl mx-auto"
+          >
+            Lleva tu taller de librosjuegos al escritorio.
+            Misma aplicación, sin conexión y a todo rendimiento.
+          </motion.p>
+        </motion.div>
 
         {/* Features banner */}
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={stagger}
+        >
         <Card className="mb-12 bg-primary/5 border-primary/20">
           <CardContent className="pt-6">
             <div className="grid md:grid-cols-3 gap-6 text-center">
@@ -125,6 +153,7 @@ export default function DownloadsPage() {
             </div>
           </CardContent>
         </Card>
+        </motion.div>
 
         {/* Platform selector */}
         <div className="flex justify-center gap-4 mb-8">
@@ -143,11 +172,21 @@ export default function DownloadsPage() {
         </div>
 
         {/* Download cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <motion.div
+          className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          variants={stagger}
+        >
           {downloads.map((platform) => (
-            <Card
+            <motion.div
               key={platform.id}
-              className={`relative transition-all ${
+              variants={fadeUp}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+            >
+            <Card
+              className={`relative h-full transition-all ${
                 selectedPlatform === platform.id
                   ? "border-primary shadow-lg scale-105"
                   : "opacity-75"
@@ -210,8 +249,9 @@ export default function DownloadsPage() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Requirements */}
         <div className="mt-16 max-w-3xl mx-auto">

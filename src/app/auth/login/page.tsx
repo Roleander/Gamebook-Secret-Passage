@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen } from "lucide-react";
+import { motion } from "framer-motion";
 
 function LoginForm() {
   const router = useRouter();
@@ -47,6 +48,12 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-dungeon flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="w-full max-w-md"
+      >
       <Card className="w-full max-w-md border-medieval">
         <CardHeader className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/20 rounded-full mx-auto mb-4">
@@ -123,6 +130,7 @@ function LoginForm() {
           </CardFooter>
         </form>
       </Card>
+      </motion.div>
     </div>
   );
 }

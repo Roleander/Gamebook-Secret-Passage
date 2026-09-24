@@ -10,7 +10,7 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Éditeur de Livres-jeux",
-    "description": "Créez, éditez et exportez vos propres livres-jeux interactifs",
+    "description": "Forgez des livres-jeux captivants : importez, reliez les passages sans liens brisés et exportez en PDF/EPUB style médiéval",
     "startButton": "Commencer Maintenant",
     "features": {
       "create": "Créer des passages",

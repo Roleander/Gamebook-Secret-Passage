@@ -10,7 +10,7 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "ゲームブックエディタ",
-    "description": "インタラクティブなゲームブックを作成・編集・エクスポート",
+    "description": "心を掴むゲームブックを創れ：読み込み、リンク切れなしでパス接続、中世風のPDF/EPUBに書き出し",
     "startButton": "今すぐ始める",
     "features": {
       "create": "パッセージを作成",

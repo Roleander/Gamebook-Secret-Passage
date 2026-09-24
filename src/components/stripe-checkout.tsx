@@ -36,7 +36,7 @@ export function StripeCheckout({ type, planId, amount, label }: StripeCheckoutPr
         });
         const data = await response.json();
         if (!response.ok) {
-          alert(`Error: ${data.error || "Error al procesar el pago"}`);
+          alert(`Error: ${data.error || "Error al procesar el pago"}${data.detail ? `\n\nDetalle: ${data.detail}` : ""}`);
           return;
         }
         url = data.url;
@@ -48,7 +48,7 @@ export function StripeCheckout({ type, planId, amount, label }: StripeCheckoutPr
         });
         const data = await response.json();
         if (!response.ok) {
-          alert(`Error: ${data.error || "Error al procesar el pago"}`);
+          alert(`Error: ${data.error || "Error al procesar el pago"}${data.detail ? `\n\nDetalle: ${data.detail}` : ""}`);
           return;
         }
         url = data.url;

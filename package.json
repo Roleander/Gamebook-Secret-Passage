@@ -117,7 +117,7 @@
     "clsx": "^2.1.1",
     "docx": "^9.7.1",
     "epub-gen": "^0.1.0",
-    "framer-motion": "^13.2.0",
+    "framer-motion": "^13.4.2",
     "jszip": "^3.10.2",
     "lucide-react": "^1.46.0",
     "mammoth": "^1.12.3",

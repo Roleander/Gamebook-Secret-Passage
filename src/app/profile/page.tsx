@@ -48,6 +48,8 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [siteConfig, setSiteConfig] = useState<Record<string, string>>({});
+  const [savedLogo, setSavedLogo] = useState<string | null>(null);
+  const [savingLogo, setSavingLogo] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -91,8 +93,36 @@ export default function ProfilePage() {
       if (response.ok) {
         const data = await response.json();
         setSiteConfig(data);
+        setSavedLogo(data.siteLogo || null);
       }
     } catch {}
+  };
+
+  const logoDirty = !!siteConfig.siteLogo && siteConfig.siteLogo !== savedLogo;
+
+  const handleSaveLogo = async () => {
+    if (!siteConfig.siteLogo) return;
+    setSavingLogo(true);
+    try {
+      const response = await fetch("/api/admin/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteLogo: siteConfig.siteLogo }),
+      });
+      if (response.ok) {
+        setSavedLogo(siteConfig.siteLogo);
+        window.dispatchEvent(new Event("site-config-updated"));
+        setSuccessMessage("Logo guardado correctamente");
+      } else {
+        const error = await response.json();
+        alert(error.error || "Error al guardar el logo");
+      }
+    } catch (error) {
+      console.error("Error saving logo:", error);
+      alert("Error de conexión");
+    } finally {
+      setSavingLogo(false);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -392,6 +422,16 @@ export default function ProfilePage() {
                   currentLogo={siteConfig.siteLogo || null}
                   onLogoUpdate={(url) => setSiteConfig({ ...siteConfig, siteLogo: url })}
                 />
+                {logoDirty && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <Button size="sm" onClick={handleSaveLogo} disabled={savingLogo}>
+                      {savingLogo ? "Guardando..." : "Guardar logo"}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Logo sin guardar — pulsa para aplicarlo al sitio
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>

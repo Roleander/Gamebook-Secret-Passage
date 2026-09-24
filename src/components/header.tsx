@@ -16,12 +16,17 @@ export function Header() {
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/config")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.siteLogo) setSiteLogo(data.siteLogo);
-      })
-      .catch(() => {});
+    const loadLogo = () => {
+      fetch("/api/admin/config")
+        .then((res) => res.json())
+        .then((data) => {
+          setSiteLogo(data.siteLogo || null);
+        })
+        .catch(() => {});
+    };
+    loadLogo();
+    window.addEventListener("site-config-updated", loadLogo);
+    return () => window.removeEventListener("site-config-updated", loadLogo);
   }, []);
 
   const isAdmin = (session?.user as any)?.role === "ADMIN";

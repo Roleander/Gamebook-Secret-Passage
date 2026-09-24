@@ -90,6 +90,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     console.error("Error creating Stripe subscription:", error);
-    return NextResponse.json({ error: "Error al crear suscripción" }, { status: 500 });
+    const detail =
+      error instanceof Error
+        ? error.message
+        : typeof error === "object" && error && "message" in error
+          ? String((error as { message: unknown }).message)
+          : undefined;
+    return NextResponse.json(
+      { error: "Error al crear suscripción", detail },
+      { status: 500 }
+    );
   }
 }

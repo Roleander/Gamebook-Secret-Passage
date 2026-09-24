@@ -1,6 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
+import { MotionConfig } from "framer-motion";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +9,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       refetchOnWindowFocus={false}
       refetchInterval={0}
     >
-      {children}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </SessionProvider>
   );
 }

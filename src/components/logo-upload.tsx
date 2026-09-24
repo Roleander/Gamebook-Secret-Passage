@@ -73,9 +73,11 @@ export function LogoUpload({ currentLogo, onLogoUpdate }: LogoUploadProps) {
           disabled={uploading}
         >
           <Upload className="w-4 h-4 mr-2" />
-          {uploading ? "Subiendo..." : "Cambiar logo"}
+          {uploading ? "Subiendo..." : currentLogo ? "Cambiar logo" : "Subir logo"}
         </Button>
-        <p className="text-xs text-muted-foreground mt-1">JPG, PNG o SVG. Máx. 2MB.</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          JPG, PNG o SVG. Máx. 2MB. Recuerda pulsar «Guardar logo» tras subirlo.
+        </p>
       </div>
     </div>
   );

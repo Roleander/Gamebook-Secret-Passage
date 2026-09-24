@@ -10,7 +10,7 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Scriptrörelse-redigerare",
-    "description": "Skapa, redigera och exportera dina egna interaktiva böcker",
+    "description": "Forma gripande spelböcker: importera, länka passager utan döda länkar och exportera till PDF/EPUB i medeltidsstil",
     "startButton": "Börja nu",
     "features": {
       "create": "Skapa stycken",

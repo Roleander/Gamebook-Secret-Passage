@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -62,6 +63,12 @@ export default function NewProjectPage() {
           Volver a Proyectos
         </Link>
 
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="max-w-lg mx-auto"
+        >
         <Card className="max-w-lg mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -116,6 +123,7 @@ export default function NewProjectPage() {
             </CardFooter>
           </form>
         </Card>
+        </motion.div>
       </main>
     </div>
   );
