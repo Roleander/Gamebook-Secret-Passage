@@ -163,7 +163,9 @@
     "reqMac12": "macOS 12 Monterey+",
     "reqUbuntu": "Ubuntu 20.04+",
     "reqRam": "RAM 4 GB",
-    "reqDisk": "空き容量 200 MB"
+    "reqDisk": "空き容量 200 MB",
+    "macAppleSilicon": "ディスクイメージ (Apple Silicon)",
+    "macIntel": "ディスクイメージ (Intel)"
   },
   "Pricing": {
     "title": "プランと料金",

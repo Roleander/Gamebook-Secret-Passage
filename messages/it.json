@@ -163,7 +163,9 @@
     "reqMac12": "macOS 12 Monterey+",
     "reqUbuntu": "Ubuntu 20.04+",
     "reqRam": "4 GB di RAM",
-    "reqDisk": "200 MB di spazio"
+    "reqDisk": "200 MB di spazio",
+    "macAppleSilicon": "Immagine disco (Apple Silicon)",
+    "macIntel": "Immagine disco (Intel)"
   },
   "Pricing": {
     "title": "Piani e Prezzi",

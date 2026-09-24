@@ -49,10 +49,16 @@ const platforms: { id: Platform; name: string; icon: React.ReactNode; descKey: s
     descKey: "Downloads.macDesc",
     formats: [
       {
-        nameKey: "Downloads.diskImage",
+        nameKey: "Downloads.macAppleSilicon",
+        extension: ".dmg",
+        size: "~85 MB",
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage-arm64.dmg`,
+      },
+      {
+        nameKey: "Downloads.macIntel",
         extension: ".dmg",
         size: "~90 MB",
-        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.dmg`,
+        url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage-x64.dmg`,
       },
     ],
   },

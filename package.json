@@ -1,7 +1,13 @@
 {
   "name": "gamebook-secret-passage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
+  "description": "Gamebook Secret Passage — interactive gamebook editor: import, link passages, detect broken links and export to PDF/EPUB/TXT",
+  "author": {
+    "name": "Roleander",
+    "email": "estudiodigital@tutanota.com"
+  },
+  "homepage": "https://gamebook-secret-passage.vercel.app",
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
@@ -22,6 +28,7 @@
   "build": {
     "appId": "com.secretpassage.app",
     "productName": "Secret Passage",
+    "npmRebuild": false,
     "directories": {
       "output": "dist-electron"
     },
@@ -48,14 +55,18 @@
           ]
         }
       ],
-      "icon": "public/icon.ico"
+      "icon": "public/icon.png"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Secret Passage"
+      "shortcutName": "Secret Passage",
+      "artifactName": "Secret-Passage-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Secret-Passage-Portable.${ext}"
     },
     "mac": {
       "target": [
@@ -67,10 +78,11 @@
           ]
         }
       ],
-      "icon": "public/icon.icns",
+      "icon": "public/icon.png",
       "category": "public.app-category.games"
     },
     "dmg": {
+      "artifactName": "Secret-Passage-${arch}.${ext}",
       "contents": [
         {
           "x": 130,
@@ -101,6 +113,12 @@
       ],
       "icon": "public/icon.png",
       "category": "Game"
+    },
+    "appImage": {
+      "artifactName": "Secret-Passage.${ext}"
+    },
+    "deb": {
+      "artifactName": "Secret-Passage.${ext}"
     }
   },
   "prisma": {

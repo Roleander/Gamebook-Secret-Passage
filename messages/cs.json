@@ -163,7 +163,9 @@
     "reqMac12": "macOS 12 Monterey+",
     "reqUbuntu": "Ubuntu 20.04+",
     "reqRam": "4 GB RAM",
-    "reqDisk": "200 MB místa"
+    "reqDisk": "200 MB místa",
+    "macAppleSilicon": "Diskový obraz (Apple Silicon)",
+    "macIntel": "Diskový obraz (Intel)"
   },
   "Pricing": {
     "title": "Plány a ceny",
