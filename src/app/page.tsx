@@ -6,6 +6,7 @@ import { BookOpen, Sparkles, FileText, ArrowRight, Upload, Link2, Download, Shie
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion, type Variants } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -17,49 +18,30 @@ const stagger: Variants = {
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
 };
 
-const steps = [
-  {
-    icon: Upload,
-    title: "1. Importa",
-    text: "Sube tu manuscrito en .doc, .odt o .txt y conviértelo en pasajes automáticamente.",
-  },
-  {
-    icon: Link2,
-    title: "2. Conecta",
-    text: "Enlaza pasajes con un clic y detecta enlaces rotos o huérfanos antes de que los vea tu lector.",
-  },
-  {
-    icon: Download,
-    title: "3. Exporta",
-    text: "Genera un PDF con estética de grimorio, un EPUB listo para librerías o un TXT limpio.",
-  },
-];
-
-const features = [
-  {
-    icon: FileText,
-    title: "De tu Word a la mazmorra en un clic",
-    text: "Importa documentos y obtén pasajes numerados y estructurados sin reescribir nada.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Nunca envíes al lector a un callejón sin salida",
-    text: "El detector de errores encuentra enlaces rotos, pasajes huérfanos y ramas sin final. El auto-fix los repara por ti.",
-  },
-  {
-    icon: BookOpen,
-    title: "Del grimorio a la librería",
-    text: "Exporta PDF con diseño medieval, EPUB para e-readers y más formatos, con el estilo que defina tu obra.",
-  },
-];
-
-const finalCta = [
-  { icon: Sparkles, text: "12 idiomas de la interfaz" },
-  { icon: Wand2, text: "Agentes de IA para tu guion" },
-  { icon: Crown, text: "Plan gratis · Pro desde 9,99€" },
-];
+const stepIcons = [Upload, Link2, Download];
+const featureIcons = [FileText, ShieldCheck, BookOpen];
+const badgeIcons = [Sparkles, Wand2, Crown];
 
 export default function Home() {
+  const { t } = useI18n();
+
+  const steps = ["1", "2", "3"].map((key, i) => ({
+    icon: stepIcons[i],
+    title: t(`Home.steps.${key}.title`),
+    text: t(`Home.steps.${key}.text`),
+  }));
+
+  const features = ["1", "2", "3"].map((key, i) => ({
+    icon: featureIcons[i],
+    title: t(`Home.featuresList.${key}.title`),
+    text: t(`Home.featuresList.${key}.text`),
+  }));
+
+  const badges = ["1", "2", "3"].map((key, i) => ({
+    icon: badgeIcons[i],
+    text: t(`Home.badges.${key}`),
+  }));
+
   return (
     <div className="min-h-screen bg-dungeon">
       <Header />
@@ -85,17 +67,16 @@ export default function Home() {
             variants={fadeUp}
             className="text-2xl font-semibold text-foreground max-w-3xl mx-auto mb-3"
           >
-            Forja librosjuegos que hipnotizan.
+            {t("Home.lema")}
           </motion.p>
           <motion.p
             variants={fadeUp}
             className="text-xl text-muted-foreground max-w-2xl mx-auto"
           >
-            Importa tu manuscrito, conecta los pasajes sin enlaces rotos y
-            exporta a PDF, EPUB o TXT con estética de grimorio medieval.
+            {t("Home.description")}
           </motion.p>
           <motion.p variants={fadeUp} className="text-sm text-muted-foreground mt-4">
-            Sin instalación · Tu primer pasaje en 2 minutos · 3 proyectos gratis
+            {t("Home.microcopy")}
           </motion.p>
           <motion.div
             variants={fadeUp}
@@ -103,13 +84,13 @@ export default function Home() {
           >
             <Link href="/auth/register">
               <Button size="lg" className="text-lg px-8 py-4">
-                Empezar gratis
+                {t("Home.ctaPrimary")}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/pricing">
               <Button size="lg" variant="outline" className="text-lg px-8 py-4">
-                Ver planes
+                {t("Home.ctaSecondary")}
               </Button>
             </Link>
           </motion.div>
@@ -127,7 +108,7 @@ export default function Home() {
             variants={fadeUp}
             className="text-3xl font-bold text-center text-primary mb-10 font-pixel"
           >
-            Cómo funciona
+            {t("Home.howItWorks")}
           </motion.h2>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step) => (
@@ -157,7 +138,7 @@ export default function Home() {
             variants={fadeUp}
             className="text-3xl font-bold text-center text-primary mb-10 font-pixel"
           >
-            Hecho para autores
+            {t("Home.featuresSection")}
           </motion.h2>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature) => (
@@ -183,7 +164,7 @@ export default function Home() {
           viewport={{ once: true }}
           variants={stagger}
         >
-          {finalCta.map((item) => (
+          {badges.map((item) => (
             <motion.span
               key={item.text}
               variants={fadeUp}
@@ -207,16 +188,15 @@ export default function Home() {
             variants={fadeUp}
             className="text-2xl font-bold mb-3 text-primary font-pixel"
           >
-            ¿Listo para abrir la puerta secreta?
+            {t("Home.finalCtaTitle")}
           </motion.h2>
           <motion.p variants={fadeUp} className="text-muted-foreground mb-6 max-w-xl mx-auto">
-            Crea tu cuenta gratis y convierte tu idea en un librojuego jugable.
-            Sin tarjeta, sin instalación.
+            {t("Home.finalCtaText")}
           </motion.p>
           <motion.div variants={fadeUp}>
             <Link href="/projects/new">
               <Button size="lg" className="text-lg px-8 py-4">
-                Crear mi primer proyecto
+                {t("Home.finalCtaButton")}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -227,7 +207,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border mt-auto py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>Gamebook Secret Passage &copy; 2026</p>
+          <p>{t("Home.footer")}</p>
         </div>
       </footer>
     </div>

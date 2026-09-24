@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Scriptrörelse-redigerare",
-    "description": "Forma gripande spelböcker: importera, länka passager utan döda länkar och exportera till PDF/EPUB i medeltidsstil",
+    "description": "Importera ditt manuskript, länka passager utan döda länkar och exportera till PDF, EPUB eller TXT i medeltidsgrimoir-stil.",
     "startButton": "Börja nu",
     "features": {
       "create": "Skapa stycken",
       "link": "Länka berättelser",
       "export": "Exportera till flera format"
-    }
+    },
+    "lema": "Forma gripande spelböcker.",
+    "microcopy": "Ingen installation · Första passagen på 2 minuter · 3 gratisprojekt",
+    "ctaPrimary": "Börja gratis",
+    "ctaSecondary": "Se planer",
+    "howItWorks": "Så fungerar det",
+    "steps": {
+      "1": {
+        "title": "1. Importera",
+        "text": "Ladda upp ditt manuskript som .doc, .odt eller .txt och gör det till passager automatiskt."
+      },
+      "2": {
+        "title": "2. Länka",
+        "text": "Länka passager med ett klick och fånga döda eller föräldralösa länkar innan läsaren gör det."
+      },
+      "3": {
+        "title": "3. Exportera",
+        "text": "Skapa ett PDF i grimoirstil, ett butiksklart EPUB eller en ren TXT."
+      }
+    },
+    "featuresSection": "Gjord för författare",
+    "featuresList": {
+      "1": {
+        "title": "Från ditt Word-dokument till dungeon på ett klick",
+        "text": "Importera dokument och få numrerade, strukturerade passager utan att skriva om något."
+      },
+      "2": {
+        "title": "Skicka aldrig läsaren i en åkvägslös gränd",
+        "text": "Feldetektorn hittar döda länkar, föräldralösa passager och grenar utan slut. Auto-fix lagar dem åt dig."
+      },
+      "3": {
+        "title": "Från grimoir till bokhandel",
+        "text": "Exportera medeltids-PDF, EPUB för e-läsare och fler format, i stilen din bok förtjänar."
+      }
+    },
+    "badges": {
+      "1": "12 gränsspråk",
+      "2": "AI-agenter för ditt manus",
+      "3": "Gratisplan · Pro från 9,99 €"
+    },
+    "finalCtaTitle": "Redo att öppna den hemliga dörren?",
+    "finalCtaText": "Skapa ditt gratiskonto och gör din idé till en spelbar spelbok. Inget kort, ingen installation.",
+    "finalCtaButton": "Skapa mitt första projekt",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "Mina projekt",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Ladda ner Secret Passage",
-    "subtitle": "Ladda ner skrivbordsversionen för ditt operativsystem",
+    "subtitle": "Ta din spelboksverkstad till skrivbordet. Samma app, offline, full prestanda.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Automatiska uppdateringar",
     "updatesDesc": "Alltid med senaste versionen",
     "requirements": "Systemkrav",
-    "sourceCode": "Föredrar du att kompilera från källkod?"
+    "sourceCode": "Föredrar du att kompilera från källkod?",
+    "soon": "Kommer snart",
+    "viewOnGitHub": "Visa på GitHub",
+    "reqWin10": "Windows 10 eller senare",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 GB RAM",
+    "reqDisk": "200 MB utrymme"
   },
   "Pricing": {
     "title": "Planer och priser",
-    "subtitle": "Välj den plan som passar bäst dina behov",
+    "subtitle": "Börja gratis. Gå till Pro när din bok kräver det. Inga överraskningar.",
     "free": "Gratis",
     "pro": "Pro",
     "lifetime": "Livstid",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Livstidsåtkomst",
       "updatesIncluded": "Uppdateringar ingår",
       "earlyAccess": "Tidig åtkomst till funktioner"
-    }
+    },
+    "hasAccount": "Har du redan konto?",
+    "loginFirst": "Logga in först"
   },
   "Auth": {
     "login": "Logga in",

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 const SITE_URL = "https://gamebook-secret-passage.vercel.app";
 const SITE_NAME = "Gamebook Secret Passage";
 const SITE_DESCRIPTION =
-  "Forja librosjuegos que hipnotizan. Crea, edita y exporta a PDF/EPUB con detección de errores y estilo medieval.";
+  "Forja librojuegos que hipnotizan. Crea, edita y exporta a PDF/EPUB con detección de errores y estilo medieval.";
 const OG_IMAGE =
   "https://0qd6kvwc4iqbiywd.public.blob.vercel-storage.com/logo/cmu5boi0i000010wkg0uerexs.jpg";
 

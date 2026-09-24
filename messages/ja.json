@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "ゲームブックエディタ",
-    "description": "心を掴むゲームブックを創れ：読み込み、リンク切れなしでパス接続、中世風のPDF/EPUBに書き出し",
+    "description": "原稿を読み込み、リンク切れなしでパッセージを接続し、中世のグリモワール風スタイルで PDF・EPUB・TXT に書き出せます。",
     "startButton": "今すぐ始める",
     "features": {
       "create": "パッセージを作成",
       "link": "ストーリーをリンク",
       "export": "複数フォーマットにエクスポート"
-    }
+    },
+    "lema": "心を掴むゲームブックを創れ。",
+    "microcopy": "インストール不要 · 最初のパッセージまで2分 · 無料プロジェクト3件",
+    "ctaPrimary": "無料で始める",
+    "ctaSecondary": "プランを見る",
+    "howItWorks": "使い方",
+    "steps": {
+      "1": {
+        "title": "1. 読み込む",
+        "text": "原稿を .doc、.odt、.txt でアップロードし、自動的にパッセージへ変換します。"
+      },
+      "2": {
+        "title": "2. 接続する",
+        "text": "ワンクリックでパッセージを接続。読者より先にリンク切れや孤立パッセージを検出します。"
+      },
+      "3": {
+        "title": "3. 書き出す",
+        "text": "グリモワール風 PDF、書店向け EPUB、またはクリーンな TXT を生成します。"
+      }
+    },
+    "featuresSection": "作家のために",
+    "featuresList": {
+      "1": {
+        "title": "Word からダンジョンまでワンクリック",
+        "text": "文書を読み込むだけで、番号付きの構造化されたパッセージが得られます。書き直し不要。"
+      },
+      "2": {
+        "title": "読者を袋小路へ送らない",
+        "text": "エラー検出がリンク切れ・孤立パッセージ・結末のない枝を発見。オートフィックスが修復します。"
+      },
+      "3": {
+        "title": "グリモワールから書店へ",
+        "text": "中世風 PDF、リーダー向け EPUB など、作品にふさわしいスタイルで書き出せます。"
+      }
+    },
+    "badges": {
+      "1": "12言語のインターフェース",
+      "2": "脚本向け AI エージェント",
+      "3": "無料プラン · Pro は 9.99€〜"
+    },
+    "finalCtaTitle": "秘密の扉を開く準備はできましたか？",
+    "finalCtaText": "無料アカウントを作り、アイデアを遊べるゲームブックに変えましょう。カード不要、インストール不要。",
+    "finalCtaButton": "最初のプロジェクトを作る",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "マイプロジェクト",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Secret Passageをダウンロード",
-    "subtitle": "お使いのOS向けデスクトップ版をダウンロード",
+    "subtitle": "ゲームブック工房をデスクトップへ。同じアプリ、オフライン、フルパフォーマンス。",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "自動更新",
     "updatesDesc": "常に最新バージョン",
     "requirements": "システム要件",
-    "sourceCode": "ソースコードからコンパイルしますか？"
+    "sourceCode": "ソースコードからコンパイルしますか？",
+    "soon": "近日公開",
+    "viewOnGitHub": "GitHub で見る",
+    "reqWin10": "Windows 10 以降",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "RAM 4 GB",
+    "reqDisk": "空き容量 200 MB"
   },
   "Pricing": {
     "title": "プランと料金",
-    "subtitle": "ニーズに合ったプランを選択",
+    "subtitle": "無料で始め、作品が求めたら Pro へ。サプライズはありません。",
     "free": "無料",
     "pro": "Pro",
     "lifetime": "永久",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "永久アクセス",
       "updatesIncluded": "更新 포함",
       "earlyAccess": "機能への早期アクセス"
-    }
+    },
+    "hasAccount": "すでにアカウントがありますか？",
+    "loginFirst": "先にサインイン"
   },
   "Auth": {
     "login": "ログイン",

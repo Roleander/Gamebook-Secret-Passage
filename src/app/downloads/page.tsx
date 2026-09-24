@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Monitor, Apple, Terminal, Download, ExternalLink, Check } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -18,36 +19,23 @@ const stagger: Variants = {
 
 type Platform = "windows" | "mac" | "linux";
 
-interface DownloadInfo {
-  id: Platform;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-  formats: {
-    name: string;
-    extension: string;
-    size: string;
-    url: string;
-  }[];
-}
-
 const GITHUB_REPO = "https://github.com/Roleander/Gamebook-Secret-Passage";
 
-const downloads: DownloadInfo[] = [
+const platforms: { id: Platform; name: string; icon: React.ReactNode; descKey: string; formats: { nameKey: string; extension: string; size: string; url: string }[] }[] = [
   {
     id: "windows",
     name: "Windows",
     icon: <Monitor className="w-12 h-12" />,
-    description: "Para Windows 10/11 (64 bits)",
+    descKey: "Downloads.windowsDesc",
     formats: [
       {
-        name: "Instalador",
+        nameKey: "Downloads.installer",
         extension: ".exe",
         size: "~85 MB",
         url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage-Setup.exe`,
       },
       {
-        name: "Portable",
+        nameKey: "Downloads.portable",
         extension: ".exe",
         size: "~80 MB",
         url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage-Portable.exe`,
@@ -58,10 +46,10 @@ const downloads: DownloadInfo[] = [
     id: "mac",
     name: "macOS",
     icon: <Apple className="w-12 h-12" />,
-    description: "Para macOS 12+ (Intel & Apple Silicon)",
+    descKey: "Downloads.macDesc",
     formats: [
       {
-        name: "Disk Image",
+        nameKey: "Downloads.diskImage",
         extension: ".dmg",
         size: "~90 MB",
         url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.dmg`,
@@ -72,16 +60,16 @@ const downloads: DownloadInfo[] = [
     id: "linux",
     name: "Linux",
     icon: <Terminal className="w-12 h-12" />,
-    description: "Para Ubuntu, Debian, Fedora y más",
+    descKey: "Downloads.linuxDesc",
     formats: [
       {
-        name: "AppImage",
+        nameKey: "Downloads.appImage",
         extension: ".AppImage",
         size: "~85 MB",
         url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.AppImage`,
       },
       {
-        name: "Debian/Ubuntu",
+        nameKey: "Downloads.debian",
         extension: ".deb",
         size: "~80 MB",
         url: `${GITHUB_REPO}/releases/latest/download/Secret-Passage.deb`,
@@ -91,17 +79,15 @@ const downloads: DownloadInfo[] = [
 ];
 
 export default function DownloadsPage() {
+  const { t } = useI18n();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("windows");
   const [downloadStarted, setDownloadStarted] = useState<Platform | null>(null);
 
-  const handleDownload = (platform: DownloadInfo, format: typeof platform.formats[0]) => {
-    if (format.url === "#") {
-      return;
-    }
-    setDownloadStarted(platform.id);
-
-    setTimeout(() => setDownloadStarted(null), 3000);
-  };
+  const downloads = platforms.map((p) => ({
+    ...p,
+    description: t(p.descKey),
+    formats: p.formats.map((f) => ({ ...f, name: t(f.nameKey) })),
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,14 +103,13 @@ export default function DownloadsPage() {
             variants={fadeUp}
             className="text-4xl font-bold text-primary mb-4"
           >
-            Descargar Secret Passage
+            {t("Downloads.title")}
           </motion.h1>
           <motion.p
             variants={fadeUp}
             className="text-muted-foreground text-lg max-w-2xl mx-auto"
           >
-            Lleva tu taller de librosjuegos al escritorio.
-            Misma aplicación, sin conexión y a todo rendimiento.
+            {t("Downloads.subtitle")}
           </motion.p>
         </motion.div>
 
@@ -139,16 +124,16 @@ export default function DownloadsPage() {
           <CardContent className="pt-6">
             <div className="grid md:grid-cols-3 gap-6 text-center">
               <div>
-                <h3 className="font-bold text-primary">Funciona sin internet</h3>
-                <p className="text-sm text-muted-foreground">Crea y edita tus librojuegos sin conexión</p>
+                <h3 className="font-bold text-primary">{t("Downloads.noInternet")}</h3>
+                <p className="text-sm text-muted-foreground">{t("Downloads.noInternetDesc")}</p>
               </div>
               <div>
-                <h3 className="font-bold text-primary">Rendimiento nativo</h3>
-                <p className="text-sm text-muted-foreground">Más rápido que la versión web</p>
+                <h3 className="font-bold text-primary">{t("Downloads.performance")}</h3>
+                <p className="text-sm text-muted-foreground">{t("Downloads.performanceDesc")}</p>
               </div>
               <div>
-                <h3 className="font-bold text-primary">Actualizaciones automáticas</h3>
-                <p className="text-sm text-muted-foreground">Siempre con la última versión</p>
+                <h3 className="font-bold text-primary">{t("Downloads.updates")}</h3>
+                <p className="text-sm text-muted-foreground">{t("Downloads.updatesDesc")}</p>
               </div>
             </div>
           </CardContent>
@@ -195,7 +180,7 @@ export default function DownloadsPage() {
               {selectedPlatform === platform.id && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold">
-                    SELECCIONADO
+                    {t("Downloads.selected")}
                   </span>
                 </div>
               )}
@@ -238,7 +223,7 @@ export default function DownloadsPage() {
                         )}
                         {format.name}
                         {format.url === "#" && (
-                          <span className="text-xs bg-muted px-2 py-0.5 rounded">Próximamente</span>
+                          <span className="text-xs bg-muted px-2 py-0.5 rounded">{t("Downloads.soon")}</span>
                         )}
                       </span>
                       <span className="text-xs opacity-70">
@@ -257,32 +242,32 @@ export default function DownloadsPage() {
         <div className="mt-16 max-w-3xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Requisitos del sistema</CardTitle>
+              <CardTitle>{t("Downloads.requirements")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-3 gap-6 text-sm">
                 <div>
                   <h4 className="font-bold mb-2">Windows</h4>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Windows 10 o posterior</li>
-                    <li>• 4 GB de RAM</li>
-                    <li>• 200 MB de espacio</li>
+                    <li>• {t("Downloads.reqWin10")}</li>
+                    <li>• {t("Downloads.reqRam")}</li>
+                    <li>• {t("Downloads.reqDisk")}</li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-bold mb-2">macOS</h4>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• macOS 12 Monterey+</li>
-                    <li>• 4 GB de RAM</li>
-                    <li>• 200 MB de espacio</li>
+                    <li>• {t("Downloads.reqMac12")}</li>
+                    <li>• {t("Downloads.reqRam")}</li>
+                    <li>• {t("Downloads.reqDisk")}</li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-bold mb-2">Linux</h4>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Ubuntu 20.04+</li>
-                    <li>• 4 GB de RAM</li>
-                    <li>• 200 MB de espacio</li>
+                    <li>• {t("Downloads.reqUbuntu")}</li>
+                    <li>• {t("Downloads.reqRam")}</li>
+                    <li>• {t("Downloads.reqDisk")}</li>
                   </ul>
                 </div>
               </div>
@@ -293,14 +278,14 @@ export default function DownloadsPage() {
         {/* Source code */}
         <div className="mt-8 text-center text-muted-foreground text-sm">
           <p>
-            ¿Prefieres compilar desde el código fuente?{" "}
+            {t("Downloads.sourceCode")}{" "}
             <a
               href="https://github.com/Roleander/Gamebook-Secret-Passage"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline inline-flex items-center gap-1"
             >
-              Ver en GitHub
+              {t("Downloads.viewOnGitHub")}
               <ExternalLink className="w-3 h-3" />
             </a>
           </p>

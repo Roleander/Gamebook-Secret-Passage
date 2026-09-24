@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Spielbuch-Editor",
-    "description": "Fesseln Sie mit Spielbüchern: importieren, Passagen ohne tote Links verbinden und als PDF/EPUB im Mittelalter-Stil exportieren",
+    "description": "Importieren Sie Ihr Manuskript, verbinden Sie Passagen ohne tote Links und exportieren Sie als PDF, EPUB oder TXT im Mittelalter-Stil.",
     "startButton": "Jetzt starten",
     "features": {
       "create": "Abschnitte erstellen",
       "link": "Geschichten verlinken",
       "export": "In mehrere Formate exportieren"
-    }
+    },
+    "lema": "Fesseln Sie mit Spielbüchern.",
+    "microcopy": "Keine Installation · Erste Passage in 2 Minuten · 3 kostenlose Projekte",
+    "ctaPrimary": "Kostenlos starten",
+    "ctaSecondary": "Pläne ansehen",
+    "howItWorks": "So funktioniert es",
+    "steps": {
+      "1": {
+        "title": "1. Importieren",
+        "text": "Laden Sie Ihr Manuskript als .doc, .odt oder .txt hoch und wandeln Sie es automatisch in Passagen um."
+      },
+      "2": {
+        "title": "2. Verbinden",
+        "text": "Verlinken Sie Passagen mit einem Klick und finden Sie tote oder verwaiste Links, bevor Ihr Leser es tut."
+      },
+      "3": {
+        "title": "3. Exportieren",
+        "text": "Erzeugen Sie ein PDF im Grimoire-Stil, ein buchfertiges EPUB oder ein sauberes TXT."
+      }
+    },
+    "featuresSection": "Für Autorinnen und Autoren gemacht",
+    "featuresList": {
+      "1": {
+        "title": "Vom Word-Dokument in den Dungeon mit einem Klick",
+        "text": "Importieren Sie Dokumente und erhalten Sie nummerierte, strukturierte Passagen — ohne Neu schreiben."
+      },
+      "2": {
+        "title": "Nie wieder Sackgassen für Leser",
+        "text": "Der Fehlerdetektor findet tote Links, verwaiste Passagen und Zweige ohne Ende. Auto-Fix repariert sie für Sie."
+      },
+      "3": {
+        "title": "Vom Grimoire zur Buchhandlung",
+        "text": "Exportieren Sie PDF im Mittelalter-Stil, EPUB für E-Reader und weitere Formate im Stil Ihres Werks."
+      }
+    },
+    "badges": {
+      "1": "12 Oberflächensprachen",
+      "2": "KI-Agenten für Ihr Drehbuch",
+      "3": "Kostenloser Plan · Pro ab 9,99 €"
+    },
+    "finalCtaTitle": "Bereit, die Geheimtür zu öffnen?",
+    "finalCtaText": "Erstellen Sie Ihr kostenloses Konto und verwandeln Sie Ihre Idee in ein spielbares Spielbuch. Ohne Karte, ohne Installation.",
+    "finalCtaButton": "Mein erstes Projekt erstellen",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "Meine Projekte",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Secret Passage herunterladen",
-    "subtitle": "Laden Sie die Desktop-Version für Ihr Betriebssystem herunter",
+    "subtitle": "Nehmen Sie Ihre Spielbuch-Werkstatt mit auf den Desktop. Dieselbe App, offline, voller Leistung.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Automatische Updates",
     "updatesDesc": "Immer mit der neuesten Version",
     "requirements": "Systemanforderungen",
-    "sourceCode": "Bevorzugen Sie Kompilierung aus dem Quellcode?"
+    "sourceCode": "Bevorzugen Sie Kompilierung aus dem Quellcode?",
+    "soon": "Bald verfügbar",
+    "viewOnGitHub": "Auf GitHub ansehen",
+    "reqWin10": "Windows 10 oder neuer",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 GB RAM",
+    "reqDisk": "200 MB Speicherplatz"
   },
   "Pricing": {
     "title": "Pläne und Preise",
-    "subtitle": "Wählen Sie den Plan, der am besten zu Ihren Bedürfnissen passt",
+    "subtitle": "Kostenlos starten. Werden Sie Pro, wenn Ihr Werk es verlangt. Keine Überraschungen.",
     "free": "Kostenlos",
     "pro": "Pro",
     "lifetime": "Lebenslang",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Lebenslanger Zugang",
       "updatesIncluded": "Updates inklusive",
       "earlyAccess": "Frühzeitiger Zugang zu Funktionen"
-    }
+    },
+    "hasAccount": "Schon ein Konto?",
+    "loginFirst": "Zuerst anmelden"
   },
   "Auth": {
     "login": "Anmelden",

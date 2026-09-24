@@ -7,6 +7,7 @@ import { PayPalDonate } from "@/components/paypal-donate";
 import { StripeCheckout } from "@/components/stripe-checkout";
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -32,6 +33,7 @@ interface Plan {
 }
 
 export default function PricingPage() {
+  const { t } = useI18n();
   const [plans, setPlans] = useState<Plan[]>([]);
 
   useEffect(() => {
@@ -121,13 +123,13 @@ export default function PricingPage() {
             variants={fadeUp}
             className="text-4xl font-bold text-primary mb-4"
           >
-            Planes y Precios
+            {t("Pricing.title")}
           </motion.h1>
           <motion.p
             variants={fadeUp}
             className="text-muted-foreground text-lg max-w-2xl mx-auto"
           >
-            Empieza gratis. Pasa a Pro cuando tu obra lo pida. Sin sorpresas.
+             {t("Pricing.subtitle")}
           </motion.p>
         </motion.div>
 
@@ -153,7 +155,7 @@ export default function PricingPage() {
               {plan.name === "pro" && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold">
-                    POPULAR
+                    {t("Pricing.popular")}
                   </span>
                 </div>
               )}
@@ -168,15 +170,15 @@ export default function PricingPage() {
                 <CardDescription>{plan.description}</CardDescription>
                 <div className="mt-4">
                   <span className="text-4xl font-bold">
-                    {plan.price === 0 ? "Gratis" : `${plan.price}€`}
+                    {plan.price === 0 ? t("Pricing.free") : `${plan.price}€`}
                   </span>
                   {plan.price > 0 && plan.interval !== "one-time" && (
                     <span className="text-muted-foreground">
-                      /{plan.interval === "month" ? "mes" : "año"}
+                      {plan.interval === "month" ? t("Pricing.month") : t("Pricing.year")}
                     </span>
                   )}
                   {plan.interval === "one-time" && plan.price > 0 && (
-                    <span className="text-muted-foreground"> (pago único)</span>
+                    <span className="text-muted-foreground"> {t("Pricing.oneTime")}</span>
                   )}
                 </div>
               </CardHeader>
@@ -196,7 +198,7 @@ export default function PricingPage() {
                     href="/auth/register"
                     className="inline-flex w-full h-10 items-center justify-center rounded-md border border-border bg-transparent hover:bg-muted text-sm font-medium transition-colors btn-medieval"
                   >
-                    Empezar Gratis
+                    {t("Pricing.startFree")}
                   </Link>
                 ) : plan.name === "lifetime" ? (
                   <div className="space-y-2">
@@ -215,9 +217,9 @@ export default function PricingPage() {
                       label={`Suscribirse con Stripe (${plan.price}€/mes)`}
                     />
                     <p className="text-xs text-muted-foreground text-center">
-                      ¿Ya tienes cuenta?{" "}
+                      {t("Pricing.hasAccount")}{" "}
                       <Link href="/auth/login?callbackUrl=/pricing" className="text-primary underline">
-                        Inicia sesión primero
+                        {t("Pricing.loginFirst")}
                       </Link>
                     </p>
                   </div>
@@ -232,9 +234,9 @@ export default function PricingPage() {
           <Card className="max-w-2xl mx-auto">
             <CardContent className="pt-6">
               <Heart className="w-8 h-8 text-red-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">¿Quieres apoyarnos?</h3>
+              <h3 className="text-xl font-bold mb-2">{t("Pricing.donate")}</h3>
               <p className="text-muted-foreground mb-4">
-                Si disfrutas de Secret Passage, considera hacer una donación para ayudarnos a seguir mejorando.
+                {t("Pricing.donateDesc")}
               </p>
               <div className="flex gap-2 justify-center">
                 <StripeCheckout type="donation" amount={5} label="Donar 5€ con Stripe" />

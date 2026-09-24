@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Editor interaktivních knih",
-    "description": "Vytvářejte strhující interaktivní knihy: importujte, propojujte pasáže bez mrtvých odkazů a exportujte do PDF/EPUB ve středověkém stylu",
+    "description": "Importujte rukopis, propojujte pasáže bez mrtvých odkazů a exportujte do PDF, EPUB nebo TXT ve středověkém stylu grimoáru.",
     "startButton": "Začít teď",
     "features": {
       "create": "Vytvořit pasáže",
       "link": "Propojit příběhy",
       "export": "Exportovat do více formátů"
-    }
+    },
+    "lema": "Vytvářejte strhující interaktivní knihy.",
+    "microcopy": "Bez instalace · První pasáž za 2 minuty · 3 zdarma projekty",
+    "ctaPrimary": "Začít zdarma",
+    "ctaSecondary": "Zobrazit plány",
+    "howItWorks": "Jak to funguje",
+    "steps": {
+      "1": {
+        "title": "1. Importujte",
+        "text": "Nahrajte rukopis ve formátu .doc, .odt nebo .txt a proměňte jej automaticky v pasáže."
+      },
+      "2": {
+        "title": "2. Propojujte",
+        "text": "Propojujte pasáže jedním kliknutím a najděte mrtvé či osiřelé odkazy dříve než čtenář."
+      },
+      "3": {
+        "title": "3. Exportujte",
+        "text": "Vygenerujte PDF ve stylu grimoáru, EPUB připravené do knihkupectví nebo čistý TXT."
+      }
+    },
+    "featuresSection": "Pro spisovatele",
+    "featuresList": {
+      "1": {
+        "title": "Z Wordu do sklepení jedním kliknutím",
+        "text": "Importujte dokumenty a získejte číslované, strukturované pasáže bez přepisování."
+      },
+      "2": {
+        "title": "Nikdy nevéďte čtenáře do slepé uličky",
+        "text": "Detektor chyb najde mrtvé odkazy, osiřelé pasáže a větve bez konce. Auto-fix je opraví."
+      },
+      "3": {
+        "title": "Z grimoáru do knihkupectví",
+        "text": "Exportujte středověké PDF, EPUB pro e-readery a další formáty ve stylu vašeho díla."
+      }
+    },
+    "badges": {
+      "1": "12 jazyků rozhraní",
+      "2": "AI agenti pro váš scénář",
+      "3": "Plán zdarma · Pro od 9,99 €"
+    },
+    "finalCtaTitle": "Jste připraveni otevřít tajné dveře?",
+    "finalCtaText": "Vytvořte si zdarma účet a proměňte nápad ve hratelnou interaktivní knihu. Bez karty, bez instalace.",
+    "finalCtaButton": "Vytvořit můj první projekt",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "Moje projekty",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Stáhnout Secret Passage",
-    "subtitle": "Stáhněte si desktopovou verzi pro váš operační systém",
+    "subtitle": "Přenoste svou dílnu interaktivních knih na plochu. Stejná aplikace, offline, plný výkon.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Automatické aktualizace",
     "updatesDesc": "Vždy s nejnovější verzí",
     "requirements": "Systémové požadavky",
-    "sourceCode": "Upřednostňujete kompilaci ze zdrojového kódu?"
+    "sourceCode": "Upřednostňujete kompilaci ze zdrojového kódu?",
+    "soon": "Již brzy",
+    "viewOnGitHub": "Zobrazit na GitHubu",
+    "reqWin10": "Windows 10 a novější",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 GB RAM",
+    "reqDisk": "200 MB místa"
   },
   "Pricing": {
     "title": "Plány a ceny",
-    "subtitle": "Vyberte plán, který nejlépe vyhovuje vašim potřebám",
+    "subtitle": "Začněte zdarma. Přejděte na Pro, až to vaše dílo vyžádá. Žádná překvapení.",
     "free": "Zdarma",
     "pro": "Pro",
     "lifetime": "Doživotní",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Doživotní přístup",
       "updatesIncluded": "Aktualizace zahrnuty",
       "earlyAccess": "Předčasný přístup k funkcím"
-    }
+    },
+    "hasAccount": "Už máte účet?",
+    "loginFirst": "Nejdříve se přihlaste"
   },
   "Auth": {
     "login": "Přihlásit se",

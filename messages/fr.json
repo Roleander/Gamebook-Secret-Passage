@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Éditeur de Livres-jeux",
-    "description": "Forgez des livres-jeux captivants : importez, reliez les passages sans liens brisés et exportez en PDF/EPUB style médiéval",
+    "description": "Importez votre manuscrit, reliez les passages sans liens brisés et exportez en PDF, EPUB ou TXT dans un style grimoire médiéval.",
     "startButton": "Commencer Maintenant",
     "features": {
       "create": "Créer des passages",
       "link": "Lier les histoires",
       "export": "Exporter en plusieurs formats"
-    }
+    },
+    "lema": "Forgez des livres-jeux captivants.",
+    "microcopy": "Sans installation · Premier passage en 2 minutes · 3 projets gratuits",
+    "ctaPrimary": "Commencer gratuitement",
+    "ctaSecondary": "Voir les offres",
+    "howItWorks": "Comment ça marche",
+    "steps": {
+      "1": {
+        "title": "1. Importez",
+        "text": "Téléversez votre manuscrit en .doc, .odt ou .txt et transformez-le en passages automatiquement."
+      },
+      "2": {
+        "title": "2. Reliez",
+        "text": "Reliez les passages en un clic et détectez les liens cassés ou orphelins avant votre lecteur."
+      },
+      "3": {
+        "title": "3. Exportez",
+        "text": "Générez un PDF style grimoire, un EPUB prêt pour les librairies ou un TXT propre."
+      }
+    },
+    "featuresSection": "Pensé pour les auteurs",
+    "featuresList": {
+      "1": {
+        "title": "De votre Word au donjon en un clic",
+        "text": "Importez des documents et obtenez des passages numérotés et structurés sans rien réécrire."
+      },
+      "2": {
+        "title": "Ne renvoyez jamais le lecteur dans une impasse",
+        "text": "Le détecteur d'erreurs trouve les liens cassés, les passages orphelins et les branches sans fin. L'auto-fix les répare pour vous."
+      },
+      "3": {
+        "title": "Du grimoire à la librairie",
+        "text": "Exportez un PDF médiéval, un EPUB pour liseuses et d'autres formats, avec le style de votre œuvre."
+      }
+    },
+    "badges": {
+      "1": "12 langues d'interface",
+      "2": "Agents IA pour votre scénario",
+      "3": "Offre gratuite · Pro dès 9,99 €"
+    },
+    "finalCtaTitle": "Prêt à ouvrir la porte secrète ?",
+    "finalCtaText": "Créez votre compte gratuit et transformez votre idée en livre-jeu jouable. Sans carte, sans installation.",
+    "finalCtaButton": "Créer mon premier projet",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "Mes Projets",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Télécharger Secret Passage",
-    "subtitle": "Téléchargez la version bureau pour votre système d'exploitation",
+    "subtitle": "Emportez votre atelier de livres-jeux sur le bureau. Même application, hors ligne, pleine puissance.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Mises à jour automatiques",
     "updatesDesc": "Toujours avec la dernière version",
     "requirements": "Configuration Requise",
-    "sourceCode": "Préférez compiler depuis le code source ?"
+    "sourceCode": "Préférez compiler depuis le code source ?",
+    "soon": "Bientôt disponible",
+    "viewOnGitHub": "Voir sur GitHub",
+    "reqWin10": "Windows 10 ou ultérieur",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 Go de RAM",
+    "reqDisk": "200 Mo d'espace"
   },
   "Pricing": {
     "title": "Plans et Tarifs",
-    "subtitle": "Choisissez le plan qui correspond le mieux à vos besoins",
+    "subtitle": "Commencez gratuitement. Passez en Pro quand votre œuvre l'exige. Sans surprises.",
     "free": "Gratuit",
     "pro": "Pro",
     "lifetime": "À vie",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Accès à vie",
       "updatesIncluded": "Mises à jour incluses",
       "earlyAccess": "Accès anticipé aux fonctionnalités"
-    }
+    },
+    "hasAccount": "Vous avez déjà un compte ?",
+    "loginFirst": "Connectez-vous d'abord"
   },
   "Auth": {
     "login": "Se Connecter",

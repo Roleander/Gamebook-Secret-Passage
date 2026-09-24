@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Edytor książek interaktywnych",
-    "description": "Twórz wciągające książki interaktywne: importuj, łącz passaże bez martwych linków i eksportuj do PDF/EPUB w stylu medieval",
+    "description": "Importuj rękopisz, łącz passaże bez martwych linków i eksportuj do PDF, EPUB lub TXT w stylu średniowiecznego grimuaru.",
     "startButton": "Zacznij teraz",
     "features": {
       "create": "Twórz passusy",
       "link": "Łącz historie",
       "export": "Eksportuj do wielu formatów"
-    }
+    },
+    "lema": "Twórz wciągające książki interaktywne.",
+    "microcopy": "Bez instalacji · Pierwszy passaż w 2 minuty · 3 darmowe projekty",
+    "ctaPrimary": "Zacznij za darmo",
+    "ctaSecondary": "Zobacz plany",
+    "howItWorks": "Jak to działa",
+    "steps": {
+      "1": {
+        "title": "1. Importuj",
+        "text": "Prześlij rękopisz w .doc, .odt lub .txt i zamień go w passaże automatycznie."
+      },
+      "2": {
+        "title": "2. Łącz",
+        "text": "Łącz passaże jednym kliknięciem i wyłapuj martwe lub osierocone linki zanim zrobi to czytelnik."
+      },
+      "3": {
+        "title": "3. Eksportuj",
+        "text": "Wygeneruj PDF w stylu grimuaru, EPUB gotowy do księgarni lub czysty TXT."
+      }
+    },
+    "featuresSection": "Dla pisarzy",
+    "featuresList": {
+      "1": {
+        "title": "Od Twojego Worda do lochu jednym kliknięciem",
+        "text": "Importuj dokumenty i otrzymuj ponumerowane, uporządkowane passaże bez przepisywania."
+      },
+      "2": {
+        "title": "Nigdy nie prowadź czytelnika w ślepy zaułek",
+        "text": "Detektor błędów znajduje martwe linki, passaże osierocone i gałęzie bez zakończenia. Auto-fix je naprawia."
+      },
+      "3": {
+        "title": "Od grimuaru do księgarni",
+        "text": "Eksportuj PDF w stylu medieval, EPUB na czytniki i więcej formatów, w stylu Twoiego dzieła."
+      }
+    },
+    "badges": {
+      "1": "12 języków interfejsu",
+      "2": "Agenci AI do Twojego scenariusza",
+      "3": "Plan darmowy · Pro od 9,99 €"
+    },
+    "finalCtaTitle": "Gotowy, by otworzyć tajemne drzwi?",
+    "finalCtaText": "Załóż darmowe konto i zamień pomysł w grywalną książkę interaktywną. Bez karty, bez instalacji.",
+    "finalCtaButton": "Utwórz mój pierwszy projekt",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "Moje projekty",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Pobierz Secret Passage",
-    "subtitle": "Pobierz wersję desktopową dla swojego systemu operacyjnego",
+    "subtitle": "Zabierz warsztat książek interaktywnych na desktop. Ta sama aplikacja, offline, pełna moc.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Automatyczne aktualizacje",
     "updatesDesc": "Zawsze z najnowszą wersją",
     "requirements": "Wymagania systemowe",
-    "sourceCode": "Wolisz kompilować z kodu źródłowego?"
+    "sourceCode": "Wolisz kompilować z kodu źródłowego?",
+    "soon": "Wkrótce",
+    "viewOnGitHub": "Zobacz na GitHubie",
+    "reqWin10": "Windows 10 lub nowszy",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 GB RAM",
+    "reqDisk": "200 MB miejsca"
   },
   "Pricing": {
     "title": "Plany i cennik",
-    "subtitle": "Wybierz plan, który najlepiej odpowiada Twoim potrzebom",
+    "subtitle": "Zacznij za darmo. Przejdź na Pro, gdy Twoja tego wymaga. Bez niespodzianek.",
     "free": "Darmowy",
     "pro": "Pro",
     "lifetime": "Dożywotni",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Dostęp dożywotni",
       "updatesIncluded": "Aktualizacje wliczone",
       "earlyAccess": "Wczesny dostęp do funkcji"
-    }
+    },
+    "hasAccount": "Masz już konto?",
+    "loginFirst": "Najpierw się zaloguj"
   },
   "Auth": {
     "login": "Zaloguj się",

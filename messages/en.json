@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Gamebook Editor",
-    "description": "Forge captivating gamebooks: import, link passages without broken links and export to PDF/EPUB in medieval style",
+    "description": "Import your manuscript, connect passages without broken links, and export to PDF, EPUB or TXT with medieval grimoire style.",
     "startButton": "Start Now",
     "features": {
       "create": "Create passages",
       "link": "Link stories",
       "export": "Export to multiple formats"
-    }
+    },
+    "lema": "Forge gamebooks that captivate.",
+    "microcopy": "No install · Your first passage in 2 minutes · 3 free projects",
+    "ctaPrimary": "Start free",
+    "ctaSecondary": "View plans",
+    "howItWorks": "How it works",
+    "steps": {
+      "1": {
+        "title": "1. Import",
+        "text": "Upload your manuscript as .doc, .odt or .txt and turn it into passages automatically."
+      },
+      "2": {
+        "title": "2. Connect",
+        "text": "Link passages in one click and catch broken or orphan links before your reader does."
+      },
+      "3": {
+        "title": "3. Export",
+        "text": "Generate a grimoire-style PDF, a store-ready EPUB or a clean TXT."
+      }
+    },
+    "featuresSection": "Made for authors",
+    "featuresList": {
+      "1": {
+        "title": "From your Word doc to the dungeon in one click",
+        "text": "Import documents and get numbered, structured passages without rewriting anything."
+      },
+      "2": {
+        "title": "Never send readers into a dead end",
+        "text": "The error detector finds broken links, orphan passages and branches without an ending. Auto-fix repairs them for you."
+      },
+      "3": {
+        "title": "From grimoire to bookshop",
+        "text": "Export medieval-style PDF, EPUB for e-readers and more formats, with the style your work deserves."
+      }
+    },
+    "badges": {
+      "1": "12 interface languages",
+      "2": "AI agents for your script",
+      "3": "Free plan · Pro from €9.99"
+    },
+    "finalCtaTitle": "Ready to open the secret door?",
+    "finalCtaText": "Create your free account and turn your idea into a playable gamebook. No card, no install.",
+    "finalCtaButton": "Create my first project",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "My Projects",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Download Secret Passage",
-    "subtitle": "Download the desktop version for your operating system",
+    "subtitle": "Take your gamebook workshop to the desktop. Same app, offline, full speed.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Automatic updates",
     "updatesDesc": "Always with the latest version",
     "requirements": "System Requirements",
-    "sourceCode": "Prefer to build from source code?"
+    "sourceCode": "Prefer to build from source code?",
+    "soon": "Coming soon",
+    "viewOnGitHub": "View on GitHub",
+    "reqWin10": "Windows 10 or later",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 GB RAM",
+    "reqDisk": "200 MB free space"
   },
   "Pricing": {
     "title": "Plans and Pricing",
-    "subtitle": "Choose the plan that best suits your needs",
+    "subtitle": "Start free. Go Pro when your work demands it. No surprises.",
     "free": "Free",
     "pro": "Pro",
     "lifetime": "Lifetime",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Lifetime access",
       "updatesIncluded": "Updates included",
       "earlyAccess": "Early access to features"
-    }
+    },
+    "hasAccount": "Already have an account?",
+    "loginFirst": "Sign in first"
   },
   "Auth": {
     "login": "Sign In",

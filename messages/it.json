@@ -10,13 +10,56 @@
   "Home": {
     "title": "Secret Passage",
     "subtitle": "Editor di Libri Game",
-    "description": "Forgia libri-giochi che affascinano: importa, collega i passaggi senza link rotti ed esporta in PDF/EPUB in stile medievale",
+    "description": "Importa il tuo manoscritto, collega i passaggi senza link rotti ed esporta in PDF, EPUB o TXT con stile grimorio medievale.",
     "startButton": "Inizia Ora",
     "features": {
       "create": "Crea passaggi",
       "link": "Collega storie",
       "export": "Esporta in più formati"
-    }
+    },
+    "lema": "Forgia libri-giochi che affascinano.",
+    "microcopy": "Senza installazione · Primo passaggio in 2 minuti · 3 progetti gratis",
+    "ctaPrimary": "Inizia gratis",
+    "ctaSecondary": "Vedi piani",
+    "howItWorks": "Come funziona",
+    "steps": {
+      "1": {
+        "title": "1. Importa",
+        "text": "Carica il manoscritto in .doc, .odt o .txt e trasformalo in passaggi automaticamente."
+      },
+      "2": {
+        "title": "2. Collega",
+        "text": "Collega i passaggi con un clic e individua link rotti o orfani prima del lettore."
+      },
+      "3": {
+        "title": "3. Esporta",
+        "text": "Genera un PDF stile grimorio, un EPUB pronto per le librerie o un TXT pulito."
+      }
+    },
+    "featuresSection": "Pensato per gli autori",
+    "featuresList": {
+      "1": {
+        "title": "Dal tuo Word alla cripta in un clic",
+        "text": "Importa documenti e ottieni passaggi numerati e strutturati senza riscrivere nulla."
+      },
+      "2": {
+        "title": "Mai mandare il lettore in un vicolo cieco",
+        "text": "Il rilevatore errori trova link rotti, passaggi orfani e rami senza finale. L'auto-fix li ripara per te."
+      },
+      "3": {
+        "title": "Dal grimorio alla libreria",
+        "text": "Esporta PDF in stile medievale, EPUB per e-reader e altri formati, con lo stile che merita la tua opera."
+      }
+    },
+    "badges": {
+      "1": "12 lingue dell'interfaccia",
+      "2": "Agenti IA per la tua sceneggiatura",
+      "3": "Piano gratis · Pro da 9,99 €"
+    },
+    "finalCtaTitle": "Pronto ad aprire la porta segreta?",
+    "finalCtaText": "Crea il tuo account gratis e trasforma l'idea in un libro-gioco giocabile. Nessuna carta, nessuna installazione.",
+    "finalCtaButton": "Crea il mio primo progetto",
+    "footer": "Gamebook Secret Passage © 2026"
   },
   "Projects": {
     "title": "I Miei Progetti",
@@ -93,7 +136,7 @@
   },
   "Downloads": {
     "title": "Scarica Secret Passage",
-    "subtitle": "Scarica la versione desktop per il tuo sistema operativo",
+    "subtitle": "Porta il tuo laboratorio di libri-gioco sul desktop. Stessa app, offline, a piena potenza.",
     "windows": "Windows",
     "mac": "macOS",
     "linux": "Linux",
@@ -113,11 +156,18 @@
     "updates": "Aggiornamenti automatici",
     "updatesDesc": "Sempre con l'ultima versione",
     "requirements": "Requisiti di Sistema",
-    "sourceCode": "Preferisci compilare dal codice sorgente?"
+    "sourceCode": "Preferisci compilare dal codice sorgente?",
+    "soon": "Prossimamente",
+    "viewOnGitHub": "Vedi su GitHub",
+    "reqWin10": "Windows 10 o successivo",
+    "reqMac12": "macOS 12 Monterey+",
+    "reqUbuntu": "Ubuntu 20.04+",
+    "reqRam": "4 GB di RAM",
+    "reqDisk": "200 MB di spazio"
   },
   "Pricing": {
     "title": "Piani e Prezzi",
-    "subtitle": "Scegli il piano più adatto alle tue esigenze",
+    "subtitle": "Inizia gratis. Passa a Pro quando la tua opera lo richiede. Senza sorprese.",
     "free": "Gratuito",
     "pro": "Pro",
     "lifetime": "A vita",
@@ -147,7 +197,9 @@
       "lifetimeAccess": "Accesso a vita",
       "updatesIncluded": "Aggiornamenti inclusi",
       "earlyAccess": "Accesso anticipato alle funzionalità"
-    }
+    },
+    "hasAccount": "Hai già un account?",
+    "loginFirst": "Accedi prima"
   },
   "Auth": {
     "login": "Accedi",
