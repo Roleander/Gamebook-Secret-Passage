@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { ThemeCustomizer } from "@/components/theme-customizer";
 import { LogoUpload } from "@/components/logo-upload";
+import { useTheme } from "@/lib/theme-context";
 import { User, Lock, CreditCard, Palette, Settings, Globe, CheckCircle } from "lucide-react";
 
 interface UserProfile {
@@ -37,6 +38,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { applyTheme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -187,11 +189,20 @@ export default function ProfilePage() {
         body: JSON.stringify({ theme }),
       });
       if (response.ok) {
-        alert("Tema guardado");
+        try {
+          const parsed = JSON.parse(theme);
+          applyTheme(parsed);
+          window.dispatchEvent(new Event("theme-updated"));
+        } catch {}
+        setSuccessMessage("Tema guardado correctamente");
         fetchProfile();
+      } else {
+        const error = await response.json();
+        alert(error.error || "Error al guardar el tema");
       }
     } catch (error) {
       console.error("Error saving theme:", error);
+      alert("Error de conexión");
     }
   };
 

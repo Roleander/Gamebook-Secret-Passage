@@ -43,7 +43,7 @@ export function LanguageSelector() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2 py-1 text-sm text-dungeon-300 hover:text-dungeon-100 transition-colors rounded border border-dungeon-700 hover:border-dungeon-500"
+        className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground hover:text-foreground transition-colors rounded border border-border hover:border-primary"
       >
         <span>{current.flag}</span>
         <span className="hidden sm:inline">{current.code.toUpperCase()}</span>
@@ -58,13 +58,13 @@ export function LanguageSelector() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 bg-dungeon-800 border border-dungeon-600 rounded shadow-lg z-50 max-h-60 overflow-y-auto min-w-[140px]">
+        <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded shadow-lg z-50 max-h-60 overflow-y-auto min-w-[140px]">
           {locales.map((l) => (
             <button
               key={l.code}
               onClick={() => handleSelect(l.code)}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-dungeon-700 transition-colors text-left ${
-                l.code === locale ? "text-gold-400 bg-dungeon-700" : "text-dungeon-200"
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors text-left ${
+                l.code === locale ? "text-primary bg-muted" : "text-foreground"
               }`}
             >
               <span>{l.flag}</span>

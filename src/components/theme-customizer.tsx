@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Palette } from "lucide-react";
@@ -19,21 +19,51 @@ const PRESET_THEMES = [
   { name: "Pergamino", primaryColor: "#8b7355", bgColor: "#f5f0e6", accentColor: "#6b5a3e" },
 ];
 
+function safeParse(raw: string | null): typeof PRESET_THEMES[0] | null {
+  if (!raw) return null;
+  try {
+    const p = JSON.parse(raw);
+    if (p && typeof p.primaryColor === "string") return p;
+  } catch {}
+  return null;
+}
+
 export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizerProps) {
-  const parsed = currentTheme ? JSON.parse(currentTheme) : PRESET_THEMES[0];
-  const [primaryColor, setPrimaryColor] = useState(parsed.primaryColor || PRESET_THEMES[0].primaryColor);
-  const [bgColor, setBgColor] = useState(parsed.bgColor || PRESET_THEMES[0].bgColor);
-  const [accentColor, setAccentColor] = useState(parsed.accentColor || PRESET_THEMES[0].accentColor);
+  const parsed = safeParse(currentTheme) || PRESET_THEMES[0];
+  const [primaryColor, setPrimaryColor] = useState(parsed.primaryColor);
+  const [bgColor, setBgColor] = useState(parsed.bgColor);
+  const [accentColor, setAccentColor] = useState(parsed.accentColor);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    const p = safeParse(currentTheme);
+    if (p) {
+      setPrimaryColor(p.primaryColor);
+      setBgColor(p.bgColor);
+      setAccentColor(p.accentColor || p.primaryColor);
+      setDirty(false);
+    }
+  }, [currentTheme]);
+
+  const update = (
+    setter: (v: string) => void,
+    value: string
+  ) => {
+    setter(value);
+    setDirty(true);
+  };
 
   const handlePreset = (preset: typeof PRESET_THEMES[0]) => {
     setPrimaryColor(preset.primaryColor);
     setBgColor(preset.bgColor);
     setAccentColor(preset.accentColor);
+    setDirty(true);
   };
 
   const handleSave = () => {
     const theme = JSON.stringify({ primaryColor, bgColor, accentColor });
     onThemeUpdate(theme);
+    setDirty(false);
   };
 
   return (
@@ -41,7 +71,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          Tema de Colors
+          Tema de colores
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -69,7 +99,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
               <input
                 type="color"
                 value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
+                onChange={(e) => update(setPrimaryColor, e.target.value)}
                 className="w-8 h-8 rounded cursor-pointer"
               />
               <span className="text-xs">{primaryColor}</span>
@@ -81,7 +111,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
               <input
                 type="color"
                 value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
+                onChange={(e) => update(setBgColor, e.target.value)}
                 className="w-8 h-8 rounded cursor-pointer"
               />
               <span className="text-xs">{bgColor}</span>
@@ -93,7 +123,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
               <input
                 type="color"
                 value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
+                onChange={(e) => update(setAccentColor, e.target.value)}
                 className="w-8 h-8 rounded cursor-pointer"
               />
               <span className="text-xs">{accentColor}</span>
@@ -106,8 +136,8 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
           <p style={{ color: accentColor }} className="text-sm">Texto de ejemplo con color de acento</p>
         </div>
 
-        <Button onClick={handleSave} className="w-full">
-          Guardar tema
+        <Button onClick={handleSave} className="w-full" disabled={!dirty}>
+          {dirty ? "Guardar tema" : "Tema guardado"}
         </Button>
       </CardContent>
     </Card>

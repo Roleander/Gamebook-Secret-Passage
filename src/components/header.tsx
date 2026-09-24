@@ -41,18 +41,18 @@ export function Header() {
   ];
 
   return (
-    <header className="border-b border-dungeon-700 bg-dungeon-900/80 backdrop-blur-sm sticky top-0 z-50">
+    <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-3">
             {siteLogo ? (
               <img src={siteLogo} alt="Logo" className="w-10 h-10 rounded-lg object-contain" />
             ) : (
-              <div className="w-10 h-10 bg-gold-500 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-dungeon-900" />
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-primary-foreground" />
               </div>
             )}
-            <span className="font-bold text-xl text-gold-400 hidden sm:block font-medieval">
+            <span className="font-bold text-xl text-primary hidden sm:block font-medieval">
               Secret Passage
             </span>
           </Link>
@@ -67,8 +67,8 @@ export function Header() {
                   className={cn(
                     "flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-gold-500 text-dungeon-900"
-                      : "text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
                   <item.icon className="w-4 h-4" />
@@ -86,8 +86,8 @@ export function Header() {
                   className={cn(
                     "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ml-2",
                     pathname === "/auth/login"
-                      ? "bg-gold-500 text-dungeon-900"
-                      : "text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                   title={t("Auth.login")}
                 >
@@ -99,8 +99,8 @@ export function Header() {
                   className={cn(
                     "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ml-1",
                     pathname === "/auth/register"
-                      ? "bg-gold-500 text-dungeon-900"
-                      : "bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 hover:text-gold-300"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-primary/20 text-primary hover:bg-primary/30"
                   )}
                   title={t("Auth.register")}
                 >
@@ -115,8 +115,8 @@ export function Header() {
                 className={cn(
                   "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ml-2",
                   pathname === "/profile"
-                    ? "bg-gold-500 text-dungeon-900"
-                    : "text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
                 title="Mi perfil"
               >
@@ -127,7 +127,7 @@ export function Header() {
             {session && (
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-dungeon-300 hover:bg-dungeon-700 hover:text-dungeon-100 transition-colors ml-2"
+                className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors ml-2"
                 title="Cerrar sesión"
               >
                 <LogOut className="w-4 h-4" />

@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
                     {result.resetUrl && (
                       <div className="mt-2">
                         <p className="text-xs text-muted-foreground mb-1">(Modo desarrollo — enlace de reseteo):</p>
-                        <a href={result.resetUrl} className="text-xs text-gold-400 underline break-all">
+                        <a href={result.resetUrl} className="text-xs text-primary underline break-all">
                           {result.resetUrl}
                         </a>
                       </div>
