@@ -5,6 +5,11 @@ import { db } from "@/lib/db";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const configs = await db.siteConfig.findMany();
     const configMap: Record<string, string> = {};
     for (const c of configs) {

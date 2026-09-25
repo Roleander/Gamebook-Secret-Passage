@@ -12,12 +12,26 @@ function getStripe() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const body = await req.json();
-    const { amount, currency = "eur", message } = body;
-
-    if (!amount || amount < 1) {
-      return NextResponse.json({ error: "Cantidad mínima: 1 EUR" }, { status: 400 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+
+    const body = await req.json();
+    const { amount, message } = body;
+    const currency = "eur";
+
+    if (typeof amount !== "number" || !Number.isFinite(amount)) {
+      return NextResponse.json({ error: "Cantidad no válida" }, { status: 400 });
+    }
+    if (amount < 1 || amount > 500) {
+      return NextResponse.json(
+        { error: "Cantidad entre 1 y 500 EUR" },
+        { status: 400 }
+      );
+    }
+
+    const safeMessage =
+      typeof message === "string" ? message.slice(0, 500) : "";
 
     const origin = req.headers.get("origin") || "https://gamebook-secret-passage.vercel.app";
 
@@ -29,7 +43,7 @@ export async function POST(req: Request) {
             currency,
             product_data: {
               name: "Donación a Secret Passage",
-              description: message || "Gracias por tu apoyo",
+              description: safeMessage || "Gracias por tu apoyo",
             },
             unit_amount: Math.round(amount * 100), // Stripe uses cents
           },
@@ -40,8 +54,8 @@ export async function POST(req: Request) {
       success_url: `${origin}/profile?donated=true`,
       cancel_url: `${origin}/pricing`,
       metadata: {
-        userId: session?.user ? (session.user as any).id : "",
-        message: message || "",
+        userId: (session.user as any).id,
+        message: safeMessage,
       },
     });
 

@@ -15,10 +15,9 @@ interface StripeCheckoutProps {
 export function StripeCheckout({ type, planId, amount, label }: StripeCheckoutProps) {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  const requiresAuth = type !== "donation";
 
   const handleCheckout = async () => {
-    if (requiresAuth && !session) {
+    if (!session) {
       const callback = encodeURIComponent(window.location.pathname);
       window.location.href = `/auth/login?callbackUrl=${callback}`;
       return;
