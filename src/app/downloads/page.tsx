@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Monitor, Apple, Terminal, Download, ExternalLink, Check } from "lucide-react";
+import { Monitor, Apple, Terminal, Download, ExternalLink, Check, ArrowLeft } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 
@@ -86,8 +87,17 @@ const platforms: { id: Platform; name: string; icon: React.ReactNode; descKey: s
 
 export default function DownloadsPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("windows");
   const [downloadStarted, setDownloadStarted] = useState<Platform | null>(null);
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
 
   const downloads = platforms.map((p) => ({
     ...p,
@@ -98,6 +108,17 @@ export default function DownloadsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
+        {/* Back (needed in desktop app, which has no browser nav) */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+          className="mb-6 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {t("Common.back")}
+        </Button>
+
         {/* Header */}
         <motion.div
           className="text-center mb-12"

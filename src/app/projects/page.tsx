@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { HeroLogo } from "@/components/hero-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, BookOpen, Calendar, FileText, Trash2 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -29,6 +31,7 @@ interface Project {
 }
 
 export default function ProjectsPage() {
+  const { t, locale } = useI18n();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +57,7 @@ export default function ProjectsPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!confirm("¿Seguro que quieres eliminar este proyecto?")) return;
+    if (!confirm(t("Projects.confirmDelete"))) return;
 
     try {
       const response = await fetch(`/api/projects/${projectId}`, {
@@ -74,19 +77,22 @@ export default function ProjectsPage() {
       <Header />
 
       <main className="container mx-auto px-4 py-8">
+        <div className="flex justify-center">
+          <HeroLogo />
+        </div>
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-primary font-pixel">
-              Mis Proyectos
+              {t("Projects.title")}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Gestiona tus librojuegos
+              {t("Projects.subtitle")}
             </p>
           </div>
           <Link href="/projects/new">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Nuevo Proyecto
+              {t("Projects.new")}
             </Button>
           </Link>
         </div>
@@ -110,14 +116,14 @@ export default function ProjectsPage() {
           <Card className="text-center py-12">
             <CardContent>
               <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium mb-2">No hay proyectos aún</h3>
+              <h3 className="text-lg font-medium mb-2">{t("Projects.empty")}</h3>
               <p className="text-muted-foreground mb-4">
-                Crea tu primer proyecto para empezar a trabajar en tu librojuego
+                {t("Projects.createFirst")}
               </p>
               <Link href="/projects/new">
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
-                  Crear Primer Proyecto
+                  {t("Projects.createFirstButton")}
                 </Button>
               </Link>
             </CardContent>
@@ -149,18 +155,18 @@ export default function ProjectsPage() {
                       </Button>
                     </CardTitle>
                     <CardDescription>
-                      {project.description || "Sin descripción"}
+                      {project.description || t("Projects.noDescription")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center text-sm text-muted-foreground space-x-4">
                       <span className="flex items-center">
                         <FileText className="w-4 h-4 mr-1" />
-                        {project._count.passages} pasajes
+                        {project._count.passages} {t("Projects.passages")}
                       </span>
                       <span className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(project.createdAt).toLocaleDateString("es-ES")}
+                        {new Date(project.createdAt).toLocaleDateString(locale)}
                       </span>
                     </div>
                   </CardContent>
