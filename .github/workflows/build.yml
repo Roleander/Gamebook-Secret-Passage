@@ -69,6 +69,7 @@ jobs:
           name: macos-build
           path: |
             dist-electron/*.dmg
+            dist-electron/*.zip
             dist-electron/*.blockmap
             dist-electron/latest-mac.yml
           if-no-files-found: ignore
@@ -125,6 +126,7 @@ jobs:
             artifacts/windows-build/*.blockmap
             artifacts/windows-build/latest.yml
             artifacts/macos-build/*.dmg
+            artifacts/macos-build/*.zip
             artifacts/macos-build/*.blockmap
             artifacts/macos-build/latest-mac.yml
             artifacts/linux-build/*.AppImage

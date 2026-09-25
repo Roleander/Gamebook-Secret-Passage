@@ -1,6 +1,6 @@
 {
   "name": "gamebook-secret-passage",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "description": "Gamebook Secret Passage — interactive gamebook editor: import, link passages, detect broken links and export to PDF/EPUB/TXT",
   "author": {
@@ -95,10 +95,20 @@
             "x64",
             "arm64"
           ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "public/icon.png",
       "category": "public.app-category.games"
+    },
+    "zip": {
+      "artifactName": "Secret-Passage-${arch}.${ext}"
     },
     "dmg": {
       "artifactName": "Secret-Passage-${arch}.${ext}",
