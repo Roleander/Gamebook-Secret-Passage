@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,14 @@ export async function POST(
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const ents = await getEntitlements(
+      (session.user as any).id,
+      (session.user as any).role
+    );
+    if (!ents.features.shuffle) {
+      return upgradeRequired("renumber", "La renumeración de pasajes requiere un plan Pro");
     }
 
     const { projectId } = await params;

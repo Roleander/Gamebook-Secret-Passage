@@ -229,5 +229,11 @@
     "back": "Wstecz",
     "next": "Dalej",
     "previous": "Wstecz"
+  },
+  "Upgrade": {
+    "title": "Funkcja Pro",
+    "text": "Ta funkcja jest częścią planu Pro. Ulepsz plan, aby ją odblokować.",
+    "cta": "Zobacz plany",
+    "proLabel": "PRO"
   }
 }

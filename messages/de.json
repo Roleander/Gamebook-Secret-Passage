@@ -229,5 +229,11 @@
     "back": "Zurück",
     "next": "Weiter",
     "previous": "Zurück"
+  },
+  "Upgrade": {
+    "title": "Pro-Funktion",
+    "text": "Diese Funktion ist Teil des Pro-Plans. Upgrade, um sie freizuschalten.",
+    "cta": "Pläne ansehen",
+    "proLabel": "PRO"
   }
 }

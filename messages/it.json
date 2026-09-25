@@ -229,5 +229,11 @@
     "back": "Indietro",
     "next": "Avanti",
     "previous": "Indietro"
+  },
+  "Upgrade": {
+    "title": "Funzione Pro",
+    "text": "Questa funzione fa parte del piano Pro. Aggiorna il piano per sbloccarla.",
+    "cta": "Vedi i piani",
+    "proLabel": "PRO"
   }
 }

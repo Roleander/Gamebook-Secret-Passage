@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { generatePDF } from "@/lib/exporters/pdf";
 import { generateTXT } from "@/lib/exporters/txt";
 import { generateODT } from "@/lib/exporters/odt";
@@ -24,6 +25,19 @@ export async function POST(req: Request) {
         { error: "projectId y format son requeridos" },
         { status: 400 }
       );
+    }
+
+    if (format !== "txt") {
+      const ents = await getEntitlements(
+        (session.user as any).id,
+        (session.user as any).role
+      );
+      if (!ents.features.exportAdvanced) {
+        return upgradeRequired(
+          "export",
+          "La exportación a PDF, EPUB, ODT, DOC y DOCX requiere un plan Pro"
+        );
+      }
     }
 
     const project = await db.project.findFirst({

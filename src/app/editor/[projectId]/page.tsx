@@ -10,11 +10,26 @@ import { PassageEditor } from "@/components/editor/passage-editor";
 import { PassageList } from "@/components/editor/passage-list";
 import { ErrorPanel } from "@/components/editor/error-panel";
 import { PreviewMode } from "@/components/editor/preview-mode";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Link2, Wand2, ChevronDown, Eye
+  Trash2, Link2, Wand2, ChevronDown, Eye, Lock
 } from "lucide-react";
 import Link from "next/link";
+
+interface Entitlements {
+  plan: string;
+  isPro: boolean;
+  maxProjects: number | null;
+  maxPassages: number | null;
+  features: {
+    exportTxt: boolean;
+    exportAdvanced: boolean;
+    autofix: boolean;
+    analyze: boolean;
+    shuffle: boolean;
+  };
+}
 
 interface Passage {
   id: string;
@@ -58,6 +73,34 @@ export default function EditorPage() {
   const [preserveStart, setPreserveStart] = useState(true);
   const [canUndo, setCanUndo] = useState(false);
   const [shuffling, setShuffling] = useState(false);
+  const [ents, setEnts] = useState<Entitlements | null>(null);
+  const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
+
+  const locked = ents !== null && !ents.isPro;
+
+  const fetchEntitlements = useCallback(async () => {
+    try {
+      const response = await fetch("/api/entitlements");
+      if (response.ok) {
+        setEnts(await response.json());
+      }
+    } catch {
+      // server still enforces on every request
+    }
+  }, []);
+
+  const handleUpgradeResponse = async (response: Response): Promise<boolean> => {
+    if (response.status === 402) {
+      try {
+        const data = await response.json();
+        setUpgradeMsg(data.error || "");
+      } catch {
+        setUpgradeMsg("");
+      }
+      return true;
+    }
+    return false;
+  };
 
   const fetchProject = useCallback(async () => {
     try {
@@ -93,7 +136,8 @@ export default function EditorPage() {
   useEffect(() => {
     fetchProject();
     fetchSnapshots();
-  }, [fetchProject, fetchSnapshots]);
+    fetchEntitlements();
+  }, [fetchProject, fetchSnapshots, fetchEntitlements]);
 
   // Sync selectedPassage when project data changes (e.g., after shuffle)
   useEffect(() => {
@@ -135,6 +179,10 @@ export default function EditorPage() {
 
   const handleContentShuffle = async () => {
     if (!project) return;
+    if (ents && !ents.features.shuffle) {
+      setUpgradeMsg("");
+      return;
+    }
     if (!confirm("¿Barajar el contenido entre pasajes? Los números se mantienen, pero el texto y enlaces se reorganizan aleatoriamente.")) return;
     setShuffling(true);
     try {
@@ -148,6 +196,8 @@ export default function EditorPage() {
         alert(`Contenido barajado: ${result.passageCount} pasajes, ${result.linksCreated} enlaces recreados${result.startPreserved ? " (pasaje de inicio preservado)" : ""}`);
         await fetchProject();
         fetchSnapshots();
+      } else if (await handleUpgradeResponse(response)) {
+        // upgrade modal shown
       } else {
         alert(`Error: ${result.error || "Error al barajar"}`);
       }
@@ -161,6 +211,10 @@ export default function EditorPage() {
 
   const handleUndoShuffle = async () => {
     if (!project) return;
+    if (ents && !ents.features.shuffle) {
+      setUpgradeMsg("");
+      return;
+    }
     if (!confirm("¿Deshacer el último barajado de contenido?")) return;
     try {
       const response = await fetch(`/api/projects/${projectId}/content-shuffle/undo`, {
@@ -171,6 +225,8 @@ export default function EditorPage() {
         alert(`Deshacer completado: ${result.passageCount} pasajes restaurados, ${result.linksRestored} enlaces restaurados`);
         fetchProject();
         fetchSnapshots();
+      } else if (await handleUpgradeResponse(response)) {
+        // upgrade modal shown
       } else {
         alert(`Error: ${result.error || "Error al deshacer"}`);
       }
@@ -181,6 +237,10 @@ export default function EditorPage() {
   };
 
   const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx") => {
+    if (format !== "txt" && ents && !ents.features.exportAdvanced) {
+      setUpgradeMsg("");
+      return;
+    }
     try {
       const response = await fetch("/api/export", {
         method: "POST",
@@ -188,7 +248,10 @@ export default function EditorPage() {
         body: JSON.stringify({ projectId, format, readingMode }),
       });
 
-      if (!response.ok) throw new Error("Error al exportar");
+      if (!response.ok) {
+        if (await handleUpgradeResponse(response)) return;
+        throw new Error("Error al exportar");
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -226,6 +289,10 @@ export default function EditorPage() {
 
   const handleAutoFix = async () => {
     if (!project) return;
+    if (ents && !ents.features.autofix) {
+      setUpgradeMsg("");
+      return;
+    }
     setAutoFixing(true);
     try {
       const response = await fetch("/api/autofix", {
@@ -244,6 +311,8 @@ export default function EditorPage() {
           `- Pasajes marcados como inicio: ${result.startsMarked}`
         );
         fetchProject();
+      } else {
+        await handleUpgradeResponse(response);
       }
     } catch (error) {
       console.error("Error auto-fixing:", error);
@@ -306,6 +375,7 @@ export default function EditorPage() {
             <Button variant="outline" onClick={handleContentShuffle} disabled={project.passages.length < 2 || shuffling}>
               <Shuffle className={`w-4 h-4 mr-2 ${shuffling ? "animate-spin" : ""}`} />
               {shuffling ? "Barajando..." : "Barajar Contenido"}
+              {locked && !ents?.features.shuffle && <Lock className="w-3 h-3 ml-2 text-primary/70" />}
             </Button>
 
             <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer" title="Preservar el pasaje marcado como inicio durante el barajado">
@@ -363,6 +433,7 @@ export default function EditorPage() {
                     >
                       <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                       PDF (HTML imprimible)
+                      {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
                       onClick={() => { handleExport("epub"); setShowExportMenu(false); }}
@@ -370,6 +441,7 @@ export default function EditorPage() {
                     >
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                       EPUB (e-book)
+                      {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
                       onClick={() => { handleExport("txt"); setShowExportMenu(false); }}
@@ -384,6 +456,7 @@ export default function EditorPage() {
                     >
                       <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                       ODT (OpenOffice)
+                      {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
                       onClick={() => { handleExport("doc"); setShowExportMenu(false); }}
@@ -391,6 +464,7 @@ export default function EditorPage() {
                     >
                       <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                       Word (.doc)
+                      {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
                       onClick={() => { handleExport("docx"); setShowExportMenu(false); }}
@@ -398,6 +472,7 @@ export default function EditorPage() {
                     >
                       <span className="w-2 h-2 bg-indigo-600 rounded-full mr-2"></span>
                       Word (.docx)
+                      {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                   </div>
                 </div>
@@ -411,6 +486,7 @@ export default function EditorPage() {
             >
               <Wand2 className="w-4 h-4 mr-2" />
               {autoFixing ? "Arreglando..." : "Auto-fix"}
+              {locked && !ents?.features.autofix && <Lock className="w-3 h-3 ml-2 text-primary/70" />}
             </Button>
 
             <Button variant="destructive" onClick={handleDeleteProject}>
@@ -444,6 +520,7 @@ export default function EditorPage() {
                           isEndpoint: false,
                         }),
                       });
+                      if (await handleUpgradeResponse(response)) return;
                       if (response.ok) {
                         fetchProject();
                       }
@@ -456,16 +533,21 @@ export default function EditorPage() {
                       variant="outline"
                       size="sm"
                       onClick={async () => {
+                        if (ents && !ents.features.shuffle) {
+                          setUpgradeMsg("");
+                          return;
+                        }
                         if (!confirm("¿Renumerar todos los pasajes secuencialmente (1, 2, 3...)?")) return;
                         const response = await fetch(`/api/projects/${projectId}/renumber`, {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ startFrom: 1, step: 1 }),
                         });
+                        if (await handleUpgradeResponse(response)) return;
                         if (response.ok) {
                           fetchProject();
-                        }
-                      }}
+                        }}
+                      }
                       title="Renumerar todos los pasajes desde 1"
                     >
                       1,2,3...
@@ -561,6 +643,13 @@ export default function EditorPage() {
         <PreviewMode
           project={project}
           onClose={() => setShowPreview(false)}
+        />
+      )}
+
+      {upgradeMsg !== null && (
+        <UpgradeModal
+          message={upgradeMsg}
+          onClose={() => setUpgradeMsg(null)}
         />
       )}
     </div>

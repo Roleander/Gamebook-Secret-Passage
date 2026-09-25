@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getEntitlements, limitReached } from "@/lib/entitlements";
 
 export async function GET() {
   try {
@@ -60,11 +61,23 @@ export async function POST(req: Request) {
       );
     }
 
+    const userId = (session.user as any).id;
+    const ents = await getEntitlements(userId, (session.user as any).role);
+
+    if (ents.maxProjects !== null) {
+      const count = await db.project.count({ where: { userId } });
+      if (count >= ents.maxProjects) {
+        return limitReached(
+          `Has alcanzado el límite de ${ents.maxProjects} proyectos de tu plan. Mejora a Pro para crear más.`
+        );
+      }
+    }
+
     const project = await db.project.create({
       data: {
         title,
         description,
-        userId: (session.user as any).id,
+        userId,
       },
     });
 

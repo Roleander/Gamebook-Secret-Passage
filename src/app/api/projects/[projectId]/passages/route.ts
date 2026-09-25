@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getEntitlements, limitReached } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,19 @@ export async function POST(
     }
 
     const { number, title, content, isStart, isEndpoint } = await req.json();
+
+    const ents = await getEntitlements(
+      (session.user as any).id,
+      (session.user as any).role
+    );
+    if (ents.maxPassages !== null) {
+      const passageCount = await db.passage.count({ where: { projectId } });
+      if (passageCount >= ents.maxPassages) {
+        return limitReached(
+          `Has alcanzado el límite de ${ents.maxPassages} pasajes de tu plan. Mejora a Pro para continuar.`
+        );
+      }
+    }
 
     // Check if passage number already exists
     const existing = await db.passage.findFirst({

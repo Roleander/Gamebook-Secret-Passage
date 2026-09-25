@@ -229,5 +229,11 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous"
+  },
+  "Upgrade": {
+    "title": "Pro Feature",
+    "text": "This feature is part of the Pro plan. Upgrade your plan to unlock it.",
+    "cta": "View plans",
+    "proLabel": "PRO"
   }
 }

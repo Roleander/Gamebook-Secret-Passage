@@ -229,5 +229,11 @@
     "back": "Tillbaka",
     "next": "Nästa",
     "previous": "Föregående"
+  },
+  "Upgrade": {
+    "title": "Pro-funktion",
+    "text": "Denna funktion ingår i Pro-planen. Uppgradera planen för att låsa upp den.",
+    "cta": "Se planer",
+    "proLabel": "PRO"
   }
 }

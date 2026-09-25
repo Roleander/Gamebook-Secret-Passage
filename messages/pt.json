@@ -229,5 +229,11 @@
     "back": "Voltar",
     "next": "Próximo",
     "previous": "Anterior"
+  },
+  "Upgrade": {
+    "title": "Recurso Pro",
+    "text": "Este recurso faz parte do plano Pro. Faça upgrade para desbloqueá-lo.",
+    "cta": "Ver planos",
+    "proLabel": "PRO"
   }
 }

@@ -229,5 +229,11 @@
     "back": "Volver",
     "next": "Siguiente",
     "previous": "Anterior"
+  },
+  "Upgrade": {
+    "title": "Función Pro",
+    "text": "Esta función forma parte del plan Pro. Mejora tu plan para desbloquearla.",
+    "cta": "Ver planes",
+    "proLabel": "PRO"
   }
 }

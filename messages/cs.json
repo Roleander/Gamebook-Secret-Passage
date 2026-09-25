@@ -229,5 +229,11 @@
     "back": "Zpět",
     "next": "Další",
     "previous": "Předchozí"
+  },
+  "Upgrade": {
+    "title": "Pro funkce",
+    "text": "Tato funkce je součástí plánu Pro. Přejděte na Pro a odemkněte ji.",
+    "cta": "Zobrazit plány",
+    "proLabel": "PRO"
   }
 }

@@ -229,5 +229,11 @@
     "back": "Retour",
     "next": "Suivant",
     "previous": "Précédent"
+  },
+  "Upgrade": {
+    "title": "Fonction Pro",
+    "text": "Cette fonctionnalité fait partie du plan Pro. Passez à Pro pour la débloquer.",
+    "cta": "Voir les offres",
+    "proLabel": "PRO"
   }
 }

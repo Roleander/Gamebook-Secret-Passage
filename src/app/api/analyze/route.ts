@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { createPassageDetector, createConnectionFinder } from "@/lib/agents";
 
 export async function POST(req: Request) {
@@ -13,6 +14,14 @@ export async function POST(req: Request) {
         { error: "No autorizado" },
         { status: 401 }
       );
+    }
+
+    const ents = await getEntitlements(
+      (session.user as any).id,
+      (session.user as any).role
+    );
+    if (!ents.features.analyze) {
+      return upgradeRequired("analyze", "Los agentes de análisis requieren un plan Pro");
     }
 
     const { projectId, action } = await req.json();

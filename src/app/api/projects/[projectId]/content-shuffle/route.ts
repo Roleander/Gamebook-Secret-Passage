@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { updateAllNumberReferences } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,14 @@ export async function POST(
 
     if (!session?.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    const ents = await getEntitlements(
+      (session.user as any).id,
+      (session.user as any).role
+    );
+    if (!ents.features.shuffle) {
+      return upgradeRequired("shuffle", "Barajar contenido requiere un plan Pro");
     }
 
     const body = await req.json().catch(() => ({}));

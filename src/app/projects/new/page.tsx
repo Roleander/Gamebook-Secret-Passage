@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeft, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function NewProjectPage() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +42,11 @@ export default function NewProjectPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 402) {
+          setUpgradeMsg(data.error || "");
+          setLoading(false);
+          return;
+        }
         throw new Error(data.error || "Error al crear el proyecto");
       }
 
@@ -125,6 +132,13 @@ export default function NewProjectPage() {
         </Card>
         </motion.div>
       </main>
+
+      {upgradeMsg !== null && (
+        <UpgradeModal
+          message={upgradeMsg}
+          onClose={() => setUpgradeMsg(null)}
+        />
+      )}
     </div>
   );
 }
