@@ -80,6 +80,41 @@ export async function GET(req: Request) {
       };
     }
 
+    // Suscripciones en Stripe (fuente de verdad del pago, sin emails)
+    try {
+      const list = await stripe.subscriptions.list({ status: "all", limit: 5 });
+      result.stripeSubscriptions = list.data.map((s) => ({
+        id: s.id.slice(0, 14),
+        status: s.status,
+        created: s.created,
+        cancelAtPeriodEnd: s.cancel_at_period_end,
+        amount: s.items.data[0]?.price?.unit_amount ?? null,
+        currency: s.items.data[0]?.price?.currency ?? null,
+      }));
+    } catch (e) {
+      const err = e as { type?: string; message?: string };
+      result.stripeSubscriptions = {
+        error: sanitize(err.message ?? String(e)),
+        type: err.type ?? null,
+      };
+    }
+
+    // Últimos eventos de la cuenta (solo tipo + fecha)
+    try {
+      const evs = await stripe.events.list({ limit: 10 });
+      result.stripeEvents = evs.data.map((e) => ({
+        type: e.type,
+        created: e.created,
+        livemode: e.livemode,
+      }));
+    } catch (e) {
+      const err = e as { type?: string; message?: string };
+      result.stripeEvents = {
+        error: sanitize(err.message ?? String(e)),
+        type: err.type ?? null,
+      };
+    }
+
     // Dry-run opcional (?dryRun=1): crea y expira una sesión de suscripción
     // — la llamada exacta que fallaba con StripeConnectionError
     if (dryRun) {
