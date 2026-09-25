@@ -5,17 +5,10 @@ import { db } from "@/lib/db";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== "ADMIN") {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
-
-    const configs = await db.siteConfig.findMany();
-    const configMap: Record<string, string> = {};
-    for (const c of configs) {
-      configMap[c.key] = c.value;
-    }
-    return NextResponse.json(configMap);
+    // Público: solo claves no sensibles (el logo lo muestran cabecera y hero
+    // a visitantes anónimos). El resto de la config solo vía PUT (ADMIN).
+    const logo = await db.siteConfig.findUnique({ where: { key: "siteLogo" } });
+    return NextResponse.json({ siteLogo: logo?.value ?? null });
   } catch (error) {
     return NextResponse.json({ error: "Error al obtener configuración" }, { status: 500 });
   }
