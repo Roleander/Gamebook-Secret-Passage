@@ -12,7 +12,8 @@ function sanitize(msg: string): string {
     .replace(/pk_(live|test)_[A-Za-z0-9]+/g, "pk_***");
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const dryRun = new URL(req.url).searchParams.get("dryRun") === "1";
   const result: Record<string, unknown> = { ts: new Date().toISOString() };
 
   const key = process.env.STRIPE_SECRET_KEY;
@@ -62,6 +63,62 @@ export async function GET() {
     await stripe.balance.retrieve();
     // Solo éxito: no se devuelve ningún dato del saldo
     result.sdk = { ok: true };
+
+    // Endpoints webhook configurados en la cuenta (sin secretos)
+    try {
+      const eps = await stripe.webhookEndpoints.list({ limit: 10 });
+      result.webhookEndpoints = eps.data.map((e) => ({
+        url: e.url,
+        status: e.status,
+        events: e.enabled_events.slice(0, 8),
+      }));
+    } catch (e) {
+      const err = e as { type?: string; message?: string };
+      result.webhookEndpoints = {
+        error: sanitize(err.message ?? String(e)),
+        type: err.type ?? null,
+      };
+    }
+
+    // Dry-run opcional (?dryRun=1): crea y expira una sesión de suscripción
+    // — la llamada exacta que fallaba con StripeConnectionError
+    if (dryRun) {
+      try {
+        const cs = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: "eur",
+                product_data: { name: "Ping test (no se cobra)" },
+                unit_amount: 500,
+                recurring: { interval: "month" },
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "subscription",
+          success_url: "https://gamebook-secret-passage.vercel.app/",
+          cancel_url: "https://gamebook-secret-passage.vercel.app/",
+        });
+        await stripe.checkout.sessions.expire(cs.id);
+        result.checkoutDryRun = { ok: true, sessionId: cs.id, expired: true };
+      } catch (e) {
+        const err = e as {
+          type?: string;
+          code?: string | null;
+          message?: string;
+          statusCode?: number;
+        };
+        result.checkoutDryRun = {
+          ok: false,
+          type: err.type ?? null,
+          code: err.code ?? null,
+          httpStatus: err.statusCode ?? null,
+          message: sanitize(err.message ?? String(e)),
+        };
+      }
+    }
   } catch (e) {
     const err = e as {
       type?: string;
