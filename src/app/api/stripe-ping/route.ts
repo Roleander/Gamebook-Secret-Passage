@@ -154,5 +154,25 @@ export async function GET(req: Request) {
     result.webhookRoute = { error: sanitize((e as Error).message) };
   }
 
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const db = new PrismaClient();
+    const subs = await db.subscription.findMany({
+      select: {
+        status: true,
+        startDate: true,
+        endDate: true,
+        plan: { select: { name: true } },
+      },
+      take: 5,
+    });
+    result.dbSubscriptions = subs;
+    await db.$disconnect();
+  } catch (e) {
+    result.dbSubscriptions = {
+      error: sanitize(e instanceof Error ? e.message : String(e)).slice(0, 200),
+    };
+  }
+
   return NextResponse.json(result);
 }
