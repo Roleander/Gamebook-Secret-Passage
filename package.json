@@ -105,9 +105,7 @@
         }
       ],
       "icon": "public/icon.png",
-      "category": "public.app-category.games"
-    },
-    "zip": {
+      "category": "public.app-category.games",
       "artifactName": "Secret-Passage-${arch}.${ext}"
     },
     "dmg": {
