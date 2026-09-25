@@ -1,6 +1,6 @@
 {
   "name": "gamebook-secret-passage",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "Gamebook Secret Passage — interactive gamebook editor: import, link passages, detect broken links and export to PDF/EPUB/TXT",
   "author": {
