@@ -34,7 +34,10 @@ jobs:
         if: always()
         with:
           name: windows-build
-          path: dist-electron/*.exe
+          path: |
+            dist-electron/*.exe
+            dist-electron/*.blockmap
+            dist-electron/latest.yml
           if-no-files-found: ignore
 
   build-macos:
@@ -64,7 +67,10 @@ jobs:
         if: always()
         with:
           name: macos-build
-          path: dist-electron/*.dmg
+          path: |
+            dist-electron/*.dmg
+            dist-electron/*.blockmap
+            dist-electron/latest-mac.yml
           if-no-files-found: ignore
 
   build-linux:
@@ -97,6 +103,8 @@ jobs:
           path: |
             dist-electron/*.AppImage
             dist-electron/*.deb
+            dist-electron/*.blockmap
+            dist-electron/latest-linux.yml
           if-no-files-found: ignore
 
   release:
@@ -114,8 +122,14 @@ jobs:
         with:
           files: |
             artifacts/windows-build/*.exe
+            artifacts/windows-build/*.blockmap
+            artifacts/windows-build/latest.yml
             artifacts/macos-build/*.dmg
+            artifacts/macos-build/*.blockmap
+            artifacts/macos-build/latest-mac.yml
             artifacts/linux-build/*.AppImage
             artifacts/linux-build/*.deb
+            artifacts/linux-build/*.blockmap
+            artifacts/linux-build/latest-linux.yml
           draft: false
           generate_release_notes: true
