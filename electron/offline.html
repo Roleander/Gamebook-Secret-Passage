@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secret Passage — Sin conexión</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #14101f 0%, #0a0a12 70%);
+      color: #e8e2d5;
+      font-family: Georgia, 'Times New Roman', serif;
+      text-align: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 460px;
+      border: 2px solid #3d3423;
+      border-radius: 8px;
+      background: #12101a;
+      padding: 40px 32px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    }
+    h1 {
+      color: #ffd700;
+      font-size: 26px;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+    p { font-size: 15px; line-height: 1.6; color: #b8b0a0; margin-bottom: 12px; }
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 32px;
+      background: #ffd700;
+      color: #1a1408;
+      border: none;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover { background: #ffea47; }
+    .hint { font-size: 12px; color: #6f6757; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Puerta sellada</h1>
+    <p>No se pudo conectar con Secret Passage.</p>
+    <p>Comprueba tu conexión a internet e inténtalo de nuevo. Tu trabajo está guardado en la nube.</p>
+    <button class="btn" onclick="retry()">Reintentar</button>
+    <p class="hint">Secret Passage necesita internet para abrir tu librojuego.</p>
+  </div>
+  <script>
+    function retry() {
+      if (window.electronAPI && window.electronAPI.retryApp) {
+        window.electronAPI.retryApp();
+      } else {
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>

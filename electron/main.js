@@ -1,16 +1,42 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
-const { spawn } = require('child_process');
+const fs = require('fs');
 
 const isDev = process.env.NODE_ENV === 'development';
-const PORT = isDev ? (process.env.PORT || 3000) : 3847;
+const APP_URL = isDev
+  ? `http://localhost:${process.env.PORT || 3000}`
+  : 'https://gamebook-secret-passage.vercel.app';
 
-let mainWindow;
-let serverProcess;
+let mainWindow = null;
+let autoUpdater = null;
+
+function loadApp() {
+  if (!mainWindow) return;
+  mainWindow.loadURL(APP_URL).catch(() => loadOffline());
+}
+
+function loadOffline() {
+  if (!mainWindow) return;
+  const offlinePath = path.join(__dirname, 'offline.html');
+  if (fs.existsSync(offlinePath)) {
+    mainWindow.loadFile(offlinePath).catch(() => {});
+  }
+}
+
+function initAutoUpdater() {
+  if (isDev) return;
+  try {
+    autoUpdater = require('electron-updater').autoUpdater;
+    autoUpdater.autoDownload = true;
+    autoUpdater.on('error', () => {});
+    autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+  } catch (e) {
+    autoUpdater = null;
+  }
+}
 
 function createWindow() {
   const iconPath = path.join(__dirname, '..', 'public', 'icon.png');
-  const fs = require('fs');
   const iconExists = fs.existsSync(iconPath);
 
   mainWindow = new BrowserWindow({
@@ -76,8 +102,16 @@ function createWindow() {
         {
           label: 'Buscar actualizaciones',
           click: () => {
-            if (mainWindow) {
-              mainWindow.webContents.send('check-for-updates');
+            if (autoUpdater) {
+              autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+            } else {
+              dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'Actualizaciones',
+                message: 'No se pudo comprobar las actualizaciones.',
+                detail: 'Conéctate a internet e inténtalo de nuevo.',
+                buttons: ['Aceptar'],
+              });
             }
           },
         },
@@ -88,13 +122,6 @@ function createWindow() {
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  const startUrl = `http://localhost:${PORT}`;
-
-  // Wait for server to be ready before loading
-  const loadApp = () => {
-    mainWindow.loadURL(startUrl);
-  };
-
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
@@ -103,17 +130,20 @@ function createWindow() {
     mainWindow = null;
   });
 
-  // Auto-updater (only in production)
-  if (!isDev) {
-    try {
-      const { autoUpdater } = require('electron-updater');
-      autoUpdater.checkForUpdatesAndNotify().catch(() => {});
-    } catch (e) {
-      // Auto-updater not available
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//.test(url)) {
+      shell.openExternal(url);
     }
-  }
+    return { action: 'deny' };
+  });
 
-  return loadApp;
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, _desc, _url, isMainFrame) => {
+    if (isMainFrame && errorCode !== -3) {
+      loadOffline();
+    }
+  });
+
+  loadApp();
 }
 
 // IPC handlers
@@ -129,37 +159,31 @@ ipcMain.on('window-maximize', () => {
 });
 ipcMain.on('window-close', () => mainWindow?.close());
 
-app.whenReady().then(() => {
-  if (!isDev) {
-    // Start Next.js server in production
-    const serverPath = path.join(__dirname, 'server.js');
-    serverProcess = spawn(process.execPath, [serverPath], {
-      stdio: 'pipe',
-      env: { ...process.env, NODE_ENV: 'production', PORT: String(PORT) },
-    });
-    serverProcess.stdout?.on('data', (data) => console.log(`[server] ${data}`));
-    serverProcess.stderr?.on('data', (data) => console.error(`[server] ${data}`));
+ipcMain.on('app-retry', () => loadApp());
 
-    // Wait for server to be ready
-    const checkServer = () => {
-      const http = require('http');
-      const req = http.get(`http://localhost:${PORT}`, (res) => {
-        res.resume();
-        createWindow();
-      });
-      req.on('error', () => setTimeout(checkServer, 500));
-      req.end();
-    };
-    setTimeout(checkServer, 1000);
-  } else {
-    createWindow();
+ipcMain.handle('check-for-updates', async () => {
+  if (!autoUpdater) return { ok: false };
+  try {
+    await autoUpdater.checkForUpdatesAndNotify();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false };
+  }
+});
+ipcMain.on('install-update', () => {
+  try {
+    autoUpdater?.quitAndInstall();
+  } catch (e) {
+    // ignore
   }
 });
 
+app.whenReady().then(() => {
+  createWindow();
+  initAutoUpdater();
+});
+
 app.on('window-all-closed', () => {
-  if (serverProcess) {
-    serverProcess.kill();
-  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
