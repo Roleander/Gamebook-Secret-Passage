@@ -10,9 +10,11 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { useI18n } from "@/lib/i18n";
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ export default function NewProjectPage() {
     setError("");
 
     if (!title.trim()) {
-      setError("El título es requerido");
+      setError(t("NewProject.titleRequired"));
       setLoading(false);
       return;
     }
@@ -47,12 +49,12 @@ export default function NewProjectPage() {
           setLoading(false);
           return;
         }
-        throw new Error(data.error || "Error al crear el proyecto");
+        throw new Error(data.error || t("NewProject.createError"));
       }
 
       router.push(`/editor/${data.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al crear el proyecto");
+      setError(err instanceof Error ? err.message : t("NewProject.createError"));
       setLoading(false);
     }
   };
@@ -67,7 +69,7 @@ export default function NewProjectPage() {
           className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a Proyectos
+          {t("NewProject.backToProjects")}
         </Link>
 
         <motion.div
@@ -80,10 +82,10 @@ export default function NewProjectPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookOpen className="w-5 h-5 mr-2 text-primary" />
-              Nuevo Proyecto
+              {t("NewProject.title")}
             </CardTitle>
             <CardDescription>
-              Crea un nuevo librojuego para empezar a trabajar en él
+              {t("NewProject.subtitle")}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -95,11 +97,11 @@ export default function NewProjectPage() {
               )}
               <div className="space-y-2">
                 <label htmlFor="title" className="text-sm font-medium">
-                  Título *
+                  {t("NewProject.titleLabel")}
                 </label>
                 <Input
                   id="title"
-                  placeholder="Mi Librojuego"
+                  placeholder={t("NewProject.namePlaceholder")}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
@@ -107,12 +109,12 @@ export default function NewProjectPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-medium">
-                  Descripción
+                  {t("NewProject.description")}
                 </label>
                 <textarea
                   id="description"
                   className="flex min-h-[100px] w-full rounded-md border border-border bg-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Una breve descripción de tu librojuego..."
+                  placeholder={t("NewProject.descriptionPlaceholder")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -121,11 +123,11 @@ export default function NewProjectPage() {
             <CardFooter className="flex justify-end space-x-2">
               <Link href="/projects">
                 <Button variant="outline" type="button">
-                  Cancelar
+                  {t("NewProject.cancel")}
                 </Button>
               </Link>
               <Button type="submit" disabled={loading}>
-                {loading ? "Creando..." : "Crear Proyecto"}
+                {loading ? t("NewProject.creating") : t("NewProject.create")}
               </Button>
             </CardFooter>
           </form>

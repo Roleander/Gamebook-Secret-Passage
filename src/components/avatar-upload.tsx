@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, User } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface AvatarUploadProps {
   currentAvatar: string | null;
@@ -11,6 +12,7 @@ interface AvatarUploadProps {
 }
 
 export function AvatarUpload({ currentAvatar, onAvatarUpdate }: AvatarUploadProps) {
+  const { t } = useI18n();
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentAvatar);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,7 +22,7 @@ export function AvatarUpload({ currentAvatar, onAvatarUpdate }: AvatarUploadProp
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("Archivo demasiado grande. Máximo 2MB.");
+      alert(t("Profile.fileTooLarge"));
       return;
     }
 
@@ -41,7 +43,7 @@ export function AvatarUpload({ currentAvatar, onAvatarUpdate }: AvatarUploadProp
         onAvatarUpdate(data.url);
       } else {
         const error = await response.json();
-        alert(error.error || "Error al subir imagen");
+        alert(error.error || t("Profile.uploadError"));
       }
     } catch (error) {
       console.error("Error uploading avatar:", error);
@@ -74,9 +76,9 @@ export function AvatarUpload({ currentAvatar, onAvatarUpdate }: AvatarUploadProp
           disabled={uploading}
         >
           <Upload className="w-4 h-4 mr-2" />
-          {uploading ? "Subiendo..." : "Cambiar avatar"}
+          {uploading ? t("Profile.uploading") : t("Profile.changeAvatar")}
         </Button>
-        <p className="text-xs text-muted-foreground mt-1">JPG, PNG o WebP. Máx. 2MB.</p>
+        <p className="text-xs text-muted-foreground mt-1">{t("Profile.avatarHint")}</p>
       </div>
     </div>
   );

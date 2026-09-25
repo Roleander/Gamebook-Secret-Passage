@@ -10,6 +10,7 @@ import { AvatarUpload } from "@/components/avatar-upload";
 import { ThemeCustomizer } from "@/components/theme-customizer";
 import { LogoUpload } from "@/components/logo-upload";
 import { useTheme } from "@/lib/theme-context";
+import { useI18n } from "@/lib/i18n";
 import { User, Lock, CreditCard, Palette, Settings, Globe, CheckCircle } from "lucide-react";
 
 interface UserProfile {
@@ -38,6 +39,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { applyTheme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function ProfilePage() {
   const [siteConfig, setSiteConfig] = useState<Record<string, string>>({});
   const [savedLogo, setSavedLogo] = useState<string | null>(null);
   const [savingLogo, setSavingLogo] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successKey, setSuccessKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -64,9 +66,9 @@ export default function ProfilePage() {
     }
     const params = new URLSearchParams(window.location.search);
     if (params.get("subscribed") === "true") {
-      setSuccessMessage("¡Suscripción activada correctamente!");
+      setSuccessKey("Profile.subscribedAlert");
     } else if (params.get("donated") === "true") {
-      setSuccessMessage("¡Gracias por tu donación!");
+      setSuccessKey("Profile.donatedAlert");
     }
     if (params.get("subscribed") || params.get("donated")) {
       window.history.replaceState({}, "", window.location.pathname);
@@ -114,14 +116,14 @@ export default function ProfilePage() {
       if (response.ok) {
         setSavedLogo(siteConfig.siteLogo);
         window.dispatchEvent(new Event("site-config-updated"));
-        setSuccessMessage("Logo guardado correctamente");
+        setSuccessKey("Profile.logoSavedAlert");
       } else {
         const error = await response.json();
-        alert(error.error || "Error al guardar el logo");
+        alert(error.error || t("Profile.logoErrorAlert"));
       }
     } catch (error) {
       console.error("Error saving logo:", error);
-      alert("Error de conexión");
+      alert(t("Profile.connectionError"));
     } finally {
       setSavingLogo(false);
     }
@@ -136,11 +138,11 @@ export default function ProfilePage() {
         body: JSON.stringify({ name, bio }),
       });
       if (response.ok) {
-        alert("Perfil actualizado");
+        alert(t("Profile.profileUpdated"));
         fetchProfile();
       } else {
         const error = await response.json();
-        alert(error.error || "Error al actualizar perfil");
+        alert(error.error || t("Profile.profileUpdateError"));
       }
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -151,11 +153,11 @@ export default function ProfilePage() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      alert(t("Profile.passwordMismatch"));
       return;
     }
     if (newPassword.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
+      alert(t("Profile.passwordTooShort"));
       return;
     }
     setSaving(true);
@@ -166,13 +168,13 @@ export default function ProfilePage() {
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       if (response.ok) {
-        alert("Contraseña cambiada");
+        alert(t("Profile.passwordChanged"));
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
         const error = await response.json();
-        alert(error.error || "Error al cambiar contraseña");
+        alert(error.error || t("Profile.passwordChangeError"));
       }
     } catch (error) {
       console.error("Error changing password:", error);
@@ -194,15 +196,15 @@ export default function ProfilePage() {
           applyTheme(parsed);
           window.dispatchEvent(new Event("theme-updated"));
         } catch {}
-        setSuccessMessage("Tema guardado correctamente");
+        setSuccessKey("Profile.themeSavedAlert");
         fetchProfile();
       } else {
         const error = await response.json();
-        alert(error.error || "Error al guardar el tema");
+        alert(error.error || t("Profile.themeErrorAlert"));
       }
     } catch (error) {
       console.error("Error saving theme:", error);
-      alert("Error de conexión");
+      alert(t("Profile.connectionError"));
     }
   };
 
@@ -213,28 +215,28 @@ export default function ProfilePage() {
       if (response.ok && data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || "No se pudo gestionar la suscripción");
+        alert(data.error || t("Profile.manageSubError"));
       }
     } catch (error) {
       console.error("Error managing subscription:", error);
-      alert("Error de conexión");
+      alert(t("Profile.connectionError"));
     }
   };
 
   const handleCancelSubscription = async () => {
-    if (!confirm("¿Seguro que quieres cancelar tu suscripción?")) return;
+    if (!confirm(t("Profile.confirmCancelSub"))) return;
     try {
       const response = await fetch("/api/subscriptions/manage", { method: "DELETE" });
       const data = await response.json();
       if (response.ok) {
-        alert("Suscripción cancelada");
+        alert(t("Profile.subCancelled"));
         fetchProfile();
       } else {
-        alert(data.error || "Error al cancelar");
+        alert(data.error || t("Profile.cancelError"));
       }
     } catch (error) {
       console.error("Error canceling subscription:", error);
-      alert("Error de conexión");
+      alert(t("Profile.connectionError"));
     }
   };
 
@@ -260,20 +262,20 @@ export default function ProfilePage() {
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <h1 className="text-3xl font-bold text-primary font-pixel mb-8 flex items-center gap-3">
           <User className="w-8 h-8" />
-          Mi Perfil
+          {t("Profile.title")}
         </h1>
 
-        {successMessage && (
+        {successKey && (
           <div className="mb-6 p-4 rounded border border-green-500 bg-green-500/10 flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
-            <p className="text-green-500 font-semibold">{successMessage}</p>
+            <p className="text-green-500 font-semibold">{t(successKey)}</p>
           </div>
         )}
 
         {/* Avatar + Basic Info */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Información Personal</CardTitle>
+            <CardTitle className="text-lg">{t("Profile.personalInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <AvatarUpload
@@ -282,37 +284,37 @@ export default function ProfilePage() {
             />
 
             <div>
-              <label className="text-sm text-muted-foreground">Nombre</label>
+              <label className="text-sm text-muted-foreground">{t("Profile.name")}</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full mt-1 p-2 rounded border border-border bg-input text-foreground"
-                placeholder="Tu nombre"
+                placeholder={t("Profile.namePlaceholder")}
               />
             </div>
 
             <div>
-              <label className="text-sm text-muted-foreground">Biografía</label>
+              <label className="text-sm text-muted-foreground">{t("Profile.bio")}</label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 className="w-full mt-1 p-2 rounded border border-border bg-input text-foreground"
                 rows={3}
-                placeholder="Cuéntanos sobre ti..."
+                placeholder={t("Profile.bioPlaceholder")}
               />
             </div>
 
             <div className="text-sm text-muted-foreground">
-              <p>Email: {profile.email}</p>
-              <p>Miembro desde: {new Date(profile.createdAt).toLocaleDateString("es")}</p>
+              <p>{t("Profile.emailLabel")}: {profile.email}</p>
+              <p>{t("Profile.memberSince")} {new Date(profile.createdAt).toLocaleDateString(locale)}</p>
               {profile.role === "ADMIN" && (
-                <p className="text-primary font-semibold">Rol: Administrador</p>
+                <p className="text-primary font-semibold">{t("Profile.roleAdmin")}</p>
               )}
             </div>
 
             <Button onClick={handleSaveProfile} disabled={saving}>
-              {saving ? "Guardando..." : "Guardar perfil"}
+              {saving ? t("Profile.saving") : t("Profile.saveProfile")}
             </Button>
           </CardContent>
         </Card>
@@ -322,12 +324,12 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Lock className="w-5 h-5" />
-              Cambiar Contraseña
+              {t("Profile.changePassword")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm text-muted-foreground">Contraseña actual</label>
+              <label className="text-sm text-muted-foreground">{t("Profile.currentPassword")}</label>
               <input
                 type="password"
                 value={currentPassword}
@@ -336,7 +338,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="text-sm text-muted-foreground">Nueva contraseña</label>
+              <label className="text-sm text-muted-foreground">{t("Profile.newPassword")}</label>
               <input
                 type="password"
                 value={newPassword}
@@ -345,7 +347,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="text-sm text-muted-foreground">Confirmar nueva contraseña</label>
+              <label className="text-sm text-muted-foreground">{t("Profile.confirmPassword")}</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -354,7 +356,7 @@ export default function ProfilePage() {
               />
             </div>
             <Button onClick={handleChangePassword} disabled={saving || !currentPassword || !newPassword}>
-              Cambiar contraseña
+              {t("Profile.changePasswordBtn")}
             </Button>
           </CardContent>
         </Card>
@@ -364,43 +366,43 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              Suscripción
+              {t("Profile.subscription")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {profile.subscription ? (
               <div>
-                <p className="font-semibold">{profile.subscription.plan?.displayName || "Plan activo"}</p>
+                <p className="font-semibold">{profile.subscription.plan?.displayName || t("Profile.activePlan")}</p>
                 <p className="text-sm text-muted-foreground">
-                  Estado: {profile.subscription.status}
+                  {t("Profile.statusLabel")} {profile.subscription.status}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Precio: {profile.subscription.plan?.price} EUR
+                  {t("Profile.priceLabel")} {profile.subscription.plan?.price} EUR
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleManageSubscription}>
-                    Gestionar suscripción
+                    {t("Profile.manageSubscription")}
                   </Button>
                   <Button variant="destructive" size="sm" onClick={handleCancelSubscription}>
-                    Cancelar
+                    {t("Profile.cancelBtn")}
                   </Button>
                 </div>
               </div>
             ) : (
               <div>
-                <p className="text-muted-foreground mb-2">No tienes una suscripción activa.</p>
+                <p className="text-muted-foreground mb-2">{t("Profile.noSubscription")}</p>
                 <Button variant="outline" onClick={() => router.push("/pricing")}>
-                  Ver planes
+                  {t("Profile.seePlans")}
                 </Button>
               </div>
             )}
 
             {profile.donations.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm font-semibold mb-2">Donaciones recientes:</p>
+                <p className="text-sm font-semibold mb-2">{t("Profile.recentDonations")}</p>
                 {profile.donations.map((d) => (
                   <div key={d.id} className="text-xs text-muted-foreground">
-                    {d.amount} {d.currency} — {d.paymentMethod} — {new Date(d.createdAt).toLocaleDateString("es")}
+                    {d.amount} {d.currency} — {d.paymentMethod} — {new Date(d.createdAt).toLocaleDateString(locale)}
                   </div>
                 ))}
               </div>
@@ -420,14 +422,14 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Settings className="w-5 h-5" />
-                Administración del Sitio
+                {t("Profile.siteAdmin")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <Globe className="w-4 h-4" />
-                  Logo del Sitio
+                  {t("Profile.siteLogo")}
                 </h3>
                 <LogoUpload
                   currentLogo={siteConfig.siteLogo || null}
@@ -436,19 +438,19 @@ export default function ProfilePage() {
                 {logoDirty && (
                   <div className="mt-3 flex items-center gap-3">
                     <Button size="sm" onClick={handleSaveLogo} disabled={savingLogo}>
-                      {savingLogo ? "Guardando..." : "Guardar logo"}
+                      {savingLogo ? t("Profile.saving") : t("Profile.saveLogo")}
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      Logo sin guardar — pulsa para aplicarlo al sitio
+                      {t("Profile.unsavedLogo")}
                     </span>
                   </div>
                 )}
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold mb-2">Enlaces rápidos</h3>
+                <h3 className="text-sm font-semibold mb-2">{t("Profile.quickLinks")}</h3>
                 <Button variant="outline" onClick={() => router.push("/admin")} className="w-full">
-                  Ir al Panel de Admin (estadísticas)
+                  {t("Profile.adminPanel")}
                 </Button>
               </div>
             </CardContent>

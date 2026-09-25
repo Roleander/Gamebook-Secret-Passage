@@ -118,20 +118,20 @@ export function Header() {
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
-                title="Mi perfil"
+                title={t("Navigation.profile")}
               >
                 <User className="w-4 h-4" />
-                <span className="hidden md:inline">Perfil</span>
+                <span className="hidden md:inline">{t("Navigation.profile")}</span>
               </Link>
             )}
             {session && (
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors ml-2"
-                title="Cerrar sesión"
+                title={t("Navigation.logout")}
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden md:inline">Salir</span>
+                <span className="hidden md:inline">{t("Navigation.logout")}</span>
               </button>
             )}
           </nav>

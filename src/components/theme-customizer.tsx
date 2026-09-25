@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Palette } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface ThemeCustomizerProps {
   currentTheme: string | null;
@@ -29,6 +30,7 @@ function safeParse(raw: string | null): typeof PRESET_THEMES[0] | null {
 }
 
 export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizerProps) {
+  const { t } = useI18n();
   const parsed = safeParse(currentTheme) || PRESET_THEMES[0];
   const [primaryColor, setPrimaryColor] = useState(parsed.primaryColor);
   const [bgColor, setBgColor] = useState(parsed.bgColor);
@@ -71,7 +73,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          Tema de colores
+          {t("Profile.themeTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -94,7 +96,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="text-xs text-muted-foreground">Color principal</label>
+            <label className="text-xs text-muted-foreground">{t("Profile.themePrimary")}</label>
             <div className="flex items-center gap-2 mt-1">
               <input
                 type="color"
@@ -106,7 +108,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Fondo</label>
+            <label className="text-xs text-muted-foreground">{t("Profile.themeBg")}</label>
             <div className="flex items-center gap-2 mt-1">
               <input
                 type="color"
@@ -118,7 +120,7 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Acento</label>
+            <label className="text-xs text-muted-foreground">{t("Profile.themeAccent")}</label>
             <div className="flex items-center gap-2 mt-1">
               <input
                 type="color"
@@ -132,12 +134,12 @@ export function ThemeCustomizer({ currentTheme, onThemeUpdate }: ThemeCustomizer
         </div>
 
         <div className="p-3 rounded border border-border" style={{ backgroundColor: bgColor }}>
-          <p style={{ color: primaryColor }} className="font-bold">Vista previa del título</p>
-          <p style={{ color: accentColor }} className="text-sm">Texto de ejemplo con color de acento</p>
+          <p style={{ color: primaryColor }} className="font-bold">{t("Profile.themePreviewTitle")}</p>
+          <p style={{ color: accentColor }} className="text-sm">{t("Profile.themePreviewText")}</p>
         </div>
 
         <Button onClick={handleSave} className="w-full" disabled={!dirty}>
-          {dirty ? "Guardar tema" : "Tema guardado"}
+          {dirty ? t("Profile.saveTheme") : t("Profile.themeSaved")}
         </Button>
       </CardContent>
     </Card>

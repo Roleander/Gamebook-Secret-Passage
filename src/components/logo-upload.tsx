@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Image as ImageIcon } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface LogoUploadProps {
   currentLogo: string | null;
@@ -10,6 +11,7 @@ interface LogoUploadProps {
 }
 
 export function LogoUpload({ currentLogo, onLogoUpdate }: LogoUploadProps) {
+  const { t } = useI18n();
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentLogo);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,7 +21,7 @@ export function LogoUpload({ currentLogo, onLogoUpdate }: LogoUploadProps) {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("Archivo demasiado grande. Máximo 2MB.");
+      alert(t("Profile.fileTooLarge"));
       return;
     }
 
@@ -40,7 +42,7 @@ export function LogoUpload({ currentLogo, onLogoUpdate }: LogoUploadProps) {
         onLogoUpdate(data.url);
       } else {
         const error = await response.json();
-        alert(error.error || "Error al subir logo");
+        alert(error.error || t("Profile.logoUploadError"));
       }
     } catch (error) {
       console.error("Error uploading logo:", error);
@@ -73,10 +75,10 @@ export function LogoUpload({ currentLogo, onLogoUpdate }: LogoUploadProps) {
           disabled={uploading}
         >
           <Upload className="w-4 h-4 mr-2" />
-          {uploading ? "Subiendo..." : currentLogo ? "Cambiar logo" : "Subir logo"}
+          {uploading ? t("Profile.uploading") : currentLogo ? t("Profile.changeLogo") : t("Profile.uploadLogo")}
         </Button>
         <p className="text-xs text-muted-foreground mt-1">
-          JPG, PNG o SVG. Máx. 2MB. Recuerda pulsar «Guardar logo» tras subirlo.
+          {t("Profile.logoHint")}
         </p>
       </div>
     </div>
