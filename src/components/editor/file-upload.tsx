@@ -20,6 +20,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
     passagesCount?: number;
     linksCreated?: number;
     errors?: string[];
+    warnings?: string[];
   } | null>(null);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -143,6 +144,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
         passagesCount: data.passagesCount,
         linksCreated: data.linksCreated,
         errors: data.errors,
+        warnings: data.warnings,
       });
 
       router.refresh();
@@ -233,6 +235,13 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
                 <ul className="text-sm text-muted-foreground mt-2 list-disc list-inside">
                   {result.errors.map((error, i) => (
                     <li key={i}>{error}</li>
+                  ))}
+                </ul>
+              )}
+              {result.warnings && result.warnings.length > 0 && (
+                <ul className="text-sm text-amber-500 mt-2 list-disc list-inside">
+                  {result.warnings.map((warning, i) => (
+                    <li key={i}>{warning}</li>
                   ))}
                 </ul>
               )}

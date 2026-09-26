@@ -29,7 +29,7 @@ export function Header() {
     return () => window.removeEventListener("site-config-updated", loadLogo);
   }, []);
 
-  const isAdmin = (session?.user as any)?.role === "ADMIN";
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const navigation = [
     { name: t("Navigation.home"), href: "/", icon: Home },

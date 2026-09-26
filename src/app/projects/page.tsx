@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Header } from "@/components/header";
 import { HeroLogo } from "@/components/hero-logo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, BookOpen, Calendar, FileText, Trash2 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
@@ -35,23 +35,25 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchProjects = () => {
+    fetch("/api/projects")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (data) {
+          setProjects(data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching projects:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
     fetchProjects();
   }, []);
-
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch("/api/projects");
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data);
-      }
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async (projectId: string, e: React.MouseEvent) => {
     e.preventDefault();

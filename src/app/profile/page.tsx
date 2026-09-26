@@ -11,7 +11,7 @@ import { ThemeCustomizer } from "@/components/theme-customizer";
 import { LogoUpload } from "@/components/logo-upload";
 import { useTheme } from "@/lib/theme-context";
 import { useI18n } from "@/lib/i18n";
-import { User, Lock, CreditCard, Palette, Settings, Globe, CheckCircle } from "lucide-react";
+import { User, Lock, CreditCard, Settings, Globe, CheckCircle } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -37,7 +37,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const { t, locale } = useI18n();
   const { applyTheme } = useTheme();
@@ -55,25 +55,6 @@ export default function ProfilePage() {
   const [savedLogo, setSavedLogo] = useState<string | null>(null);
   const [savingLogo, setSavingLogo] = useState(false);
   const [successKey, setSuccessKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-    }
-    if (status === "authenticated") {
-      fetchProfile();
-      fetchSiteConfig();
-    }
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("subscribed") === "true") {
-      setSuccessKey("Profile.subscribedAlert");
-    } else if (params.get("donated") === "true") {
-      setSuccessKey("Profile.donatedAlert");
-    }
-    if (params.get("subscribed") || params.get("donated")) {
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-  }, [status, router]);
 
   const fetchProfile = async () => {
     try {
@@ -101,6 +82,25 @@ export default function ProfilePage() {
       }
     } catch {}
   };
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    }
+    if (status === "authenticated") {
+      fetchProfile();
+      fetchSiteConfig();
+    }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscribed") === "true") {
+      setSuccessKey("Profile.subscribedAlert");
+    } else if (params.get("donated") === "true") {
+      setSuccessKey("Profile.donatedAlert");
+    }
+    if (params.get("subscribed") || params.get("donated")) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [status, router]);
 
   const logoDirty = !!siteConfig.siteLogo && siteConfig.siteLogo !== savedLogo;
 

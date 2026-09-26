@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { parseFile } from "@/lib/parsers";
+import { getEntitlements, limitReached } from "@/lib/entitlements";
 
 export async function POST(req: Request) {
   try {
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     const project = await db.project.findFirst({
       where: {
         id: projectId,
-        userId: (session.user as any).id,
+        userId: session.user.id,
       },
     });
 
@@ -154,6 +155,23 @@ export async function POST(req: Request) {
       );
     }
 
+    const ents = await getEntitlements(session.user.id, session.user.role);
+    if (ents.maxPassages !== null) {
+      const allowed = Math.max(ents.maxPassages - existingPassages.length, 0);
+      if (allowed === 0) {
+        return limitReached(
+          `Has alcanzado el límite de ${ents.maxPassages} pasajes de tu plan. Mejora a Pro para importar más.`
+        );
+      }
+      if (passageData.length > allowed) {
+        const totalToImport = passageData.length;
+        passageData.length = allowed;
+        result.warnings.push(
+          `Se importaron ${allowed} de ${totalToImport} pasajes para respetar el límite de ${ents.maxPassages} pasajes de tu plan. Mejora a Pro para importar sin límite.`
+        );
+      }
+    }
+
     await db.passage.createMany({
       data: passageData,
     });
@@ -235,7 +253,7 @@ export async function POST(req: Request) {
         projectId,
         filename: file.name,
         fileType: file.name.split(".").pop() || "unknown",
-        passagesCount: result.passages.length,
+        passagesCount: passageData.length,
         rawContent: result.rawText.substring(0, 10000),
       },
     });
