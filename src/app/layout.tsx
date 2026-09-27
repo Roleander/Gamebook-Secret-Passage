@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -59,7 +60,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <I18nProvider>
           <Providers>
-            <ThemeProvider>{children}</ThemeProvider>
+            <ThemeProvider>
+              <div className="flex-1 flex flex-col">{children}</div>
+              <SiteFooter />
+            </ThemeProvider>
           </Providers>
         </I18nProvider>
       </body>

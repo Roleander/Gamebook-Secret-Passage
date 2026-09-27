@@ -357,5 +357,133 @@
     "aiSegment": "AI: segmentuj",
     "aiFallback": "AI niedostępne — użyto lokalnej analizy",
     "aiRateLimit": "Osiągnięto limit zapytań AI. Spróbuj ponownie za chwilę."
+  },
+  "Legal": {
+    "hub": {
+      "title": "Informacje prawne",
+      "intro": "Regulamin, polityka prywatności i kanały wsparcia Gamebook Secret Passage.",
+      "backToHome": "Powrót do strony głównej",
+      "notice": "Ten dokument ma charakter informacyjny i może być aktualizowany; wtedy podamy nową datę. W razie konfliktu z komunikacją marketingową pierwszeństwo ma tekst tej strony.",
+      "termsCard": "Regulamin",
+      "termsCardDesc": "Zasady korzystania z platformy, kont, treści i zakupów.",
+      "privacyCard": "Polityka prywatności",
+      "privacyCardDesc": "Jakie dane zbieramy, po co je przetwarzamy i jakie masz prawa.",
+      "supportCard": "Wsparcie",
+      "supportCardDesc": "Jak zgłaszać błędy, prosić o pomoc lub sugerować ulepszenia."
+    },
+    "terms": {
+      "title": "Regulamin",
+      "updated": "Ostatnia aktualizacja: styczeń 2026",
+      "intro": "Korzystając z Gamebook Secret Passage („Usługi”), akceptujesz niniejszy regulamin. Jeśli się nie zgadzasz, nie korzystaj z Usługi.",
+      "sections": [
+        {
+          "h": "Akceptacja",
+          "p": "Niniejszy regulamin stanowi umowę między Tobą a Roleander Games. Korzystanie z Usługi oznacza akceptację tych warunków i naszej Polityki prywatności."
+        },
+        {
+          "h": "Konto i dostęp",
+          "p": "Odpowiadasz za bezpieczeństwo swoich danych logowania i za całą aktywność na swoim koncie. Musisz mieć wymagany wiek do zawierania umów w swojej jurysdykcji lub zgodę opiekuna."
+        },
+        {
+          "h": "Dozwolone korzystanie",
+          "p": "Nie możesz używać Usługi do celów niezgodnych z prawem, uzyskiwać nieautoryzowanego dostępu do systemów lub danych, zakłócać jej działania, odsprzedawać treści bez zgody ani dokonywać inżynierii wstecznej, o ile prawo na to pozwala."
+        },
+        {
+          "h": "Twoje treści",
+          "p": "Zachowujesz własność tworzonych przez siebie historii i materiałów. Przyznajesz nam niewyłączną, bezpłatną i ograniczoną licencję na ich hostowanie i wyświetlanie w celu świadczenia Usługi. Odpowiadasz za prawa do przesyłanych materiałów."
+        },
+        {
+          "h": "Subskrypcje i płatności",
+          "p": "Płatności obsługuje zewnętrzny dostawca. Subskrypcje odnawiają się automatycznie, chyba że anulujesz przed końcem bieżącego okresu. Możesz anulować w każdej chwili; dostęp Pro obowiązuje do końca opłaconego okresu."
+        },
+        {
+          "h": "Treści osób trzecich",
+          "p": "Usługa może integrować usługi osób trzecich, np. bramki płatnicze lub dostawców sztucznej inteligencji. Działają oni na własnych warunkach i zasadach."
+        },
+        {
+          "h": "Własność intelektualna",
+          "p": "Usługa, w tym oprogramowanie, design i znaki towarowe, należą do Roleander Games lub jej licencjodawców. Nie udzielamy żadnych licencji poza tutaj wyraźnie opisanymi."
+        },
+        {
+          "h": "Zawieszenie i rozwiązanie",
+          "p": "Możemy zawiesić lub zamknąć Twoje konto, jeśli naruszysz niniejszy regulamin, jeśli Twoje zachowanie zagraża innym użytkownikom lub z przyczyn prawnych. Możesz usunąć konto w każdej chwili w profilu."
+        },
+        {
+          "h": "Odpowiedzialność i prawo właściwe",
+          "p": "Usługa jest dostarczana „tak jak jest”, bez gwarancji dostępności w najszerszym zakresie dozwolonym przez prawo. Nie ponosimy odpowiedzialności za szkody pośrednie ani utracone zyski. Zastosowanie ma prawo Twojego miejsca zamieszkania, z zastrzeżeniem bezwzględnie obowiązujących przepisów o ochronie konsumenta."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Polityka prywatności",
+      "updated": "Ostatnia aktualizacja: styczeń 2026",
+      "intro": "Ta polityka wyjaśnia, jakie dane osobowe przetwarzamy podczas korzystania z Gamebook Secret Passage i jak wykonywać swoje prawa.",
+      "sections": [
+        {
+          "h": "Zbierane dane",
+          "p": "· Dane konta: adres e-mail i hasło w formie skrótu.\n· Treści: historie, fragmenty, obrazy i metadane Twoich projektów.\n· Dane techniczne: adres IP, przeglądarka i dzienniki błędów.\n· Płatności: nie przechowujemy kart; obsługuje je nasz dostawca płatności."
+        },
+        {
+          "h": "Cele",
+          "p": "Wykorzystujemy Twoje dane do świadczenia Usługi, uwierzytelniania, synchronizacji treści, zarządzania subskrypcjami, zapobiegania nadużyciom i odpowiadania na zgłoszenia wsparcia."
+        },
+        {
+          "h": "Podstawa prawna",
+          "p": "Przetwarzamy dane na podstawie wykonania umowy (Usługi), Twojej zgody (treści opcjonalnych) oraz naszego uzasadnionego interesu (bezpieczeństwo i ulepszanie produktu)."
+        },
+        {
+          "h": "Usługi osób trzecich",
+          "p": "Korzystamy z dostawców hostingu, uwierzytelniania, płatności oraz – opcjonalnie – sztucznej inteligencji. Uzyskują dostęp wyłącznie do danych niezbędnych do świadczenia swojej usługi i działają według własnych zasad."
+        },
+        {
+          "h": "Przechowywanie",
+          "p": "Przechowujemy dane, dopóki Twoje konto jest aktywne, oraz przez czas potrzebny do spełnienia obowiązków prawnych. Możesz zażądać usunięcia konta; usuniemy Twoje dane, chyba że prawo wymaga ich zachowania."
+        },
+        {
+          "h": "Twoje prawa",
+          "p": "Możesz żądać dostępu, sprostowania, przeniesienia lub usunięcia swoich danych. Napisz do nas, otwierając issue w repozytorium GitHub, podając e-mail powiązany z kontem."
+        },
+        {
+          "h": "Bezpieczeństwo",
+          "p": "Stosujemy rozsądne środki: szyfrowanie w transmisie, hasła w formie skrótu i ograniczony dostęp do informacji. Żaden system nie jest niezawodny, ale pracujemy nad ochroną Twoich danych."
+        },
+        {
+          "h": "Nieletni",
+          "p": "Usługa nie jest skierowana do nieletnich, którzy nie mogą wyrazić zgody samodzielnie. Jeśli wykryjemy dane nieletniego bez zgody, usuniemy je."
+        }
+      ]
+    },
+    "support": {
+      "title": "Wsparcie",
+      "updated": "Ostatnia aktualizacja: styczeń 2026",
+      "intro": "Masz problem, pomysł lub pytanie? Oto, jak się z nami skontaktować.",
+      "githubCta": "Otwórz issue na GitHubie",
+      "githubHint": "Otwierając issue, podaj kroki odtwarzania błędu, swoją przeglądarkę i – jeśli to możliwe – zrzuty ekranu. Nigdy nie podawaj haseł ani danych płatności.",
+      "sections": [
+        {
+          "h": "Błędy i awarie",
+          "p": "Zgłaszaj błędy przez repozytorium GitHub (issues). Im więcej szczegółów podasz, tym szybciej je naprawimy."
+        },
+        {
+          "h": "Pytania i sugestie",
+          "p": "Używaj issue typu „question” lub „enhancement” do pytań o korzystanie i pomysłów na ulepszenia. Regularnie przeglądamy opinie społeczności."
+        },
+        {
+          "h": "Czas odpowiedzi",
+          "p": "Jesteśmy małym zespołem i odpowiadamy zwykle w ciągu kilku dni roboczych. Priorytetem są problemy blokujące podstawowe korzystanie z Usługi."
+        },
+        {
+          "h": "Stan usługi",
+          "p": "Jeśli strona się nie ładuje lub funkcja nie reaguje, najpierw sprawdź otwarte issue w repozytorium; tam publikujemy powiadomienia o awariach i pracach konserwacyjnych."
+        },
+        {
+          "h": "Sprawy prawne i rozliczenia",
+          "p": "W sprawach prawnych, prywatności lub rozliczeń otwórz issue z odpowiednią etykietą. Nie publikujemy publicznego e-maila: cała komunikacja odbywa się na GitHubie."
+        }
+      ]
+    }
+  },
+  "Footer": {
+    "copyright": "© 2026 Roleander Games. Wszelkie prawa zastrzeżone."
   }
 }

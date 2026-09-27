@@ -203,13 +203,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border mt-auto py-8">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>{t("Home.footer")}</p>
-        </div>
-      </footer>
     </div>
   );
 }

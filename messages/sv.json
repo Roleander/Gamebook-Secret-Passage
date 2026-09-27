@@ -357,5 +357,133 @@
     "aiSegment": "AI: segmentera",
     "aiFallback": "AI otillgänglig — lokal analys användes",
     "aiRateLimit": "AI-förfrågningsgräns nådd. Försök igen om några minuter."
+  },
+  "Legal": {
+    "hub": {
+      "title": "Juridiskt",
+      "intro": "Villkor, integritetspolicy och supportkanaler för Gamebook Secret Passage.",
+      "backToHome": "Tillbaka till startsidan",
+      "notice": "Detta dokument är informativt och kan uppdateras; i så fall anger vi det nya datumet. Vid konflikt med någon marknadsföring gäller texten på denna sida.",
+      "termsCard": "Användarvillkor",
+      "termsCardDesc": "Regler för plattformen, konton, innehåll och köp.",
+      "privacyCard": "Integritetspolicy",
+      "privacyCardDesc": "Vilka data vi samlar in, varför vi använder dem och vilka rättigheter du har.",
+      "supportCard": "Support",
+      "supportCardDesc": "Så rapporterar du buggar, får hjälp eller föreslår förbättringar."
+    },
+    "terms": {
+      "title": "Användarvillkor",
+      "updated": "Senast uppdaterad: januari 2026",
+      "intro": "Genom att använda Gamebook Secret Passage (\"Tjänsten\") godkänner du dessa villkor. Om du inte godkänner dem, använd inte Tjänsten.",
+      "sections": [
+        {
+          "h": "Godkännande",
+          "p": "Dessa villkor utgör ett avtal mellan dig och Roleander Games. Att använda Tjänsten innebär att du godkänner villkoren och vår integritetspolicy."
+        },
+        {
+          "h": "Konto och åtkomst",
+          "p": "Du är ansvarig för att skydda dina inloggningsuppgifter och för all aktivitet på ditt konto. Du måste ha myndighetsålder för att ingå avtal i din jurisdiktion eller ha vårdnadshavarens samtycke."
+        },
+        {
+          "h": "Tillåten användning",
+          "p": "Du får inte använda Tjänsten för olagliga ändamål, få obehörig åtkomst till system eller data, störa driften, sälja vidare innehåll utan tillstånd eller göra reverse engineering om det inte tillåts enligt lag."
+        },
+        {
+          "h": "Ditt innehåll",
+          "p": "Du behåller ägandet till berättelserna och materialen du skapar. Du ger oss en begränsad, icke-exklusiv och royaltyfri licens att lagra och visa dem för att driva Tjänsten. Du är ansvarig för att ha rättigheter till det du laddar upp."
+        },
+        {
+          "h": "Prenumerationer och betalningar",
+          "p": "Betalningar hanteras av en extern leverantör. Prenumerationer förnyas automatiskt om de inte sägs upp före slutet på aktuell period. Du kan upp när som helst; Pro-åtkomst gäller till slutet på den redan betalda perioden."
+        },
+        {
+          "h": "Innehåll från tredje part",
+          "p": "Tjänsten kan integrera tjänster från tredje part, t.ex. betalningsväxlar eller leverantörer av artificiell intelligens. Sådana parter agerar enligt egna villkor och policyer."
+        },
+        {
+          "h": "Immateriella rättigheter",
+          "p": "Tjänsten, inklusive programvara, design och varumärken, tillhör Roleander Games eller dess licensgivare. Ingen licens beviljas utöver den som uttryckligen anges här."
+        },
+        {
+          "h": "Avstängning och uppsägning",
+          "p": "Vi kan stänga eller avsluta ditt konto om du bryter mot villkoren, om ditt beteende utgör en risk för andra användare eller av rättsliga skäl. Du kan radera ditt konto när som helst i din profil."
+        },
+        {
+          "h": "Ansvar och tillämplig lag",
+          "p": "Tjänsten levereras \"i befintligt skick\", utan tillgänglighetsgaranti i den utsträckning lagen tillåter. Vi ansvarar inte för indirekta skador eller utebliven vinst. Lagen i din bostadsland gäller, med reservation för tvingande konsentskydd."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Integritetspolicy",
+      "updated": "Senast uppdaterad: januari 2026",
+      "intro": "Denna policy förklarar vilka personuppgifter vi behandlar när du använder Gamebook Secret Passage och hur du utövar dina rättigheter.",
+      "sections": [
+        {
+          "h": "Data vi samlar in",
+          "p": "· Kontodata: e-postadress och hashat lösenord.\n· Innehåll: berättelser, avsnitt, bilder och projektmetadata.\n· Tekniska data: IP-adress, webbläsare och felloggar.\n· Betalningar: vi lagrar inte kortuppgifter; vår betalningsleverantör hanterar dem."
+        },
+        {
+          "h": "Ändamål",
+          "p": "Vi använder dina data för att tillhandahålla Tjänsten, autentisera dig, synkronisera ditt innehåll, hantera prenumerationer, förebygga missbruk och besvara supportärenden."
+        },
+        {
+          "h": "Rättslig grund",
+          "p": "Vi behandlar data på grund av avtalsuppfyllelse (Tjänsten), ditt samtycke (valfritt innehåll) och vårt berättigade intresse (säkerhet och produktförbättringar)."
+        },
+        {
+          "h": "Tredjepartstjänster",
+          "p": "Vi använder leverantörer för hosting, autentisering, betalningar och, valfritt, artificiell intelligens. De får bara tillgång till data som krävs för sin tjänst och agerar enligt egna policyer."
+        },
+        {
+          "h": "Lagring",
+          "p": "Vi lagrar data så länge ditt konto är aktivt och så länge det krävs för att uppfylla rättsliga skyldigheter. Du kan begära radering av ditt konto; vi tar bort dina data om lagen inte kräver annat."
+        },
+        {
+          "h": "Dina rättigheter",
+          "p": "Du kan begära tillgång, rättelse, portabilitet eller radering av dina data. Kontakta oss genom att öppna ett issue i GitHub-repot med e-postadressen kopplad till ditt konto."
+        },
+        {
+          "h": "Säkerhet",
+          "p": "Vi tillämper rimliga åtgärder: kryptering i överföring, hashade lösenord och begränsad åtkomst till information. Inget system är felfritt, men vi arbetar för att skydda dina data."
+        },
+        {
+          "h": "Minderåriga",
+          "p": "Tjänsten är inte riktad till minderåriga som inte kan samtycka själva. Om vi upptäcker data från en minderårig utan tillstånd tar vi bort dem."
+        }
+      ]
+    },
+    "support": {
+      "title": "Support",
+      "updated": "Senast uppdaterad: januari 2026",
+      "intro": "Har du ett problem, en idé eller en fråga? Så når du oss.",
+      "githubCta": "Öppna ett issue på GitHub",
+      "githubHint": "När du öppnar ett issue, inkludera stegen för att reproducera felet, din webbläsare och gärna skärmbilder. Inkludera aldrig lösenord eller betalningsuppgifter.",
+      "sections": [
+        {
+          "h": "Buggar och incidenter",
+          "p": "Rapportera buggar via GitHub-repot (issues). Ju fler detaljer du anger, desto snabbare kan vi åtgärda dem."
+        },
+        {
+          "h": "Frågor och förslag",
+          "p": "Använd issues av typen \"question\" eller \"enhancement\" för användningsfrågor och förbättringsförslag. Vi granskar communityns återkoppling regelbundet."
+        },
+        {
+          "h": "Svarstid",
+          "p": "Vi är ett litet team och svarar normalt inom några arbetsdagar. Vi prioriterar problem som blockerar grundläggande användning av Tjänsten."
+        },
+        {
+          "h": "Driftstatus",
+          "p": "Om webbplatsen inte laddar eller en funktion inte svarar, kontrollera först de öppna issuesen i repot; där publicerar vi meddelanden om driftstörningar och underhåll."
+        },
+        {
+          "h": "Juridiska och fakturafrågor",
+          "p": "För juridiska, integritets- eller fakturafrågor, öppna ett issue med rätt etikett. Vi publicerar ingen publik e-post: all kommunikation sker på GitHub."
+        }
+      ]
+    }
+  },
+  "Footer": {
+    "copyright": "© 2026 Roleander Games. Alla rättigheter förbehållna."
   }
 }

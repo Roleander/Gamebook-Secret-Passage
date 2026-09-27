@@ -357,5 +357,133 @@
     "aiSegment": "AI: segmentovat",
     "aiFallback": "AI není k dispozici — použita místní analýza",
     "aiRateLimit": "Dosažen limit AI požadavků. Zkuste to za chvíli znovu."
+  },
+  "Legal": {
+    "hub": {
+      "title": "Právní informace",
+      "intro": "Podmínky, zásady ochrany osobních údajů a podpory Gamebook Secret Passage.",
+      "backToHome": "Zpět na úvodní stránku",
+      "notice": "Tento dokument je informativní a může být aktualizován; pak uvedeme nové datum. V případě rozporu s jakoukoli obchodní komunikací má přednost text této stránky.",
+      "termsCard": "Podmínky služby",
+      "termsCardDesc": "Pravidla používání platformy, účtů, obsahu a nákupů.",
+      "privacyCard": "Zásady ochrany osobních údajů",
+      "privacyCardDesc": "Jaká data shromažďujeme, proč je používáme a jaká máte práva.",
+      "supportCard": "Podpora",
+      "supportCardDesc": "Jak hlásit chyby, žádat o pomoc nebo navrhovat vylepšení."
+    },
+    "terms": {
+      "title": "Podmínky služby",
+      "updated": "Poslední aktualizace: leden 2026",
+      "intro": "Používáním Gamebook Secret Passage („Služby“) přijímáte tyto podmínky. Pokud nesouhlasíte, službu nepoužívejte.",
+      "sections": [
+        {
+          "h": "Přijetí",
+          "p": "Tyto podmínky tvoří dohodu mezi vámi a Roleander Games. Používání Služby znamená přijetí těchto podmínek a našich Zásad ochrany osobních údajů."
+        },
+        {
+          "h": "Účet a přístup",
+          "p": "Jste odpovědní za zabezpečení přihlašovacích údajů a za veškerou aktivitu na svém účtu. Musíte mít zákonem požadovaný věk pro uzavírání smluv ve své jurisdikci nebo souhlas zákonného zástupce."
+        },
+        {
+          "h": "Přijatelné použití",
+          "p": "Službu nesmíte používat k nezákonným účelům, získávat neoprávněný přístup k systémům či datům, narušovat její provoz, dále prodávat obsah bez svolení ani provádět zpětné inženýrství, pokud to zákon dovoluje."
+        },
+        {
+          "h": "Váš obsah",
+          "p": "Vlastnictví příběhů a materiálů, které vytváříte, si ponecháváte. Udělujete nám omezenou, nevýhradní a bezplatnou licenci k jejich hostování a zobrazení za účelem provozování Služby. Za práva k nahranému obsahu odpovídáte vy."
+        },
+        {
+          "h": "Předplatné a platby",
+          "p": "Platby zpracovává externí poskytovatel. Předplatné se automaticky obnovuje, pokud není zrušeno před koncem aktuálního období. Zrušit můžete kdykoli; přístup Pro trvá do konce již uhrazeného období."
+        },
+        {
+          "h": "Obsah třetích stran",
+          "p": "Služba může integrovat služby třetích stran, například platebrní brány nebo poskytovatele umělé inteligence. Tyto strany jednají podle vlastních podmínek a zásad."
+        },
+        {
+          "h": "Duševní vlastnictví",
+          "p": "Služba včetně softwaru, designu a ochranných známek patří Roleander Games nebo jejím licencujícím. Žádná licence se neposkytuje s výjimkou zde výslovně uvedené."
+        },
+        {
+          "h": "Pozastavení a ukončení",
+          "p": "Váš účet můžeme pozastavit nebo zavřít, pokud porušíte tyto podmínky, pokud vaše chování ohrožuje ostatní uživatele nebo z právních důvodů. Účet můžete kdykoli smazat ve svém profilu."
+        },
+        {
+          "h": "Odpovědnost a právo",
+          "p": "Služba se poskytuje „tak, jak je“, bez záruk dostupnosti v nejvyšším možném rozsahu povoleném zákonem. Neodpovídáme za nepřímé škody ani ušlý zisk. Platí právo vašeho místa pobytu s ohledem na povinná pravidla ochrany spotřebitele."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Zásady ochrany osobních údajů",
+      "updated": "Poslední aktualizace: leden 2026",
+      "intro": "Tyto zásady vysvětlují, jaké osobní údaje při používání Gamebook Secret Passage zpracováváme a jak uplatnit svá práva.",
+      "sections": [
+        {
+          "h": "Shromažďovaná data",
+          "p": "· Údaje o účtu: e-mailová adresa a hašované heslo.\n· Obsah: příběhy, pasáže, obrázky a metadata vašich projektů.\n· Technická data: IP adresa, prohlížeč a chybové protokoly.\n· Platby: neukládáme karty; zpracovává je náš poskytovatel plateb."
+        },
+        {
+          "h": "Účely",
+          "p": "Vaše data používáme k poskytování Služby, ověřování identity, synchronizaci obsahu, správě předplatných, prevenci zneužití a odpovídání na požadavky podpory."
+        },
+        {
+          "h": "Právní základ",
+          "p": "Údaje zpracováváme na základě plnění smlouvy (Služby), vašeho souhlasu (volitelný obsah) a našeho oprávněného zájmu (bezpečnost a zlepšování produktu)."
+        },
+        {
+          "h": "Služby třetích stran",
+          "p": "Využíváme poskytovatele hostingu, ověřování, plateb a volitelně umělé inteligence. Přistupují pouze k údajům nezbytným pro svou službu a jednají podle vlastních zásad."
+        },
+        {
+          "h": "Uchovávání",
+          "p": "Údaje uchováváme, dokud je váš účet aktivní, a po dobu nutnou ke splnění zákonných povinností. Můžete požádat o smazání účtu; vaše údaje vymažeme, pokud zákon neukládá jinak."
+        },
+        {
+          "h": "Vaše práva",
+          "p": "Můžete požádat o přístup, opravu, přenositelnost nebo výmaz svých údajů. Napište nám otevřením issue v repozitáři GitHub s e-mailem přiřazeným k vašemu účtu."
+        },
+        {
+          "h": "Zabezpečení",
+          "p": "Používáme přiměřená opatření: šifrování při přenosu, hašovaná hesla a omezený přístup k informacím. Žádný systém není neomylný, ale vaše data chráníme."
+        },
+        {
+          "h": "Nezletilí",
+          "p": "Služba není určena nezletilým, kteří nemohou souhlasit udělit sami. Zjistíme-li údaje nezletilého bez oprávnění, smažeme je."
+        }
+      ]
+    },
+    "support": {
+      "title": "Podpora",
+      "updated": "Poslední aktualizace: leden 2026",
+      "intro": "Máte problém, nápad nebo otázku? Takto se nás můžete spojit.",
+      "githubCta": "Otevřít issue na GitHubu",
+      "githubHint": "Při zakládání issue uveďte kroky pro reprodukci chyby, svůj prohlížeč a pokud možno snímky obrazovky. Nikdy neuvádějte hesla ani údaje o platbě.",
+      "sections": [
+        {
+          "h": "Chyby a incidenty",
+          "p": "Chyby hlaste přes repozitář GitHub (issues). Čím více detailů uvedete, tím rychleji je opravíme."
+        },
+        {
+          "h": "Otázky a návrhy",
+          "p": "Pro dotazy k používání a nápady na vylepšení používejte issue typu „question“ nebo „enhancement“. Připomínky komunity pravidelně kontrolujeme."
+        },
+        {
+          "h": "Doba odpovědi",
+          "p": "Jsme malý tým a obvykle odpovídáme během několika pracovních dnů. Přednost mají problémy bránící základnímu používání Služby."
+        },
+        {
+          "h": "Stav služby",
+          "p": "Pokud se web nenačte nebo funkce nereaguje, nejprve zkontrolujte otevřené issues v repozitáři; zde zveřejňujeme oznámení o výpadcích či údržbě."
+        },
+        {
+          "h": "Právní a fakturační záležitosti",
+          "p": "K právním, soukromým nebo fakturačním záležitostem otevřete issue s příslušným štítkem. Nezveřejňujeme veřejný e-mail: veškerá komunikace probíhá na GitHubu."
+        }
+      ]
+    }
+  },
+  "Footer": {
+    "copyright": "© 2026 Roleander Games. Všechna práva vyhrazena."
   }
 }
