@@ -617,5 +617,18 @@
     "starts": "Startpassagen: {n}",
     "fixableCount": "Auto-fixierbare Fehler: {n}",
     "manualCount": "Manuelle Fehler: {n}"
+  },
+  "Review": {
+    "tab": "Prüfung",
+    "subtitle": "Annehmen erstellt den Link zwischen den Passagen; Verwerfen verwirft den Vorschlag.",
+    "empty": "Keine ausstehenden Vorschläge",
+    "accept": "Annehmen",
+    "reject": "Verwerfen",
+    "goTo": "Passage ansehen",
+    "explicit": "Explizit",
+    "implicit": "Implizit",
+    "suggested": "Vorgeschlagen",
+    "confidence": "Konfidenz {n}%",
+    "error": "Fehler beim Verarbeiten des Vorschlags"
   }
 }

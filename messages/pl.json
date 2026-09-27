@@ -617,5 +617,18 @@
     "starts": "Pasaże startowe: {n}",
     "fixableCount": "Błędy auto-naprawialne: {n}",
     "manualCount": "Błędy ręczne: {n}"
+  },
+  "Review": {
+    "tab": "Przegląd",
+    "subtitle": "Zaakceptowanie tworzy link między pasażami; odrzucenie odrzuca sugestię.",
+    "empty": "Brak oczekujących sugestii",
+    "accept": "Zaakceptuj",
+    "reject": "Odrzuć",
+    "goTo": "Zobacz pasaż",
+    "explicit": "Jawna",
+    "implicit": "Domniemana",
+    "suggested": "Sugerowana",
+    "confidence": "Pewność {n}%",
+    "error": "Błąd przetwarzania sugestii"
   }
 }

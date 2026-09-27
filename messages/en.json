@@ -617,5 +617,18 @@
     "starts": "Start passages: {n}",
     "fixableCount": "Auto-fixable errors: {n}",
     "manualCount": "Manual errors: {n}"
+  },
+  "Review": {
+    "tab": "Review",
+    "subtitle": "Accepting creates the link between passages; rejecting discards the suggestion.",
+    "empty": "No pending suggestions",
+    "accept": "Accept",
+    "reject": "Reject",
+    "goTo": "View passage",
+    "explicit": "Explicit",
+    "implicit": "Implicit",
+    "suggested": "Suggested",
+    "confidence": "Confidence {n}%",
+    "error": "Error processing the suggestion"
   }
 }

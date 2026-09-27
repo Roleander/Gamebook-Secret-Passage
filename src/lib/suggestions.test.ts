@@ -1,0 +1,69 @@
+import { describe, expect, it } from "vitest";
+import { normalizeSuggestions, RawSuggestion } from "@/lib/suggestions";
+
+function raw(
+  sourceNumber: number,
+  targetNumber: number,
+  extra: Partial<RawSuggestion> = {}
+): RawSuggestion {
+  return { sourceNumber, targetNumber, ...extra };
+}
+
+describe("normalizeSuggestions", () => {
+  it("keeps suggestions between existing passages", () => {
+    const result = normalizeSuggestions([1, 2], [raw(1, 2, { type: "explicit", confidence: 0.9 })]);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      sourceNumber: 1,
+      targetNumber: 2,
+      type: "explicit",
+      text: null,
+      confidence: 0.9,
+    });
+  });
+
+  it("drops suggestions pointing to unknown passages", () => {
+    const result = normalizeSuggestions([1, 2], [raw(1, 99), raw(99, 2)]);
+    expect(result).toHaveLength(0);
+  });
+
+  it("drops self links", () => {
+    expect(normalizeSuggestions([1], [raw(1, 1)])).toHaveLength(0);
+  });
+
+  it("deduplicates repeated pairs keeping the first", () => {
+    const result = normalizeSuggestions(
+      [1, 2],
+      [raw(1, 2, { confidence: 0.8 }), raw(1, 2, { confidence: 0.2 })]
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0].confidence).toBe(0.8);
+  });
+
+  it("falls back to suggested for unknown types", () => {
+    const result = normalizeSuggestions([1, 2], [raw(1, 2, { type: "weird" })]);
+    expect(result[0].type).toBe("suggested");
+  });
+
+  it("clamps confidence into [0, 1] and defaults to 0", () => {
+    const result = normalizeSuggestions(
+      [1, 2, 3],
+      [raw(1, 2, { confidence: 2 }), raw(2, 3, { confidence: -1 }), raw(3, 1)]
+    );
+    expect(result.map((r) => r.confidence)).toEqual([1, 0, 0]);
+  });
+
+  it("trims and caps link text", () => {
+    const result = normalizeSuggestions(
+      [1, 2],
+      [raw(1, 2, { text: "  mira atrás  " }), raw(2, 1, { text: "x".repeat(300) })]
+    );
+    expect(result[0].text).toBe("mira atrás");
+    expect(result[1].text).toHaveLength(120);
+  });
+
+  it("ignores non-integer numbers", () => {
+    const result = normalizeSuggestions([1], [raw(1.5, 1), raw(1, NaN)]);
+    expect(result).toHaveLength(0);
+  });
+});

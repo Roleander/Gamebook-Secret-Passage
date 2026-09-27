@@ -76,6 +76,7 @@ export async function POST(req: Request) {
       let created = 0;
       let skipped = 0;
       const missing: number[] = [];
+      const appliedPairs: { s: number; t: number }[] = [];
 
       for (const link of parsed.data.links) {
         const sourceId = byNumber.get(link.sourceNumber);
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
         });
         if (existing) {
           skipped++;
+          appliedPairs.push({ s: link.sourceNumber, t: link.targetNumber });
           continue;
         }
 
@@ -103,6 +105,22 @@ export async function POST(req: Request) {
           },
         });
         created++;
+        appliedPairs.push({ s: link.sourceNumber, t: link.targetNumber });
+      }
+
+      // Keep the review queue in sync: applied links count as accepted
+      if (appliedPairs.length > 0) {
+        await db.suggestion.updateMany({
+          where: {
+            projectId: project.id,
+            status: "pending",
+            OR: appliedPairs.map((p) => ({
+              sourceNumber: p.s,
+              targetNumber: p.t,
+            })),
+          },
+          data: { status: "accepted" },
+        });
       }
 
       return NextResponse.json({

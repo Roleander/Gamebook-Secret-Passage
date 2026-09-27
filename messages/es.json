@@ -617,5 +617,18 @@
     "starts": "Pasajes de inicio: {n}",
     "fixableCount": "Errores auto-fixables: {n}",
     "manualCount": "Errores manuales: {n}"
+  },
+  "Review": {
+    "tab": "Revisión",
+    "subtitle": "Aceptar crea el enlace entre pasajes; rechazar descarta la sugerencia.",
+    "empty": "No hay sugerencias pendientes",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "goTo": "Ver pasaje",
+    "explicit": "Explícita",
+    "implicit": "Implícita",
+    "suggested": "Sugerida",
+    "confidence": "Confianza {n}%",
+    "error": "Error al procesar la sugerencia"
   }
 }

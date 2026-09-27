@@ -34,6 +34,7 @@ model Project {
   passages      Passage[]
   imports       ImportHistory[]
   snapshots     ShuffleSnapshot[]
+  suggestions   Suggestion[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -165,4 +166,21 @@ model SiteConfig {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model Suggestion {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceNumber Int
+  targetNumber Int
+  type         String   @default("suggested") // explicit, implicit, suggested
+  text         String?
+  confidence   Float    @default(0)
+  status       String   @default("pending") // pending, accepted, rejected
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([projectId, sourceNumber, targetNumber])
+  @@index([projectId, status])
 }

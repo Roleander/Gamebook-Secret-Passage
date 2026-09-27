@@ -617,5 +617,18 @@
     "starts": "開始パッセージ: {n}",
     "fixableCount": "自動修復可能なエラー: {n}",
     "manualCount": "手動エラー: {n}"
+  },
+  "Review": {
+    "tab": "レビュー",
+    "subtitle": "承認するとパッセージ間のリンクが作成され、却下すると提案は破棄されます。",
+    "empty": "保留中の提案はありません",
+    "accept": "承認",
+    "reject": "却下",
+    "goTo": "パッセージを見る",
+    "explicit": "明示",
+    "implicit": "暗黙",
+    "suggested": "提案",
+    "confidence": "信頼度 {n}%",
+    "error": "提案の処理中にエラーが発生しました"
   }
 }

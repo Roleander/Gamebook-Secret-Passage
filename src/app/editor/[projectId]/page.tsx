@@ -12,10 +12,11 @@ import { ErrorPanel } from "@/components/editor/error-panel";
 import { AnalysisPanel } from "@/components/editor/analysis-panel";
 import { PreviewMode } from "@/components/editor/preview-mode";
 import { PassageGraph } from "@/components/editor/passage-graph";
+import { ReviewPanel } from "@/components/editor/review-panel";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Wand2, ChevronDown, Eye, Lock, LineChart, Network
+  Trash2, Wand2, ChevronDown, Eye, Lock, LineChart, Network, ListChecks
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
@@ -70,7 +71,8 @@ export default function EditorPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [selectedPassage, setSelectedPassage] = useState<Passage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "graph" | "errors">("editor");
+  const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "graph" | "review" | "errors">("editor");
+  const [pendingSuggestions, setPendingSuggestions] = useState(0);
   const [autoFixing, setAutoFixing] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -138,11 +140,24 @@ export default function EditorPage() {
     }
   }, [projectId]);
 
+  const fetchPendingSuggestions = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/suggestions?status=pending`);
+      if (response.ok) {
+        const data = await response.json();
+        setPendingSuggestions(Array.isArray(data.suggestions) ? data.suggestions.length : 0);
+      }
+    } catch {
+      // badge stays at last known value
+    }
+  }, [projectId]);
+
   useEffect(() => {
     fetchProject();
     fetchSnapshots();
     fetchEntitlements();
-  }, [fetchProject, fetchSnapshots, fetchEntitlements]);
+    fetchPendingSuggestions();
+  }, [fetchProject, fetchSnapshots, fetchEntitlements, fetchPendingSuggestions]);
 
   // Sync selectedPassage when project data changes (e.g., after shuffle)
   useEffect(() => {
@@ -618,6 +633,18 @@ export default function EditorPage() {
                 {t("Graph.tab")}
               </Button>
               <Button
+                variant={activeTab === "review" ? "default" : "ghost"}
+                onClick={() => setActiveTab("review")}
+              >
+                <ListChecks className="w-4 h-4 mr-2" />
+                {t("Review.tab")}
+                {pendingSuggestions > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full bg-primary text-primary-foreground">
+                    {pendingSuggestions}
+                  </span>
+                )}
+              </Button>
+              <Button
                 variant={activeTab === "errors" ? "default" : "ghost"}
                 onClick={() => setActiveTab("errors")}
               >
@@ -667,7 +694,10 @@ export default function EditorPage() {
                 passages={project.passages}
                 canAnalyze={Boolean(ents?.features.analyze)}
                 onRequireUpgrade={(msg) => setUpgradeMsg(msg)}
-                onChanged={fetchProject}
+                onChanged={() => {
+                  fetchProject();
+                  fetchPendingSuggestions();
+                }}
               />
             )}
 
@@ -687,6 +717,23 @@ export default function EditorPage() {
                   />
                 </CardContent>
               </Card>
+            )}
+
+            {activeTab === "review" && (
+              <ReviewPanel
+                projectId={projectId}
+                onChanged={() => {
+                  fetchProject();
+                  fetchPendingSuggestions();
+                }}
+                onOpenPassage={(number) => {
+                  const passage = project.passages.find((p) => p.number === number);
+                  if (passage) {
+                    setSelectedPassage(passage);
+                    setActiveTab("editor");
+                  }
+                }}
+              />
             )}
 
             {activeTab === "errors" && (

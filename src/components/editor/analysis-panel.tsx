@@ -83,6 +83,17 @@ export function AnalysisPanel({
     return false;
   };
 
+  const persistSuggestions = (list: Connection[]) => {
+    if (list.length === 0) return;
+    void fetch(`/api/projects/${projectId}/suggestions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ suggestions: list }),
+    }).catch(() => {
+      // fire-and-forget: queue stays best-effort
+    });
+  };
+
   const runConnections = () => {
     setBusy("connections");
     setStatus(null);
@@ -119,6 +130,7 @@ export function AnalysisPanel({
         (c) => !existingPairs.has(`${c.sourceNumber}->${c.targetNumber}`)
       );
       setSuggestions(fresh);
+      persistSuggestions(fresh);
       setStatus(
         fresh.length === 0
           ? { kind: "info", text: t("Analysis.noSuggestions") }
@@ -192,6 +204,7 @@ export function AnalysisPanel({
         ? data.connections
         : [];
       setSuggestions(aiConnections);
+      persistSuggestions(aiConnections);
       setStatus(
         aiConnections.length === 0
           ? { kind: "info", text: t("Analysis.noSuggestions") }

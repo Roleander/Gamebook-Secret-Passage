@@ -617,5 +617,18 @@
     "starts": "Počáteční pasáže: {n}",
     "fixableCount": "Auto-opravitelné chyby: {n}",
     "manualCount": "Ruční chyby: {n}"
+  },
+  "Review": {
+    "tab": "Kontrola",
+    "subtitle": "Přijetí vytvoří odkaz mezi pasážemi; odmítnutí návrh zahodí.",
+    "empty": "Žádné čekající návrhy",
+    "accept": "Přijmout",
+    "reject": "Odmítnout",
+    "goTo": "Zobrazit pasáž",
+    "explicit": "Explicitní",
+    "implicit": "Implicitní",
+    "suggested": "Navržené",
+    "confidence": "Jistota {n}%",
+    "error": "Chyba při zpracování návrhu"
   }
 }

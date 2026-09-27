@@ -617,5 +617,18 @@
     "starts": "Startpass: {n}",
     "fixableCount": "Auto-fixbara fel: {n}",
     "manualCount": "Manuella fel: {n}"
+  },
+  "Review": {
+    "tab": "Granskning",
+    "subtitle": "Acceptera skapar länken mellan passen; avvisa förslaget.",
+    "empty": "Inga väntande förslag",
+    "accept": "Acceptera",
+    "reject": "Avvisa",
+    "goTo": "Visa pass",
+    "explicit": "Explicit",
+    "implicit": "Implicit",
+    "suggested": "Föreslaget",
+    "confidence": "Konfidens {n}%",
+    "error": "Fel vid behandling av förslaget"
   }
 }
