@@ -10,6 +10,7 @@ import {
   AiHttpError,
   AiOutputError,
 } from "@/lib/ai";
+import { buildSegmentSystemPrompt, buildSegmentUserPrompt, MAX_SEGMENTS } from "@/lib/prompts";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -29,17 +30,7 @@ const segmentsSchema = z.object({
     .max(600),
 });
 
-const SYSTEM_PROMPT = [
-  "You are an editorial agent for interactive gamebooks (choose-your-own-adventure books).",
-  "You receive the raw text of a book (possibly a full document export) and must split it into passages.",
-  "Split at chapter/scene markers: chapter titles, numbered headings (e.g. '1.', 'Chapter 3', 'Paso 2'), all-caps titles, markdown headings, or clear scene breaks.",
-  "Each passage must be self-contained, coherent, and at least one paragraph long. Keep the original text unchanged inside each passage — do not rewrite or summarize it.",
-  'Return ONLY JSON: {"segments":[{"title":"short title or null","content":"full original text of the passage"}]}',
-  "The segments must cover the provided text in order. Titles and content must be in the same language as the source text.",
-].join("\n");
-
-const MAX_RAW_CHARS = 60_000;
-const MAX_SEGMENTS = 400;
+const SYSTEM_PROMPT = buildSegmentSystemPrompt();
 
 export async function POST(req: Request) {
   try {
@@ -88,16 +79,11 @@ export async function POST(req: Request) {
     }
 
     const raw = importHistory.rawContent;
-    const truncated = raw.length > MAX_RAW_CHARS;
-    const inputText = truncated ? raw.slice(0, MAX_RAW_CHARS) : raw;
+    const { prompt: userPrompt, truncated } = buildSegmentUserPrompt(project.title, raw);
 
     let parsed: unknown;
     try {
-      parsed = await chatJson(
-        SYSTEM_PROMPT,
-        `Book title: ${project.title}\n\nRaw text:\n\n${inputText}`,
-        8192
-      );
+      parsed = await chatJson(SYSTEM_PROMPT, userPrompt, 8192);
     } catch (error) {
       if (
         error instanceof AiNotConfiguredError ||

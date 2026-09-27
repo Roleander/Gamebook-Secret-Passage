@@ -10,6 +10,7 @@ import {
   AiHttpError,
   AiOutputError,
 } from "@/lib/ai";
+import { buildConnectionsSystemPrompt, buildConnectionsUserPrompt } from "@/lib/prompts";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -31,18 +32,7 @@ const connectionsSchema = z.object({
     .max(200),
 });
 
-const SYSTEM_PROMPT = [
-  "You are an editorial agent for interactive gamebooks (choose-your-own-adventure books).",
-  "You receive numbered passages and must find narrative connections: which passage should link to which.",
-  'Return ONLY JSON: {"connections":[{"sourceNumber":n,"targetNumber":n,"type":"explicit"|"implicit"|"suggested","text":"short link label","confidence":0.0}]}',
-  "type: explicit = the passage text explicitly references the other passage; implicit = the plot strongly implies continuing there; suggested = a plausible thematic option.",
-  "Never suggest self-links or links to unknown numbers. Prefer quality over quantity: only plausible connections.",
-  'The "text" label must be short (max 8 words) and written in the same language as the passages.',
-  "confidence is between 0 and 1.",
-].join("\n");
-
-const MAX_CONTENT_PER_PASSAGE = 1200;
-const MAX_PROMPT_CHARS = 60_000;
+const SYSTEM_PROMPT = buildConnectionsSystemPrompt();
 
 export async function POST(req: Request) {
   try {
@@ -93,32 +83,11 @@ export async function POST(req: Request) {
       )
     );
 
-    let usedChars = 0;
-    const blocks: string[] = [];
-    let truncated = false;
-    for (const p of project.passages) {
-      let content = p.content;
-      if (content.length > MAX_CONTENT_PER_PASSAGE) {
-        content = content.slice(0, MAX_CONTENT_PER_PASSAGE) + "…";
-      }
-      const block = `\n## ${p.number}\n${content}`;
-      if (usedChars + block.length > MAX_PROMPT_CHARS) {
-        truncated = true;
-        break;
-      }
-      blocks.push(block);
-      usedChars += block.length;
-    }
-
-    const existingNote = existingPairs.size
-      ? `\n\nAlready linked pairs (do not repeat them): ${[...existingPairs]
-          .slice(0, 300)
-          .join(", ")}`
-      : "";
-
-    const userPrompt = `Passages of the gamebook "${project.title}":\n${blocks.join("\n")}${
-      truncated ? "\n\n(The list of passages was truncated by length limit; only suggest links among the passages shown above.)" : ""
-    }${existingNote}`;
+    const { prompt: userPrompt, truncated } = buildConnectionsUserPrompt({
+      title: project.title,
+      passages: project.passages.map((p) => ({ number: p.number, content: p.content })),
+      existingPairs: [...existingPairs],
+    });
 
     let parsed: unknown;
     try {
