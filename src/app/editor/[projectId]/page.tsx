@@ -9,13 +9,15 @@ import { FileUpload } from "@/components/editor/file-upload";
 import { PassageEditor } from "@/components/editor/passage-editor";
 import { PassageList } from "@/components/editor/passage-list";
 import { ErrorPanel } from "@/components/editor/error-panel";
+import { AnalysisPanel } from "@/components/editor/analysis-panel";
 import { PreviewMode } from "@/components/editor/preview-mode";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Link2, Wand2, ChevronDown, Eye, Lock
+  Trash2, Wand2, ChevronDown, Eye, Lock, LineChart
 } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 interface Entitlements {
   plan: string;
@@ -60,12 +62,13 @@ interface PassageError {
 export default function EditorPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useI18n();
   const projectId = params.projectId as string;
 
   const [project, setProject] = useState<Project | null>(null);
   const [selectedPassage, setSelectedPassage] = useState<Passage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"editor" | "upload" | "errors">("editor");
+  const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "errors">("editor");
   const [autoFixing, setAutoFixing] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -584,6 +587,13 @@ export default function EditorPage() {
                 Importar
               </Button>
               <Button
+                variant={activeTab === "analysis" ? "default" : "ghost"}
+                onClick={() => setActiveTab("analysis")}
+              >
+                <LineChart className="w-4 h-4 mr-2" />
+                {t("Analysis.tab")}
+              </Button>
+              <Button
                 variant={activeTab === "errors" ? "default" : "ghost"}
                 onClick={() => setActiveTab("errors")}
               >
@@ -625,6 +635,16 @@ export default function EditorPage() {
                   <FileUpload projectId={projectId} onUploadComplete={fetchProject} />
                 </CardContent>
               </Card>
+            )}
+
+            {activeTab === "analysis" && (
+              <AnalysisPanel
+                projectId={projectId}
+                passages={project.passages}
+                canAnalyze={Boolean(ents?.features.analyze)}
+                onRequireUpgrade={(msg) => setUpgradeMsg(msg)}
+                onChanged={fetchProject}
+              />
             )}
 
             {activeTab === "errors" && (

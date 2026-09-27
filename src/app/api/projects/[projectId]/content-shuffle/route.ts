@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { updateAllNumberReferences } from "@/lib/utils";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +20,7 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const ents = await getEntitlements(
-      (session.user as any).id,
-      (session.user as any).role
-    );
+    const ents = await getEntitlements(session.user.id, session.user.role);
     if (!ents.features.shuffle) {
       return upgradeRequired("shuffle", "Barajar contenido requiere un plan Pro");
     }
@@ -31,7 +29,7 @@ export async function POST(
     const preserveStart = body.preserveStart !== false; // default true
 
     const project = await db.project.findFirst({
-      where: { id: projectId, userId: (session.user as any).id },
+      where: { id: projectId, userId: session.user.id },
       include: {
         passages: {
           include: {
@@ -51,14 +49,25 @@ export async function POST(
     }
 
     // === SNAPSHOT: save current state before shuffle (for undo) ===
-    const snapshotData: Record<string, any> = {};
+    const snapshotData: Record<
+      string,
+      {
+        number: number;
+        content: string;
+        title: string | null;
+        isEndpoint: boolean;
+        isStart: boolean;
+        links: { targetId: string; linkText: string | null; condition: string | null }[];
+      }
+    > = {};
     for (const p of project.passages) {
-      snapshotData[p.id] = {
-        content: p.content,
-        title: p.title,
-        isEndpoint: p.isEndpoint,
-        isStart: p.isStart,
-        links: p.outgoingLinks.map((l) => ({
+    snapshotData[p.id] = {
+      number: p.number,
+      content: p.content,
+      title: p.title,
+      isEndpoint: p.isEndpoint,
+      isStart: p.isStart,
+      links: p.outgoingLinks.map((l) => ({
           targetId: l.targetId,
           linkText: l.linkText,
           condition: l.condition,
@@ -70,7 +79,7 @@ export async function POST(
       data: {
         projectId,
         label: "Barajar Contenido",
-        passageData: snapshotData as any,
+        passageData: snapshotData as Prisma.InputJsonValue,
       },
     });
 

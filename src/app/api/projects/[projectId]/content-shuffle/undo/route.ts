@@ -28,7 +28,7 @@ export async function GET(
       hasSnapshot: !!snapshot,
       snapshot: snapshot || null,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ hasSnapshot: false });
   }
 }
@@ -45,16 +45,13 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const ents = await getEntitlements(
-      (session.user as any).id,
-      (session.user as any).role
-    );
+    const ents = await getEntitlements(session.user.id, session.user.role);
     if (!ents.features.shuffle) {
       return upgradeRequired("shuffle", "Deshacer el barajado requiere un plan Pro");
     }
 
     const project = await db.project.findFirst({
-      where: { id: projectId, userId: (session.user as any).id },
+      where: { id: projectId, userId: session.user.id },
       include: {
         passages: true,
         snapshots: {
@@ -73,9 +70,56 @@ export async function POST(
     }
 
     const snapshot = project.snapshots[0];
-    const snapshotData = snapshot.passageData as Record<string, any>;
+    type SavedPassage = {
+      number?: number;
+      content: string;
+      title?: string | null;
+      isStart?: boolean;
+      isEndpoint?: boolean;
+      sortOrder?: number;
+      links?: { targetId: string; linkText?: string | null; condition?: string | null }[];
+    };
+    const snapshotData = snapshot.passageData as unknown as Record<string, SavedPassage | null>;
 
-    // Restore passage content and metadata
+    const currentIds = new Set(project.passages.map((p) => p.id));
+    const snapshotIds = new Set(Object.keys(snapshotData));
+
+    // Delete passages created after the snapshot
+    const toDelete = project.passages.filter((p) => !snapshotIds.has(p.id));
+    if (toDelete.length > 0) {
+      await db.passage.deleteMany({
+        where: { id: { in: toDelete.map((p) => p.id) } },
+      });
+    }
+
+    // Recreate passages that existed in the snapshot but were deleted since
+    let recreated = 0;
+    const missingEntries = Object.entries(snapshotData).filter(
+      ([id, data]) =>
+        !currentIds.has(id) &&
+        data !== null &&
+        typeof data === "object" &&
+        typeof data.number === "number"
+    );
+    for (const [id, data] of missingEntries) {
+      if (data === null || typeof data.number !== "number") continue;
+      const saved = data;
+      await db.passage.create({
+        data: {
+          id,
+          projectId,
+          number: data.number,
+          title: saved.title ?? null,
+          content: saved.content,
+          isStart: saved.isStart ?? false,
+          isEndpoint: saved.isEndpoint ?? false,
+          sortOrder: saved.sortOrder ?? 0,
+        },
+      });
+      recreated++;
+    }
+
+    // Restore passage content and metadata for passages still present
     for (const passage of project.passages) {
       const saved = snapshotData[passage.id];
       if (!saved) continue;
@@ -92,19 +136,20 @@ export async function POST(
     }
 
     // Restore PassageLink records
-    const passageIds = project.passages.map((p) => p.id);
+    const passagesNow = await db.passage.findMany({ where: { projectId } });
+    const passageIds = passagesNow.map((p) => p.id);
     await db.passageLink.deleteMany({
       where: { sourceId: { in: passageIds } },
     });
 
     let linksRestored = 0;
-    for (const passage of project.passages) {
+    for (const passage of passagesNow) {
       const saved = snapshotData[passage.id];
       if (!saved?.links) continue;
 
       for (const link of saved.links) {
         // Verify target still exists
-        const targetExists = project.passages.some((p) => p.id === link.targetId);
+        const targetExists = passagesNow.some((p) => p.id === link.targetId);
         if (!targetExists) continue;
         if (passage.id === link.targetId) continue; // skip self-links
 
@@ -136,8 +181,10 @@ export async function POST(
 
     return NextResponse.json({
       message: "Deshacer completado",
-      passageCount: project.passages.length,
+      passageCount: passagesNow.length,
       linksRestored,
+      recreated,
+      deleted: toDelete.length,
     });
   } catch (error) {
     console.error("Error undoing shuffle:", error);
