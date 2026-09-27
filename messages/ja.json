@@ -485,5 +485,18 @@
   },
   "Footer": {
     "copyright": "© 2026 Roleander Games. 無断転載を禁じます。"
+  },
+  "History": {
+    "title": "履歴",
+    "save": "バージョンを保存",
+    "restore": "復元",
+    "restoring": "復元中...",
+    "empty": "保存されたバージョンはありません",
+    "saved": "バージョンを保存しました",
+    "restored": "バージョンを復元しました",
+    "confirmSave": "現在の状態のコピーを保存しますか？",
+    "confirmRestore": "このバージョンを復元しますか？現在の状態は上書きされます。",
+    "manualLabel": "手動コピー",
+    "error": "履歴エラー"
   }
 }

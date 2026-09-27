@@ -485,5 +485,18 @@
   },
   "Footer": {
     "copyright": "© 2026 Roleander Games. Todos os direitos reservados."
+  },
+  "History": {
+    "title": "Histórico",
+    "save": "Salvar versão",
+    "restore": "Restaurar",
+    "restoring": "Restaurando...",
+    "empty": "Nenhuma versão salva",
+    "saved": "Versão salva",
+    "restored": "Versão restaurada",
+    "confirmSave": "Salvar uma cópia do estado atual?",
+    "confirmRestore": "Restaurar esta versão? O estado atual será sobrescrito.",
+    "manualLabel": "Cópia manual",
+    "error": "Erro no histórico"
   }
 }

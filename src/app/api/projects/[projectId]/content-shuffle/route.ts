@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { updateAllNumberReferences } from "@/lib/utils";
-import { Prisma } from "@prisma/client";
+import { createProjectSnapshot } from "@/lib/snapshots";
 
 export const dynamic = "force-dynamic";
 
@@ -49,50 +49,7 @@ export async function POST(
     }
 
     // === SNAPSHOT: save current state before shuffle (for undo) ===
-    const snapshotData: Record<
-      string,
-      {
-        number: number;
-        content: string;
-        title: string | null;
-        isEndpoint: boolean;
-        isStart: boolean;
-        links: { targetId: string; linkText: string | null; condition: string | null }[];
-      }
-    > = {};
-    for (const p of project.passages) {
-    snapshotData[p.id] = {
-      number: p.number,
-      content: p.content,
-      title: p.title,
-      isEndpoint: p.isEndpoint,
-      isStart: p.isStart,
-      links: p.outgoingLinks.map((l) => ({
-          targetId: l.targetId,
-          linkText: l.linkText,
-          condition: l.condition,
-        })),
-      };
-    }
-
-    await db.shuffleSnapshot.create({
-      data: {
-        projectId,
-        label: "Barajar Contenido",
-        passageData: snapshotData as Prisma.InputJsonValue,
-      },
-    });
-
-    // Keep only the last 5 snapshots to avoid bloat
-    const snapshots = await db.shuffleSnapshot.findMany({
-      where: { projectId },
-      orderBy: { createdAt: "desc" },
-    });
-    if (snapshots.length > 5) {
-      await db.shuffleSnapshot.deleteMany({
-        where: { id: { in: snapshots.slice(5).map((s) => s.id) } },
-      });
-    }
+    await createProjectSnapshot(projectId, "Barajar Contenido");
 
     // === PHASE 2: Separate start passage from shuffle pool ===
     const startPassage = preserveStart

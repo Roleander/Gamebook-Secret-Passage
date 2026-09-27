@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+  import { HistoryPanel } from "@/components/editor/history-panel";
 
 interface Entitlements {
   plan: string;
@@ -401,6 +402,12 @@ export default function EditorPage() {
               Deshacer
             </Button>
 
+            <HistoryPanel
+              projectId={projectId}
+              isPro={Boolean(ents?.isPro)}
+              onRequireUpgrade={(msg) => setUpgradeMsg(msg)}
+              onChanged={() => { fetchProject(); fetchSnapshots(); }}
+            />
             <div className="relative">
               <Button
                 variant="outline"

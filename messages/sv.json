@@ -485,5 +485,18 @@
   },
   "Footer": {
     "copyright": "© 2026 Roleander Games. Alla rättigheter förbehållna."
+  },
+  "History": {
+    "title": "Historik",
+    "save": "Spara version",
+    "restore": "Återställ",
+    "restoring": "Återställer...",
+    "empty": "Inga sparade versioner",
+    "saved": "Version sparad",
+    "restored": "Version återställd",
+    "confirmSave": "Spara en kopia av det aktuella läget?",
+    "confirmRestore": "Återställ denna version? Det aktuella läget skrivs över.",
+    "manualLabel": "Manuell kopia",
+    "error": "Historikfel"
   }
 }

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { createProjectSnapshot } from "@/lib/snapshots";
 
 export interface ReplaceSegment {
   title?: string | null;
@@ -26,57 +26,7 @@ export async function replaceProjectPassages(
   links: ReplaceLink[],
   label: string
 ): Promise<ReplaceResult> {
-  const oldPassages = await db.passage.findMany({
-    where: { projectId },
-    include: { outgoingLinks: true },
-    orderBy: { number: "asc" },
-  });
-
-  const snapshotData: Record<
-    string,
-    {
-      number: number;
-      content: string;
-      title: string | null;
-      isStart: boolean;
-      isEndpoint: boolean;
-      sortOrder: number;
-      links: { targetId: string; linkText: string | null; condition: string | null }[];
-    }
-  > = {};
-  for (const p of oldPassages) {
-    snapshotData[p.id] = {
-      number: p.number,
-      content: p.content,
-      title: p.title,
-      isStart: p.isStart,
-      isEndpoint: p.isEndpoint,
-      sortOrder: p.sortOrder,
-      links: p.outgoingLinks.map((l) => ({
-        targetId: l.targetId,
-        linkText: l.linkText,
-        condition: l.condition,
-      })),
-    };
-  }
-
-  const snapshot = await db.shuffleSnapshot.create({
-    data: {
-      projectId,
-      label,
-      passageData: snapshotData as Prisma.InputJsonValue,
-    },
-  });
-
-  const snapshots = await db.shuffleSnapshot.findMany({
-    where: { projectId },
-    orderBy: { createdAt: "desc" },
-  });
-  if (snapshots.length > 5) {
-    await db.shuffleSnapshot.deleteMany({
-      where: { id: { in: snapshots.slice(5).map((s) => s.id) } },
-    });
-  }
+  const snapshot = await createProjectSnapshot(projectId, label);
 
   await db.passage.deleteMany({ where: { projectId } });
 

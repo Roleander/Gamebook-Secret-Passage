@@ -485,5 +485,18 @@
   },
   "Footer": {
     "copyright": "© 2026 Roleander Games. Všechna práva vyhrazena."
+  },
+  "History": {
+    "title": "Historie",
+    "save": "Uložit verzi",
+    "restore": "Obnovit",
+    "restoring": "Obnovuji...",
+    "empty": "Žádné uložené verze",
+    "saved": "Verze uložená",
+    "restored": "Verze obnovena",
+    "confirmSave": "Uložit kopii aktuálního stavu?",
+    "confirmRestore": "Obnovit tuto verzi? Aktuální stav bude přepsán.",
+    "manualLabel": "Ruční kopie",
+    "error": "Chyba historie"
   }
 }
