@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -49,11 +50,17 @@ export async function POST(req: Request) {
       },
     });
 
-    // In production, send email here
-    // For now, return the token in the response (dev mode)
     const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${token}`;
 
-    console.log(`[PASSWORD RESET] ${user.email}: ${resetUrl}`);
+    if (isEmailConfigured()) {
+      const sent = await sendPasswordResetEmail(user.email, resetUrl);
+      if (!sent) {
+        console.error(`[PASSWORD RESET] email send failed for ${user.email}: ${resetUrl}`);
+      }
+    } else {
+      // Fallback while EMAIL_API_KEY/EMAIL_FROM are not configured (dev only)
+      console.log(`[PASSWORD RESET] ${user.email}: ${resetUrl}`);
+    }
 
     return NextResponse.json({
       message: "Si el email existe, recibirás un enlace para restablecer tu contraseña.",
