@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface FileUploadProps {
   projectId: string;
@@ -12,6 +13,7 @@ interface FileUploadProps {
 
 export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState<{
@@ -78,7 +80,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
     if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
       setResult({
         success: false,
-        message: "Tipo de archivo no soportado. Use .txt, .doc, .docx, .odt, .html o .rtf",
+        message: t("Upload.unsupported"),
       });
       return;
     }
@@ -88,7 +90,9 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
     if (file.size > maxSize) {
       setResult({
         success: false,
-        message: `Archivo demasiado grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo 4MB.`,
+        message: t("Upload.tooLarge", {
+          size: (file.size / 1024 / 1024).toFixed(1),
+        }),
       });
       return;
     }
@@ -114,9 +118,9 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
       } catch (fetchError) {
         clearTimeout(timeoutId);
         if (fetchError instanceof DOMException && fetchError.name === "AbortError") {
-          throw new Error("La subida tardó demasiado (>60s). Intenta con un archivo más pequeño.");
+          throw new Error(t("Upload.timeout"));
         }
-        throw new Error("Error de conexión con el servidor. Verifica tu conexión a internet.");
+        throw new Error(t("Upload.connection"));
       }
       clearTimeout(timeoutId);
 
@@ -128,14 +132,17 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
           detail = text.substring(0, 200);
         } catch {}
         throw new Error(
-          `Error del servidor (${response.status}). ${detail || "Respuesta inesperada."} Intenta con otro archivo.`
+          t("Upload.serverError", {
+            status: response.status,
+            detail: detail || t("Upload.unexpected"),
+          })
         );
       }
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al subir el archivo");
+        throw new Error(data.error || t("Upload.uploadFailed"));
       }
 
       setResult({
@@ -152,7 +159,7 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
     } catch (error) {
       setResult({
         success: false,
-        message: error instanceof Error ? error.message : "Error al subir el archivo",
+        message: error instanceof Error ? error.message : t("Upload.uploadFailed"),
       });
     } finally {
       setIsUploading(false);
@@ -174,10 +181,10 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
       >
         <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-lg font-medium mb-2">
-          Arrastra un archivo aquí o haz clic para seleccionar
+          {t("Upload.dropzone")}
         </p>
         <p className="text-sm text-muted-foreground mb-4">
-          Formatos soportados: .txt, .doc, .docx, .odt, .html, .rtf
+          {t("Upload.formats")}
         </p>
         <input
           type="file"
@@ -192,14 +199,14 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
           disabled={isUploading}
         >
           <FileText className="w-4 h-4 mr-2" />
-          Seleccionar Archivo
+          {t("Upload.selectFile")}
         </Button>
       </div>
 
       {isUploading && (
         <div className="flex items-center justify-center p-4 text-primary">
           <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mr-3" />
-          Procesando archivo...
+          {t("Upload.processing")}
         </div>
       )}
 
@@ -223,12 +230,12 @@ export function FileUpload({ projectId, onUploadComplete }: FileUploadProps) {
               </p>
               {result.passagesCount && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {result.passagesCount} pasajes importados
+                  {t("Upload.imported", { n: result.passagesCount })}
                 </p>
               )}
               {result.linksCreated !== undefined && result.linksCreated > 0 && (
                 <p className="text-sm text-green-500 mt-1">
-                  {result.linksCreated} enlaces creados automáticamente
+                  {t("Upload.autoLinks", { n: result.linksCreated })}
                 </p>
               )}
               {result.errors && result.errors.length > 0 && (

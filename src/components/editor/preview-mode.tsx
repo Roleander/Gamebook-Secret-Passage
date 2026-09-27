@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, Flag, Target, ExternalLink } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Passage {
   id: string;
@@ -36,6 +37,7 @@ interface PreviewModeProps {
 }
 
 export function PreviewMode({ project, onClose }: PreviewModeProps) {
+  const { t } = useI18n();
   const [currentPassageNumber, setCurrentPassageNumber] = useState<number>(() => {
     // Start from the first passage marked as start, or passage 1
     const startPassage = project.passages.find(p => p.isStart);
@@ -49,8 +51,8 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
     return (
       <div className="fixed inset-0 bg-background z-50 overflow-auto">
         <div className="container mx-auto px-4 py-8">
-          <p>Pasaje no encontrado</p>
-          <Button onClick={onClose}>Cerrar</Button>
+          <p>{t("Preview.notFound")}</p>
+          <Button onClick={onClose}>{t("Preview.close")}</Button>
         </div>
       </div>
     );
@@ -69,14 +71,14 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={onClose}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver al editor
+              {t("Preview.backToEditor")}
             </Button>
             <span className="text-muted-foreground">|</span>
             <span className="font-medium text-primary">{project.title}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              Pasaje {currentPassage.number} de {passages.length}
+              {t("Preview.counter", { n: currentPassage.number, m: passages.length })}
             </span>
           </div>
         </div>
@@ -85,7 +87,7 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
       {/* Passage navigation */}
       <div className="sticky top-[61px] bg-muted/50 border-b border-border z-10">
         <div className="container mx-auto px-4 py-2 flex items-center gap-2 overflow-x-auto">
-          <span className="text-xs text-muted-foreground shrink-0">Ir a:</span>
+          <span className="text-xs text-muted-foreground shrink-0">{t("Preview.goTo")}</span>
           {passages.map((p) => (
             <Button
               key={p.id}
@@ -108,18 +110,18 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
             {currentPassage.isStart && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">
                 <Flag className="w-3 h-3" />
-                INICIO
+                {t("Preview.start")}
               </span>
             )}
             {currentPassage.isEndpoint && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">
                 <Target className="w-3 h-3" />
-                FIN
+                {t("Preview.end")}
               </span>
             )}
           </div>
           <h1 className="text-3xl font-bold text-primary">
-            Pasaje {currentPassage.number}
+            {t("Preview.heading", { n: currentPassage.number })}
             {currentPassage.title && (
               <span className="text-muted-foreground ml-3 text-2xl font-normal">
                 — {currentPassage.title}
@@ -147,7 +149,7 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
             <CardContent className="p-6">
               <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                 <BookOpen className="w-5 h-5" />
-                Opciones
+                {t("Preview.options")}
               </h2>
               <div className="space-y-2">
                 {currentPassage.outgoingLinks.map((link, i) => (
@@ -159,7 +161,7 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
                   >
                     <ExternalLink className="w-4 h-4 mr-3 shrink-0 text-primary" />
                     <span>
-                      {link.linkText || `Continuar al pasaje ${link.target.number}`}
+                      {link.linkText || t("Preview.continueTo", { n: link.target.number })}
                     </span>
                   </Button>
                 ))}
@@ -173,7 +175,7 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
           <Card className="mb-8">
             <CardContent className="p-6">
               <h2 className="text-sm font-medium text-muted-foreground mb-3">
-                Referenciado desde:
+                {t("Preview.referencedFrom")}
               </h2>
               <div className="flex flex-wrap gap-2">
                 {currentPassage.incomingLinks.map((link, i) => (
@@ -184,7 +186,7 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
                     className="text-xs"
                     onClick={() => handleNavigate(link.source.number)}
                   >
-                    Pasaje {link.source.number}
+                    {t("Preview.passage", { n: link.source.number })}
                   </Button>
                 ))}
               </div>
@@ -202,14 +204,14 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
               if (prev) handleNavigate(prev.number);
             }}
           >
-            ← Pasaje anterior
+            {t("Preview.prev")}
           </Button>
           <Button
             variant="outline"
             onClick={onClose}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al editor
+            {t("Preview.backToEditor")}
           </Button>
           <Button
             variant="outline"
@@ -219,7 +221,7 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
               if (next) handleNavigate(next.number);
             }}
           >
-            Siguiente pasaje →
+            {t("Preview.next")}
           </Button>
         </div>
       </div>

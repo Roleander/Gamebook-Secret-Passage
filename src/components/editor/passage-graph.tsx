@@ -173,7 +173,7 @@ export function PassageGraph({ passages, selectedPassageId, onSelect }: PassageG
                   className="cursor-pointer"
                   onClick={() => passage && onSelect(passage)}
                   role="button"
-                  aria-label={`Pasaje ${n.number}`}
+                  aria-label={t("Graph.node", { n: n.number })}
                 >
                   <rect
                     width={GRAPH_NODE_SIZE.width}

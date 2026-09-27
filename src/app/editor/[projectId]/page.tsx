@@ -188,7 +188,7 @@ export default function EditorPage() {
       setUpgradeMsg("");
       return;
     }
-    if (!confirm("¿Barajar el contenido entre pasajes? Los números se mantienen, pero el texto y enlaces se reorganizan aleatoriamente.")) return;
+    if (!confirm(t("Shuffle.confirm"))) return;
     setShuffling(true);
     try {
       const response = await fetch(`/api/projects/${projectId}/content-shuffle`, {
@@ -198,17 +198,20 @@ export default function EditorPage() {
       });
       const result = await response.json();
       if (response.ok) {
-        alert(`Contenido barajado: ${result.passageCount} pasajes, ${result.linksCreated} enlaces recreados${result.startPreserved ? " (pasaje de inicio preservado)" : ""}`);
+        alert(
+          t("Shuffle.done", { p: result.passageCount, l: result.linksCreated }) +
+            (result.startPreserved ? t("Shuffle.startPreserved") : "")
+        );
         await fetchProject();
         fetchSnapshots();
       } else if (await handleUpgradeResponse(response)) {
         // upgrade modal shown
       } else {
-        alert(`Error: ${result.error || "Error al barajar"}`);
+        alert(`Error: ${result.error || t("Shuffle.error")}`);
       }
     } catch (error) {
       console.error("Error shuffling content:", error);
-      alert("Error de conexión al barajar");
+      alert(t("Shuffle.connError"));
     } finally {
       setShuffling(false);
     }
@@ -220,24 +223,29 @@ export default function EditorPage() {
       setUpgradeMsg("");
       return;
     }
-    if (!confirm("¿Deshacer el último barajado de contenido?")) return;
+    if (!confirm(t("Shuffle.confirmUndo"))) return;
     try {
       const response = await fetch(`/api/projects/${projectId}/content-shuffle/undo`, {
         method: "POST",
       });
       const result = await response.json();
       if (response.ok) {
-        alert(`Deshacer completado: ${result.passageCount} pasajes restaurados, ${result.linksRestored} enlaces restaurados`);
+        alert(
+          t("Shuffle.undoDone", {
+            p: result.passageCount,
+            l: result.linksRestored,
+          })
+        );
         fetchProject();
         fetchSnapshots();
       } else if (await handleUpgradeResponse(response)) {
         // upgrade modal shown
       } else {
-        alert(`Error: ${result.error || "Error al deshacer"}`);
+        alert(`Error: ${result.error || t("Shuffle.undoError")}`);
       }
     } catch (error) {
       console.error("Error undoing shuffle:", error);
-      alert("Error de conexión al deshacer");
+      alert(t("Shuffle.undoConnError"));
     }
   };
 
@@ -281,7 +289,7 @@ export default function EditorPage() {
   };
 
   const handleDeleteProject = async () => {
-    if (!confirm("¿Seguro que quieres eliminar este proyecto? Esta acción no se puede deshacer.")) return;
+    if (!confirm(t("Editor.deleteProjectConfirm"))) return;
     try {
       const response = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
       if (response.ok) {
@@ -309,11 +317,12 @@ export default function EditorPage() {
       if (response.ok) {
         const result = await response.json();
         alert(
-          `Auto-fix completado:\n` +
-          `- Enlaces creados: ${result.linksCreated}\n` +
-          `- Huérfanos arreglados: ${result.orphansFixed}\n` +
-          `- Pasajes marcados como finales: ${result.endpointsMarked}\n` +
-          `- Pasajes marcados como inicio: ${result.startsMarked}`
+          t("Editor.autoFixDone", {
+            a: result.linksCreated,
+            b: result.orphansFixed,
+            c: result.endpointsMarked,
+            d: result.startsMarked,
+          })
         );
         fetchProject();
       } else {
@@ -342,7 +351,7 @@ export default function EditorPage() {
 
   if (!project) return null;
 
-  const errors = validatePassages(project.passages);
+  const errors = validatePassages(project.passages, t);
 
   return (
     <div className="min-h-screen bg-dungeon">
@@ -354,7 +363,7 @@ export default function EditorPage() {
           className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a Proyectos
+          {t("Editor.backToProjects")}
         </Link>
 
         <div className="flex justify-between items-start mb-6">
@@ -374,33 +383,33 @@ export default function EditorPage() {
               disabled={project.passages.length === 0}
             >
               <Eye className="w-4 h-4 mr-2" />
-              Previsualizar
+              {t("Editor.preview")}
             </Button>
 
             <Button variant="outline" onClick={handleContentShuffle} disabled={project.passages.length < 2 || shuffling}>
               <Shuffle className={`w-4 h-4 mr-2 ${shuffling ? "animate-spin" : ""}`} />
-              {shuffling ? "Barajando..." : "Barajar Contenido"}
+              {shuffling ? t("Editor.shuffling") : t("Editor.shuffle")}
               {locked && !ents?.features.shuffle && <Lock className="w-3 h-3 ml-2 text-primary/70" />}
             </Button>
 
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer" title="Preservar el pasaje marcado como inicio durante el barajado">
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground select-none cursor-pointer" title={t("Editor.keepStartTitle")}>
               <input
                 type="checkbox"
                 checked={preserveStart}
                 onChange={(e) => setPreserveStart(e.target.checked)}
                 className="w-3 h-3 rounded border-gray-300"
               />
-              Inicio fijo
+              {t("Editor.fixedStart")}
             </label>
 
             <Button
               variant="outline"
               onClick={handleUndoShuffle}
               disabled={!canUndo}
-              title="Deshacer último barajado"
+              title={t("Editor.undoShuffleTitle")}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Deshacer
+              {t("Editor.undo")}
             </Button>
 
             <HistoryPanel
@@ -417,7 +426,7 @@ export default function EditorPage() {
                 onMouseEnter={() => setShowExportMenu(true)}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Exportar
+                {t("Editor.export")}
                 <ChevronDown className="w-4 h-4 ml-1" />
               </Button>
               {showExportMenu && (
@@ -434,16 +443,16 @@ export default function EditorPage() {
                           onChange={(e) => setReadingMode(e.target.checked)}
                           className="w-4 h-4 rounded border-gray-300"
                         />
-                        <span>Lectura fluida</span>
+                        <span>{t("Editor.readingMode")}</span>
                       </label>
-                      <p className="text-xs text-muted-foreground mt-1">Sin titulares por pasaje</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t("Editor.readingModeHint")}</p>
                     </div>
                     <button
                       onClick={() => { handleExport("pdf"); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                      PDF (HTML imprimible)
+                      {t("Editor.exportPdf")}
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
@@ -459,14 +468,14 @@ export default function EditorPage() {
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
-                      TXT (texto plano)
+                      {t("Editor.exportTxt")}
                     </button>
                     <button
                       onClick={() => { handleExport("odt"); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      ODT (OpenOffice)
+                      {t("Editor.exportOdt")}
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
@@ -496,13 +505,13 @@ export default function EditorPage() {
               disabled={autoFixing || project.passages.length === 0}
             >
               <Wand2 className="w-4 h-4 mr-2" />
-              {autoFixing ? "Arreglando..." : "Auto-fix"}
+              {autoFixing ? t("Editor.autoFixing") : t("Editor.autoFix")}
               {locked && !ents?.features.autofix && <Lock className="w-3 h-3 ml-2 text-primary/70" />}
             </Button>
 
             <Button variant="destructive" onClick={handleDeleteProject}>
               <Trash2 className="w-4 h-4 mr-2" />
-              Eliminar
+              {t("Editor.delete")}
             </Button>
           </div>
         </div>
@@ -513,7 +522,7 @@ export default function EditorPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">
-                    Pasajes ({project.passages.length})
+                    {t("Editor.passages", { n: project.passages.length })}
                   </CardTitle>
                   <Button
                     variant="outline"
@@ -525,8 +534,8 @@ export default function EditorPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                           number: maxNumber + 1,
-                          title: "Nuevo Pasaje",
-                          content: "Escribe el contenido aquí...",
+                          title: t("Editor.newPassageTitle"),
+                          content: t("Editor.newPassageContent"),
                           isStart: project.passages.length === 0,
                           isEndpoint: false,
                         }),
@@ -537,7 +546,7 @@ export default function EditorPage() {
                       }
                     }}
                   >
-                    + Nuevo
+                    {t("Editor.newButton")}
                   </Button>
                   {project.passages.length > 0 && (
                     <Button
@@ -548,7 +557,7 @@ export default function EditorPage() {
                           setUpgradeMsg("");
                           return;
                         }
-                        if (!confirm("¿Renumerar todos los pasajes secuencialmente (1, 2, 3...)?")) return;
+                        if (!confirm(t("Editor.renumberConfirm"))) return;
                         const response = await fetch(`/api/projects/${projectId}/renumber`, {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
@@ -559,7 +568,7 @@ export default function EditorPage() {
                           fetchProject();
                         }}
                       }
-                      title="Renumerar todos los pasajes desde 1"
+                      title={t("Editor.renumberTitle")}
                     >
                       1,2,3...
                     </Button>
@@ -585,14 +594,14 @@ export default function EditorPage() {
                 onClick={() => setActiveTab("editor")}
               >
                 <BookOpen className="w-4 h-4 mr-2" />
-                Editor
+                {t("Editor.tabEditor")}
               </Button>
               <Button
                 variant={activeTab === "upload" ? "default" : "ghost"}
                 onClick={() => setActiveTab("upload")}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Importar
+                {t("Editor.tabImport")}
               </Button>
               <Button
                 variant={activeTab === "analysis" ? "default" : "ghost"}
@@ -613,7 +622,7 @@ export default function EditorPage() {
                 onClick={() => setActiveTab("errors")}
               >
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                Errores ({errors.length})
+                {t("Editor.tabErrors", { n: errors.length })}
               </Button>
             </div>
 
@@ -631,9 +640,9 @@ export default function EditorPage() {
                   ) : (
                     <div className="text-center py-12">
                       <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-medium mb-2">Selecciona un pasaje</h3>
+                      <h3 className="text-lg font-medium mb-2">{t("Editor.selectPassage")}</h3>
                       <p className="text-muted-foreground">
-                        Elige un pasaje de la lista para empezar a editar
+                        {t("Editor.selectPassageHint")}
                       </p>
                     </div>
                   )}
@@ -644,7 +653,7 @@ export default function EditorPage() {
             {activeTab === "upload" && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Importar Documento</CardTitle>
+                  <CardTitle>{t("Editor.importTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FileUpload projectId={projectId} onUploadComplete={fetchProject} />
@@ -709,7 +718,9 @@ export default function EditorPage() {
   );
 }
 
-function validatePassages(passages: Passage[]): PassageError[] {
+type TFunction = (key: string, params?: Record<string, string | number>) => string;
+
+function validatePassages(passages: Passage[], t: TFunction): PassageError[] {
   const errors: PassageError[] = [];
   const numbers = passages.map(p => p.number);
 
@@ -720,7 +731,7 @@ function validatePassages(passages: Passage[]): PassageError[] {
         errors.push({
           type: "broken_link",
           passageNumber: passage.number,
-          message: `Enlace roto hacia pasaje ${link.target.number} que no existe`,
+          message: t("Editor.brokenLink", { n: link.target.number }),
           autoFixable: false,
         });
       }
@@ -731,7 +742,7 @@ function validatePassages(passages: Passage[]): PassageError[] {
       errors.push({
         type: "orphan",
         passageNumber: passage.number,
-        message: `Pasaje ${passage.number}: no tiene enlaces entrantes (huérfano)`,
+        message: t("Editor.orphan", { n: passage.number }),
         autoFixable: true,
       });
     }
@@ -741,7 +752,7 @@ function validatePassages(passages: Passage[]): PassageError[] {
       errors.push({
         type: "no_exit",
         passageNumber: passage.number,
-        message: `Pasaje ${passage.number}: no tiene enlaces salientes`,
+        message: t("Editor.noExit", { n: passage.number }),
         autoFixable: true,
       });
     }

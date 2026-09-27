@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { BookOpen, Flag, Target, ChevronUp, ChevronDown, Hash, GripVertical } from "lucide-react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
+import { useI18n } from "@/lib/i18n";
 
 interface Passage {
   id: string;
@@ -55,6 +56,7 @@ function SortableRow({
   onCommitEdit,
   onMove,
 }: SortableRowProps) {
+  const { t } = useI18n();
   const { isDragging, ref, handleRef } = useSortable({ id: passage.id, index });
   const firstLine = passage.content.split("\n")[0]?.trim() || "";
   const preview = firstLine.length > 60 ? firstLine.substring(0, 60) + "..." : firstLine;
@@ -72,7 +74,7 @@ function SortableRow({
         <button
           ref={handleRef}
           className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground shrink-0"
-          title="Arrastra para reordenar"
+          title={t("PassageList.drag")}
         >
           <GripVertical className="w-3.5 h-3.5" />
         </button>
@@ -134,7 +136,7 @@ function SortableRow({
                   onClick={() => onCommitEdit(passage.id)}
                   className="text-[10px] px-1 bg-green-600 text-white rounded"
                 >
-                  OK
+                  {t("PassageList.ok")}
                 </button>
               </div>
             ) : (
@@ -144,7 +146,7 @@ function SortableRow({
                   onStartEdit(passage);
                 }}
                 className="font-mono text-xs font-bold cursor-pointer hover:bg-muted-foreground/20 px-1 rounded flex items-center"
-                title="Clic para cambiar número"
+                title={t("PassageList.editNumber")}
               >
                 {passage.number}
                 <Hash className="w-2.5 h-2.5 ml-0.5 opacity-50" />
@@ -190,6 +192,7 @@ export function PassageList({
   onReorder,
   onRenumber,
 }: PassageListProps) {
+  const { t } = useI18n();
   const sortedPassages = [...passages].sort((a, b) => a.number - b.number);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
@@ -254,7 +257,7 @@ export function PassageList({
       <div className="text-center py-8">
         <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-muted-foreground">
-          No hay pasajes aún. Importa un archivo para empezar.
+          {t("PassageList.empty")}
         </p>
       </div>
     );

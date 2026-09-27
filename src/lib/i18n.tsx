@@ -18,7 +18,7 @@ const messages: Record<string, any> = { es, en, fr, de, it, pt, pl, sv, cs, hi, 
 interface I18nContextType {
   locale: string;
   setLocale: (locale: string) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -44,9 +44,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const msg = messages[locale];
-    return getNestedValue(msg, key);
+    const raw = getNestedValue(msg, key);
+    if (!params) return raw;
+    return raw.replace(/\{(\w+)\}/g, (match, name) =>
+      params[name] !== undefined ? String(params[name]) : match
+    );
   };
 
   return (

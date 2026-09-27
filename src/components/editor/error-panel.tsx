@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, AlertCircle, CheckCircle2, Wand2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Passage {
   id: string;
@@ -25,6 +26,7 @@ interface ErrorPanelProps {
 }
 
 export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPanelProps) {
+  const { t } = useI18n();
   const fixableCount = errors.filter(e => e.autoFixable).length;
 
   return (
@@ -33,7 +35,7 @@ export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPan
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center">
             <AlertTriangle className="w-5 h-5 mr-2 text-yellow-500" />
-            Verificación de Pasajes
+            {t("Errors.title")}
           </CardTitle>
           {fixableCount > 0 && onAutoFix && (
             <Button
@@ -42,7 +44,7 @@ export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPan
               size="sm"
             >
               <Wand2 className="w-4 h-4 mr-2" />
-              {autoFixing ? "Arreglando..." : `Auto-fix (${fixableCount})`}
+              {autoFixing ? t("Errors.fixing") : t("Errors.autoFixCount", { n: fixableCount })}
             </Button>
           )}
         </div>
@@ -52,16 +54,16 @@ export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPan
           <div className="text-center py-8">
             <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
             <h3 className="text-lg font-medium mb-2 text-green-500">
-              ¡Todo correcto!
+              {t("Errors.allGood")}
             </h3>
             <p className="text-muted-foreground">
-              No se encontraron errores en las conexiones entre pasajes.
+              {t("Errors.noErrors")}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Se encontraron {errors.length} problema(s):
+              {t("Errors.found", { n: errors.length })}
             </p>
             <div className="space-y-2">
               {errors.map((error, index) => (
@@ -77,7 +79,7 @@ export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPan
                   <div className="flex-1">
                     <p className="text-sm">{error.message}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {error.autoFixable ? "Auto-fixable" : "Requiere intervención manual"}
+                      {error.autoFixable ? t("Errors.fixable") : t("Errors.manual")}
                     </p>
                   </div>
                 </div>
@@ -85,12 +87,12 @@ export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPan
             </div>
 
             <div className="mt-6 p-4 bg-muted rounded-md">
-              <h4 className="font-medium mb-2">Resumen</h4>
+              <h4 className="font-medium mb-2">{t("Errors.summary")}</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>Total de pasajes: {passages.length}</li>
-                <li>Pasajes de inicio: {passages.filter((_, i) => i === 0).length}</li>
-                <li>Errores auto-fixables: {fixableCount}</li>
-                <li>Errores manuales: {errors.length - fixableCount}</li>
+                <li>{t("Errors.total", { n: passages.length })}</li>
+                <li>{t("Errors.starts", { n: passages.filter((_, i) => i === 0).length })}</li>
+                <li>{t("Errors.fixableCount", { n: fixableCount })}</li>
+                <li>{t("Errors.manualCount", { n: errors.length - fixableCount })}</li>
               </ul>
             </div>
           </div>

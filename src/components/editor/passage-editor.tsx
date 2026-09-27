@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Trash2, Link2, Unlink, ArrowDown, ArrowUp } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Passage {
   id: string;
@@ -29,6 +30,7 @@ export function PassageEditor({
   onUpdate,
   onDelete,
 }: PassageEditorProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState(passage.title || "");
   const [content, setContent] = useState(passage.content);
   const [isStart, setIsStart] = useState(passage.isStart);
@@ -51,7 +53,7 @@ export function PassageEditor({
 
     const targetPassage = allPassages.find(p => p.number === linkTarget);
     if (!targetPassage) {
-      alert("Pasaje destino no encontrado");
+      alert(t("Passage.targetNotFound"));
       return;
     }
 
@@ -62,7 +64,7 @@ export function PassageEditor({
         body: JSON.stringify({
           sourceId: passage.id,
           targetId: targetPassage.id,
-          linkText: `Ve al pasaje ${linkTarget}`,
+          linkText: t("Passage.goToLink", { n: linkTarget }),
         }),
       });
 
@@ -81,7 +83,7 @@ export function PassageEditor({
 
     const sourcePassage = allPassages.find(p => p.number === linkTarget);
     if (!sourcePassage) {
-      alert("Pasaje origen no encontrado");
+      alert(t("Passage.sourceNotFound"));
       return;
     }
 
@@ -92,7 +94,7 @@ export function PassageEditor({
         body: JSON.stringify({
           sourceId: sourcePassage.id,
           targetId: passage.id,
-          linkText: `Ve al pasaje ${passage.number}`,
+          linkText: t("Passage.goToLink", { n: passage.number }),
         }),
       });
 
@@ -130,7 +132,7 @@ export function PassageEditor({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-primary">
-          Pasaje {passage.number}
+          {t("Passage.heading", { n: passage.number })}
           {passage.title && (
             <span className="text-muted-foreground ml-2">- {passage.title}</span>
           )}
@@ -138,11 +140,11 @@ export function PassageEditor({
         <div className="flex space-x-2">
           <Button variant="outline" onClick={handleSave}>
             <Save className="w-4 h-4 mr-2" />
-            Guardar
+            {t("Passage.save")}
           </Button>
           <Button variant="destructive" onClick={onDelete}>
             <Trash2 className="w-4 h-4 mr-2" />
-            Eliminar
+            {t("Passage.delete")}
           </Button>
         </div>
       </div>
@@ -150,11 +152,11 @@ export function PassageEditor({
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label htmlFor="passage-title" className="text-sm font-medium">
-            Título
+            {t("Passage.title")}
           </label>
           <Input
             id="passage-title"
-            placeholder="Título del pasaje (opcional)"
+            placeholder={t("Passage.titlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -168,7 +170,7 @@ export function PassageEditor({
               onChange={(e) => setIsStart(e.target.checked)}
               className="rounded border-border"
             />
-            <span className="text-sm">Es inicio</span>
+            <span className="text-sm">{t("Passage.isStart")}</span>
           </label>
           <label className="flex items-center space-x-2">
             <input
@@ -177,19 +179,19 @@ export function PassageEditor({
               onChange={(e) => setIsEndpoint(e.target.checked)}
               className="rounded border-border"
             />
-            <span className="text-sm">Es final</span>
+            <span className="text-sm">{t("Passage.isEnd")}</span>
           </label>
         </div>
       </div>
 
       <div className="space-y-2">
         <label htmlFor="passage-content" className="text-sm font-medium">
-          Contenido
+          {t("Passage.content")}
         </label>
         <textarea
           id="passage-content"
           className="flex min-h-[300px] w-full rounded-md border border-border bg-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
-          placeholder="Escribe el contenido del pasaje aquí..."
+          placeholder={t("Passage.contentPlaceholder")}
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -202,7 +204,7 @@ export function PassageEditor({
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-medium flex items-center">
               <ArrowUp className="w-4 h-4 mr-2 text-green-500" />
-              Enlaces Salientes ({passage.outgoingLinks.length})
+              {t("Passage.outgoingLinks", { n: passage.outgoingLinks.length })}
             </h3>
             <Button
               variant="outline"
@@ -213,13 +215,13 @@ export function PassageEditor({
               }}
             >
               <Link2 className="w-4 h-4 mr-1" />
-              Añadir
+              {t("Passage.add")}
             </Button>
           </div>
 
           {passage.outgoingLinks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Sin enlaces salientes
+              {t("Passage.noOutgoing")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -230,7 +232,7 @@ export function PassageEditor({
                 >
                   <span className="flex items-center">
                     <Link2 className="w-4 h-4 mr-2 text-green-500" />
-                    → Pasaje {link.target.number}
+                    {t("Passage.outLink", { n: link.target.number })}
                   </span>
                   <button
                     onClick={() => handleDeleteLink(link.targetId)}
@@ -249,7 +251,7 @@ export function PassageEditor({
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-medium flex items-center">
               <ArrowDown className="w-4 h-4 mr-2 text-blue-500" />
-              Enlaces Entrantes ({passage.incomingLinks.length})
+              {t("Passage.incomingLinks", { n: passage.incomingLinks.length })}
             </h3>
             <Button
               variant="outline"
@@ -260,13 +262,13 @@ export function PassageEditor({
               }}
             >
               <Link2 className="w-4 h-4 mr-1" />
-              Añadir
+              {t("Passage.add")}
             </Button>
           </div>
 
           {passage.incomingLinks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Sin enlaces entrantes
+              {t("Passage.noIncoming")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -277,7 +279,7 @@ export function PassageEditor({
                 >
                   <span className="flex items-center">
                     <Link2 className="w-4 h-4 mr-2 text-blue-500" />
-                    ← Pasaje {link.source.number}
+                    {t("Passage.inLink", { n: link.source.number })}
                   </span>
                   <button
                     onClick={async () => {
@@ -306,13 +308,13 @@ export function PassageEditor({
       {showOutgoingDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card rounded-lg p-6 w-full max-w-md border-medieval">
-            <h3 className="text-lg font-medium mb-4">Añadir Enlace Saliente</h3>
+            <h3 className="text-lg font-medium mb-4">{t("Passage.addOutgoing")}</h3>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Pasaje destino</label>
+                <label className="text-sm font-medium">{t("Passage.addTarget")}</label>
                 <Input
                   type="number"
-                  placeholder="Número del pasaje"
+                  placeholder={t("Passage.targetNumber")}
                   value={linkTarget}
                   onChange={(e) => setLinkTarget(parseInt(e.target.value) || "")}
                 />
@@ -330,10 +332,10 @@ export function PassageEditor({
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setShowOutgoingDialog(false)}>
-                  Cancelar
+                  {t("Passage.cancel")}
                 </Button>
                 <Button onClick={handleCreateOutgoingLink} disabled={linkTarget === ""}>
-                  Crear Enlace
+                  {t("Passage.createLink")}
                 </Button>
               </div>
             </div>
@@ -345,16 +347,16 @@ export function PassageEditor({
       {showIncomingDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card rounded-lg p-6 w-full max-w-md border-medieval">
-            <h3 className="text-lg font-medium mb-4">Añadir Enlace Entrante</h3>
+            <h3 className="text-lg font-medium mb-4">{t("Passage.addIncoming")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Selecciona el pasaje que enlazará hacia este pasaje ({passage.number})
+              {t("Passage.incomingHint", { n: passage.number })}
             </p>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Pasaje origen</label>
+                <label className="text-sm font-medium">{t("Passage.source")}</label>
                 <Input
                   type="number"
-                  placeholder="Número del pasaje origen"
+                  placeholder={t("Passage.sourceNumber")}
                   value={linkTarget}
                   onChange={(e) => setLinkTarget(parseInt(e.target.value) || "")}
                 />
@@ -372,10 +374,10 @@ export function PassageEditor({
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setShowIncomingDialog(false)}>
-                  Cancelar
+                  {t("Passage.cancel")}
                 </Button>
                 <Button onClick={handleCreateIncomingLink} disabled={linkTarget === ""}>
-                  Crear Enlace
+                  {t("Passage.createLink")}
                 </Button>
               </div>
             </div>
