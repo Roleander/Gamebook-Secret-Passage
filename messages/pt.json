@@ -312,7 +312,14 @@
     "themePreviewTitle": "Pré-visualização do título",
     "themePreviewText": "Texto de exemplo com cor de destaque",
     "saveTheme": "Salvar tema",
-    "themeSaved": "Tema salvo"
+    "themeSaved": "Tema salvo",
+    "extTitle": "Extensão do navegador",
+    "extDesc": "Instale a extensão do Chrome para salvar seleções de texto diretamente nos seus projetos. Gere um token para conectá-la.",
+    "extGenBtn": "Gerar token",
+    "extCopy": "Copiar token",
+    "extCopied": "Copiado!",
+    "extHint": "Cole o token na extensão. Ele expira em 30 dias.",
+    "extTokenError": "Não foi possível gerar o token"
   },
   "Analysis": {
     "tab": "Análise",

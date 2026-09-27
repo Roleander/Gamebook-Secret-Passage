@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Guardar en Gamebook</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-width: 420px;
+    }
+    h1 { font-size: 16px; margin: 0 0 4px; }
+    .source { font-size: 11px; color: #94a3b8; margin-bottom: 12px; word-break: break-all; }
+    label { display: block; font-size: 12px; color: #94a3b8; margin: 10px 0 4px; }
+    textarea, select, input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #e2e8f0;
+      padding: 8px;
+      font-size: 13px;
+    }
+    textarea { min-height: 140px; resize: vertical; font-family: inherit; }
+    .row { display: flex; gap: 8px; margin-top: 14px; }
+    button {
+      flex: 1;
+      padding: 9px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.primary { background: #6366f1; color: #fff; }
+    button.primary:hover { background: #4f46e5; }
+    button.ghost { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+    button:disabled { opacity: 0.6; cursor: default; }
+    #result { margin-top: 12px; font-size: 13px; display: none; }
+    #result.ok { color: #4ade80; }
+    #result.err { color: #f87171; }
+    .hint { font-size: 11px; color: #64748b; margin-top: 10px; line-height: 1.5; }
+    a { color: #818cf8; }
+    #tokenRow { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Guardar en Gamebook</h1>
+  <div class="source" id="source"></div>
+
+  <label for="text">Texto seleccionado</label>
+  <textarea id="text" placeholder="Selecciona o pega texto aquí..."></textarea>
+
+  <label for="project">Proyecto destino</label>
+  <select id="project">
+    <option value="">Cargando proyectos...</option>
+  </select>
+
+  <div id="tokenRow">
+    <label for="token">Token de conexión (Profile → Extensión)</label>
+    <input id="token" type="password" placeholder="Pega tu token aquí" autocomplete="off" />
+  </div>
+
+  <div class="row">
+    <button class="ghost" id="discard">Descartar</button>
+    <button class="primary" id="import">Importar selección</button>
+  </div>
+
+  <div id="result"></div>
+
+  <p class="hint">
+    ¿Sin token? Genera uno en tu cuenta: <a href="https://gamebook-secret-passage.vercel.app/profile" target="_blank" rel="noopener">Perfil → Extensión de navegador</a>.
+  </p>
+
+  <script src="capture.js"></script>
+</body>
+</html>

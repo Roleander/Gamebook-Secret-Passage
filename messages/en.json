@@ -312,7 +312,14 @@
     "themePreviewTitle": "Title preview",
     "themePreviewText": "Sample text with accent color",
     "saveTheme": "Save theme",
-    "themeSaved": "Theme saved"
+    "themeSaved": "Theme saved",
+    "extTitle": "Browser extension",
+    "extDesc": "Install the Chrome extension to save text selections straight into your projects. Generate a token to connect it.",
+    "extGenBtn": "Generate token",
+    "extCopy": "Copy token",
+    "extCopied": "Copied!",
+    "extHint": "Paste the token into the extension. It expires after 30 days.",
+    "extTokenError": "Could not generate the token"
   },
   "Analysis": {
     "tab": "Analysis",

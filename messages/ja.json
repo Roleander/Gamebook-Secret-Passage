@@ -312,7 +312,14 @@
     "themePreviewTitle": "タイトルのプレビュー",
     "themePreviewText": "アクセンターカラーのサンプルテキスト",
     "saveTheme": "テーマを保存",
-    "themeSaved": "テーマを保存しました"
+    "themeSaved": "テーマを保存しました",
+    "extTitle": "ブラウザ拡張機能",
+    "extDesc": "テキストの選択範囲をプロジェクトへ直接保存するにはChrome拡張機能をインストールしてください。接続用トークンを生成します。",
+    "extGenBtn": "トークンを生成",
+    "extCopy": "トークンをコピー",
+    "extCopied": "コピーしました！",
+    "extHint": "トークンを拡張機能に貼り付けてください。30日で失効します。",
+    "extTokenError": "トークンを生成できませんでした"
   },
   "Analysis": {
     "tab": "分析",

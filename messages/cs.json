@@ -312,7 +312,14 @@
     "themePreviewTitle": "Náhled nadpisu",
     "themePreviewText": "Ukázkový text s akcentovou barvou",
     "saveTheme": "Uložit motiv",
-    "themeSaved": "Motiv uložen"
+    "themeSaved": "Motiv uložen",
+    "extTitle": "Rozšíření prohlížeče",
+    "extDesc": "Nainstalujte rozšíření Chrome pro ukládání výběrů textu přímo do vašich projektů. Vygenerujte token pro připojení.",
+    "extGenBtn": "Vygenerovat token",
+    "extCopy": "Kopírovat token",
+    "extCopied": "Zkopírováno!",
+    "extHint": "Vložte token do rozšíření. Vyprší po 30 dnech.",
+    "extTokenError": "Token se nepodařilo vygenerovat"
   },
   "Analysis": {
     "tab": "Analýza",

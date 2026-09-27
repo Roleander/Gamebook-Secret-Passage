@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Gamebook Secret Passage",
+  "version": "1.0.0",
+  "description": "Guarda selecciones de texto directamente en tus proyectos de Gamebook.",
+  "permissions": ["contextMenus", "storage"],
+  "host_permissions": ["https://gamebook-secret-passage.vercel.app/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Gamebook Secret Passage",
+    "default_icon": {
+      "16": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  }
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gamebook</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 14px;
+      background: #0f172a;
+      color: #e2e8f0;
+      width: 260px;
+    }
+    h1 { font-size: 14px; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+    h1 img { width: 20px; height: 20px; border-radius: 4px; }
+    .pending {
+      font-size: 12px;
+      color: #94a3b8;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 10px;
+      max-height: 60px;
+      overflow: hidden;
+      display: none;
+    }
+    button, a.btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    button.primary { background: #6366f1; color: #fff; }
+    a.btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+    .hint { font-size: 11px; color: #64748b; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1><img src="icons/icon.png" alt="" /> Gamebook Secret Passage</h1>
+  <div class="pending" id="pending"></div>
+  <button class="primary" id="openCapture">Guardar selección</button>
+  <a class="btn" href="https://gamebook-secret-passage.vercel.app/projects" target="_blank" rel="noopener">Mis proyectos</a>
+  <a class="btn" href="https://gamebook-secret-passage.vercel.app/profile" target="_blank" rel="noopener">Perfil (token)</a>
+  <p class="hint">Selecciona texto en cualquier página → clic derecho → «Guardar selección en Gamebook».</p>
+  <script src="popup.js"></script>
+</body>
+</html>

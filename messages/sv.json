@@ -312,7 +312,14 @@
     "themePreviewTitle": "Titelförhandsvisning",
     "themePreviewText": "Exempeltext med accentfärg",
     "saveTheme": "Spara tema",
-    "themeSaved": "Tema sparat"
+    "themeSaved": "Tema sparat",
+    "extTitle": "Webbläsartillägg",
+    "extDesc": "Installera Chrome-tillägget för att spara textmarkeringar direkt i dina projekt. Generera en token för att ansluta det.",
+    "extGenBtn": "Generera token",
+    "extCopy": "Kopiera token",
+    "extCopied": "Kopierat!",
+    "extHint": "Klistra in token i tillägget. Går ut efter 30 dagar.",
+    "extTokenError": "Kunde inte generera token"
   },
   "Analysis": {
     "tab": "Analys",

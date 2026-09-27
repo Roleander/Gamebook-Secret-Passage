@@ -312,7 +312,14 @@
     "themePreviewTitle": "Aperçu du titre",
     "themePreviewText": "Texte d'exemple avec la couleur d'accent",
     "saveTheme": "Enregistrer le thème",
-    "themeSaved": "Thème enregistré"
+    "themeSaved": "Thème enregistré",
+    "extTitle": "Extension de navigateur",
+    "extDesc": "Installez l'extension Chrome pour enregistrer des sélections de texte directement dans vos projets. Générez un token pour la connecter.",
+    "extGenBtn": "Générer un token",
+    "extCopy": "Copier le token",
+    "extCopied": "Copié !",
+    "extHint": "Collez le token dans l'extension. Il expire après 30 jours.",
+    "extTokenError": "Impossible de générer le token"
   },
   "Analysis": {
     "tab": "Analyse",

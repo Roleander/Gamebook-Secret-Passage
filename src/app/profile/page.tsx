@@ -11,7 +11,7 @@ import { ThemeCustomizer } from "@/components/theme-customizer";
 import { LogoUpload } from "@/components/logo-upload";
 import { useTheme } from "@/lib/theme-context";
 import { useI18n } from "@/lib/i18n";
-import { User, Lock, CreditCard, Settings, Globe, CheckCircle } from "lucide-react";
+import { User, Lock, CreditCard, Settings, Globe, CheckCircle, Puzzle } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -55,6 +55,40 @@ export default function ProfilePage() {
   const [savedLogo, setSavedLogo] = useState<string | null>(null);
   const [savingLogo, setSavingLogo] = useState(false);
   const [successKey, setSuccessKey] = useState<string | null>(null);
+
+  // Browser extension token
+  const [extToken, setExtToken] = useState<string | null>(null);
+  const [generatingToken, setGeneratingToken] = useState(false);
+  const [tokenCopied, setTokenCopied] = useState(false);
+
+  const handleGenerateExtToken = async () => {
+    setGeneratingToken(true);
+    try {
+      const response = await fetch("/api/ext/token", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.error || t("Profile.extTokenError"));
+        return;
+      }
+      setExtToken(data.token);
+      setTokenCopied(false);
+    } catch {
+      alert(t("Profile.connectionError"));
+    } finally {
+      setGeneratingToken(false);
+    }
+  };
+
+  const handleCopyExtToken = async () => {
+    if (!extToken) return;
+    try {
+      await navigator.clipboard.writeText(extToken);
+      setTokenCopied(true);
+      setTimeout(() => setTokenCopied(false), 2000);
+    } catch {
+      // clipboard unavailable — user can select the field manually
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -415,6 +449,43 @@ export default function ProfilePage() {
           currentTheme={profile.theme}
           onThemeUpdate={handleThemeUpdate}
         />
+
+        {/* Browser Extension */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Puzzle className="w-5 h-5" />
+              {t("Profile.extTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">{t("Profile.extDesc")}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGenerateExtToken}
+                disabled={generatingToken}
+              >
+                {generatingToken ? t("Profile.saving") : t("Profile.extGenBtn")}
+              </Button>
+              {extToken && (
+                <Button size="sm" variant="outline" onClick={handleCopyExtToken}>
+                  {tokenCopied ? t("Profile.extCopied") : t("Profile.extCopy")}
+                </Button>
+              )}
+            </div>
+            {extToken && (
+              <input
+                readOnly
+                value={extToken}
+                onFocus={(e) => e.currentTarget.select()}
+                className="w-full text-xs font-mono border rounded px-2 py-1.5 bg-muted"
+              />
+            )}
+            <p className="text-xs text-muted-foreground">{t("Profile.extHint")}</p>
+          </CardContent>
+        </Card>
 
         {/* Admin Section */}
         {profile.role === "ADMIN" && (

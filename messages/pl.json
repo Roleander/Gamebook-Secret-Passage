@@ -312,7 +312,14 @@
     "themePreviewTitle": "Podgląd tytułu",
     "themePreviewText": "Przykładowy tekst w kolorze akcentu",
     "saveTheme": "Zapisz motyw",
-    "themeSaved": "Motyw zapisany"
+    "themeSaved": "Motyw zapisany",
+    "extTitle": "Rozszerzenie przeglądarki",
+    "extDesc": "Zainstaluj rozszerzenie Chrome, aby zapisywać zaznaczenia tekstu bezpośrednio w swoich projektach. Wygeneruj token, aby je połączyć.",
+    "extGenBtn": "Wygeneruj token",
+    "extCopy": "Kopiuj token",
+    "extCopied": "Skopiowano!",
+    "extHint": "Wklej token do rozszerzenia. Wygasa po 30 dniach.",
+    "extTokenError": "Nie udało się wygenerować tokena"
   },
   "Analysis": {
     "tab": "Analiza",
