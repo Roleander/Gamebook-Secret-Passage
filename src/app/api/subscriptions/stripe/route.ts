@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import Stripe from "stripe";
+import { SITE_URL } from "@/lib/site-url";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const origin = req.headers.get("origin") || "https://gamebook-secret-passage.vercel.app";
+    const origin = req.headers.get("origin") || SITE_URL;
 
     const isOneTime = plan.interval === "one-time";
     const isYearly = plan.interval === "year";

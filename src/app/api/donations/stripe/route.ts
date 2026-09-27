@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Stripe from "stripe";
+import { SITE_URL } from "@/lib/site-url";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     const safeMessage =
       typeof message === "string" ? message.slice(0, 500) : "";
 
-    const origin = req.headers.get("origin") || "https://gamebook-secret-passage.vercel.app";
+    const origin = req.headers.get("origin") || SITE_URL;
 
     const checkoutSession = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],

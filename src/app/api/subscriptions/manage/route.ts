@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import Stripe from "stripe";
+import { SITE_URL } from "@/lib/site-url";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -59,7 +60,7 @@ export async function POST() {
       );
     }
 
-    const origin = process.env.NEXTAUTH_URL || "https://gamebook-secret-passage.vercel.app";
+    const origin = process.env.NEXTAUTH_URL || SITE_URL;
 
     const portalSession = await getStripe().billingPortal.sessions.create({
       customer: user.stripeCustomerId,

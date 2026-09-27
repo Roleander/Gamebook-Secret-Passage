@@ -4,6 +4,7 @@ import { Providers } from "@/components/providers";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
 import { SiteFooter } from "@/components/site-footer";
+import { SITE_URL } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,7 +17,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://gamebook-secret-passage.vercel.app";
 const SITE_NAME = "Gamebook Secret Passage";
 const SITE_DESCRIPTION =
   "Forja librojuegos que hipnotizan. Crea, edita y exporta a PDF/EPUB con detección de errores y estilo medieval.";
