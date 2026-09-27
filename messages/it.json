@@ -498,5 +498,15 @@
     "confirmRestore": "Ripristinare questa versione? Lo stato attuale verrà sovrascritto.",
     "manualLabel": "Copia manuale",
     "error": "Errore della cronologia"
+  },
+  "Graph": {
+    "tab": "Grafo",
+    "empty": "Nessun passaggio da mostrare",
+    "startLegend": "Inizio",
+    "endLegend": "Fine",
+    "hint": "Clicca su un passaggio per aprirlo nell'editor",
+    "zoomIn": "Ingrandisci",
+    "zoomOut": "Riduci",
+    "untitled": "Senza titolo"
   }
 }

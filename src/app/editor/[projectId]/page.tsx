@@ -11,10 +11,11 @@ import { PassageList } from "@/components/editor/passage-list";
 import { ErrorPanel } from "@/components/editor/error-panel";
 import { AnalysisPanel } from "@/components/editor/analysis-panel";
 import { PreviewMode } from "@/components/editor/preview-mode";
+import { PassageGraph } from "@/components/editor/passage-graph";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Wand2, ChevronDown, Eye, Lock, LineChart
+  Trash2, Wand2, ChevronDown, Eye, Lock, LineChart, Network
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
@@ -69,7 +70,7 @@ export default function EditorPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [selectedPassage, setSelectedPassage] = useState<Passage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "errors">("editor");
+  const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "graph" | "errors">("editor");
   const [autoFixing, setAutoFixing] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -601,6 +602,13 @@ export default function EditorPage() {
                 {t("Analysis.tab")}
               </Button>
               <Button
+                variant={activeTab === "graph" ? "default" : "ghost"}
+                onClick={() => setActiveTab("graph")}
+              >
+                <Network className="w-4 h-4 mr-2" />
+                {t("Graph.tab")}
+              </Button>
+              <Button
                 variant={activeTab === "errors" ? "default" : "ghost"}
                 onClick={() => setActiveTab("errors")}
               >
@@ -652,6 +660,24 @@ export default function EditorPage() {
                 onRequireUpgrade={(msg) => setUpgradeMsg(msg)}
                 onChanged={fetchProject}
               />
+            )}
+
+            {activeTab === "graph" && (
+              <Card>
+                <CardContent className="p-6">
+                  <PassageGraph
+                    passages={project.passages}
+                    selectedPassageId={selectedPassage?.id}
+                    onSelect={(gp) => {
+                      const passage = project.passages.find((p) => p.id === gp.id);
+                      if (passage) {
+                        setSelectedPassage(passage);
+                        setActiveTab("editor");
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
             )}
 
             {activeTab === "errors" && (

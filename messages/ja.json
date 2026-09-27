@@ -498,5 +498,15 @@
     "confirmRestore": "このバージョンを復元しますか？現在の状態は上書きされます。",
     "manualLabel": "手動コピー",
     "error": "履歴エラー"
+  },
+  "Graph": {
+    "tab": "グラフ",
+    "empty": "表示するパッセージがありません",
+    "startLegend": "開始",
+    "endLegend": "終了",
+    "hint": "パッセージをクリックしてエディターで開きます",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "untitled": "無題"
   }
 }

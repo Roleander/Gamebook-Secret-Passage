@@ -498,5 +498,15 @@
     "confirmRestore": "Diese Version wiederherstellen? Der aktuelle Zustand wird überschrieben.",
     "manualLabel": "Manuelle Kopie",
     "error": "Verlaufsfehler"
+  },
+  "Graph": {
+    "tab": "Graph",
+    "empty": "Keine Passagen zum Anzeigen",
+    "startLegend": "Start",
+    "endLegend": "Ende",
+    "hint": "Klicke auf eine Passage, um sie im Editor zu öffnen",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "untitled": "Ohne Titel"
   }
 }

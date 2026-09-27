@@ -498,5 +498,15 @@
     "confirmRestore": "Restaurer cette version ? L'état actuel sera écrasé.",
     "manualLabel": "Copie manuelle",
     "error": "Erreur de l'historique"
+  },
+  "Graph": {
+    "tab": "Graphe",
+    "empty": "Aucun passage à afficher",
+    "startLegend": "Début",
+    "endLegend": "Fin",
+    "hint": "Cliquez sur un passage pour l'ouvrir dans l'éditeur",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "untitled": "Sans titre"
   }
 }

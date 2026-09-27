@@ -498,5 +498,15 @@
     "confirmRestore": "Przywrócić tę wersję? Bieżący stan zostanie zastąpiony.",
     "manualLabel": "Kopia ręczna",
     "error": "Błąd historii"
+  },
+  "Graph": {
+    "tab": "Graf",
+    "empty": "Brak pasażów do wyświetlenia",
+    "startLegend": "Start",
+    "endLegend": "Koniec",
+    "hint": "Kliknij pasaż, aby otworzyć go w edytorze",
+    "zoomIn": "Przybliż",
+    "zoomOut": "Oddal",
+    "untitled": "Bez tytułu"
   }
 }

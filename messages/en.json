@@ -498,5 +498,15 @@
     "confirmSave": "Save a copy of the current state?",
     "manualLabel": "Manual copy",
     "error": "History error"
+  },
+  "Graph": {
+    "tab": "Graph",
+    "empty": "No passages to show",
+    "startLegend": "Start",
+    "endLegend": "End",
+    "hint": "Click a passage to open it in the editor",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "untitled": "Untitled"
   }
 }

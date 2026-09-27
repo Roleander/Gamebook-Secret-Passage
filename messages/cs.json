@@ -498,5 +498,15 @@
     "confirmRestore": "Obnovit tuto verzi? Aktuální stav bude přepsán.",
     "manualLabel": "Ruční kopie",
     "error": "Chyba historie"
+  },
+  "Graph": {
+    "tab": "Graf",
+    "empty": "Žádné pasáže k zobrazení",
+    "startLegend": "Začátek",
+    "endLegend": "Konec",
+    "hint": "Klepněte na pasáž a otevřete ji v editoru",
+    "zoomIn": "Přiblížit",
+    "zoomOut": "Oddálit",
+    "untitled": "Bez názvu"
   }
 }

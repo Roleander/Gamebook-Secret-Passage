@@ -498,5 +498,15 @@
     "confirmSave": "¿Guardar una copia manual del estado actual?",
     "manualLabel": "Versión manual",
     "error": "Error en el historial"
+  },
+  "Graph": {
+    "tab": "Grafo",
+    "empty": "No hay pasajes para mostrar",
+    "startLegend": "Inicio",
+    "endLegend": "Final",
+    "hint": "Haz clic en un pasaje para abrirlo en el editor",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "untitled": "Sin título"
   }
 }

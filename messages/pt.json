@@ -498,5 +498,15 @@
     "confirmRestore": "Restaurar esta versão? O estado atual será sobrescrito.",
     "manualLabel": "Cópia manual",
     "error": "Erro no histórico"
+  },
+  "Graph": {
+    "tab": "Grafo",
+    "empty": "Nenhuma passagem para mostrar",
+    "startLegend": "Início",
+    "endLegend": "Fim",
+    "hint": "Clique em uma passagem para abri-la no editor",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir",
+    "untitled": "Sem título"
   }
 }

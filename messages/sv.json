@@ -498,5 +498,15 @@
     "confirmRestore": "Återställ denna version? Det aktuella läget skrivs över.",
     "manualLabel": "Manuell kopia",
     "error": "Historikfel"
+  },
+  "Graph": {
+    "tab": "Graf",
+    "empty": "Inga passager att visa",
+    "startLegend": "Start",
+    "endLegend": "Slut",
+    "hint": "Klicka på en passage för att öppna den i redigeraren",
+    "zoomIn": "Zooma in",
+    "zoomOut": "Zooma ut",
+    "untitled": "Utan titel"
   }
 }
