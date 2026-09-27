@@ -345,6 +345,10 @@
     "applyDetection": "検出を適用",
     "type_explicit": "明示的",
     "type_implicit": "暗黙的",
-    "type_suggested": "提案"
+    "type_suggested": "提案",
+    "aiConnections": "AI: 接続",
+    "aiSegment": "AI: セグメント化",
+    "aiFallback": "AI 不利用可能 — ローカル分析を使用",
+    "aiRateLimit": "AIリクエスト上限に達しました。数分後に再試行してください。"
   }
 }

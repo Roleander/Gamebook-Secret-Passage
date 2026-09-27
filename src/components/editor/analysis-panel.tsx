@@ -9,16 +9,21 @@ import {
   createPassageDetector,
   type Connection,
   type AnalysisResult,
-  type DetectedPassage,
 } from "@/lib/agents";
 import {
-  Lock, Search, Lightbulb, ScanText, Wand2, CheckCircle2, AlertCircle,
+  Lock, Search, Lightbulb, ScanText, Wand2, CheckCircle2, AlertCircle, Sparkles,
 } from "lucide-react";
 
 interface PanelPassage {
   number: number;
   content: string;
   outgoingLinks: { target: { number: number } }[];
+}
+
+interface DetectedSegment {
+  title: string | null;
+  content: string;
+  confidence: number;
 }
 
 interface AnalysisPanelProps {
@@ -57,7 +62,7 @@ export function AnalysisPanel({
   const [status, setStatus] = useState<Status>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [suggestions, setSuggestions] = useState<Connection[] | null>(null);
-  const [detected, setDetected] = useState<DetectedPassage[] | null>(null);
+  const [detected, setDetected] = useState<DetectedSegment[] | null>(null);
 
   const existingPairs = new Set(
     passages.flatMap((p) =>
@@ -148,10 +153,87 @@ export function AnalysisPanel({
         return;
       }
       const detector = createPassageDetector();
-      const found = detector.detect(data.rawContent).filter((d) => d.content.trim().length > 0);
+      const found = detector
+        .detect(data.rawContent)
+        .filter((d) => d.content.trim().length > 0)
+        .map((d) => ({ title: null, content: d.content, confidence: d.confidence }));
       setDetected(found);
       setStatus(
         found.length === 0 ? { kind: "info", text: t("Analysis.noDetected") } : null
+      );
+    } catch {
+      setStatus({ kind: "error", text: t("Analysis.error") });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runAiConnections = async () => {
+    setBusy("aiConnections");
+    setStatus(null);
+    try {
+      const response = await fetch("/api/ai/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId }),
+      });
+      if (await handleUpgrade(response, t("Analysis.upgradeMsg"))) return;
+      if (response.status === 429) {
+        setStatus({ kind: "error", text: t("Analysis.aiRateLimit") });
+        return;
+      }
+      if (!response.ok) {
+        runConnections();
+        setStatus({ kind: "info", text: t("Analysis.aiFallback") });
+        return;
+      }
+      const data = await response.json();
+      const aiConnections: Connection[] = Array.isArray(data.connections)
+        ? data.connections
+        : [];
+      setSuggestions(aiConnections);
+      setStatus(
+        aiConnections.length === 0
+          ? { kind: "info", text: t("Analysis.noSuggestions") }
+          : null
+      );
+    } catch {
+      setStatus({ kind: "error", text: t("Analysis.error") });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runAiSegment = async () => {
+    setBusy("aiSegment");
+    setStatus(null);
+    try {
+      const response = await fetch("/api/ai/segment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId }),
+      });
+      if (await handleUpgrade(response, t("Analysis.upgradeMsg"))) return;
+      if (response.status === 429) {
+        setStatus({ kind: "error", text: t("Analysis.aiRateLimit") });
+        return;
+      }
+      if (!response.ok) {
+        await runDetect();
+        setStatus({ kind: "info", text: t("Analysis.aiFallback") });
+        return;
+      }
+      const data = await response.json();
+      const segs: DetectedSegment[] = (Array.isArray(data.segments) ? data.segments : [])
+        .map((s: { title?: string | null; content?: string }) => ({
+          title: s.title ?? null,
+          content: String(s.content ?? ""),
+          confidence: 0.9,
+        }))
+        .filter((s: DetectedSegment) => s.content.trim().length > 0);
+      setDetected(segs);
+      setStatus(
+        segs.length === 0 ? { kind: "info", text: t("Analysis.noDetected") } : null
       );
     } catch {
       setStatus({ kind: "error", text: t("Analysis.error") });
@@ -220,6 +302,7 @@ export function AnalysisPanel({
   };
 
   const applyDetection = async () => {
+    if (!detected || detected.length === 0) return;
     if (!window.confirm(t("Analysis.confirmReplace"))) return;
     setBusy("applyDetection");
     setStatus(null);
@@ -227,7 +310,10 @@ export function AnalysisPanel({
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId }),
+        body: JSON.stringify({
+          projectId,
+          segments: detected.map((s) => ({ title: s.title, content: s.content })),
+        }),
       });
       if (await handleUpgrade(response, t("Analysis.upgradeMsg"))) {
         setBusy(null);
@@ -293,6 +379,14 @@ export function AnalysisPanel({
           <Button size="sm" variant="outline" onClick={runDetect} disabled={busy !== null}>
             <ScanText className="w-3.5 h-3.5 mr-1.5" />
             {busy === "detect" ? t("Analysis.analyzing") : t("Analysis.detect")}
+          </Button>
+          <Button size="sm" variant="outline" onClick={runAiConnections} disabled={busy !== null}>
+            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+            {busy === "aiConnections" ? t("Analysis.analyzing") : t("Analysis.aiConnections")}
+          </Button>
+          <Button size="sm" variant="outline" onClick={runAiSegment} disabled={busy !== null}>
+            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+            {busy === "aiSegment" ? t("Analysis.analyzing") : t("Analysis.aiSegment")}
           </Button>
         </div>
 

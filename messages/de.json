@@ -345,6 +345,10 @@
     "applyDetection": "Erkennung anwenden",
     "type_explicit": "explizit",
     "type_implicit": "implizit",
-    "type_suggested": "vorgeschlagen"
+    "type_suggested": "vorgeschlagen",
+    "aiConnections": "KI: Verbindungen",
+    "aiSegment": "KI: segmentieren",
+    "aiFallback": "KI nicht verfügbar — lokale Analyse verwendet",
+    "aiRateLimit": "KI-Anfragelimit erreicht. In wenigen Minuten erneut versuchen."
   }
 }

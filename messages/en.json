@@ -345,6 +345,10 @@
     "applyDetection": "Apply detection",
     "type_explicit": "explicit",
     "type_implicit": "implicit",
-    "type_suggested": "suggested"
+    "type_suggested": "suggested",
+    "aiConnections": "AI: connections",
+    "aiSegment": "AI: segment",
+    "aiFallback": "AI unavailable — used local analysis",
+    "aiRateLimit": "AI request limit reached. Try again in a few minutes."
   }
 }

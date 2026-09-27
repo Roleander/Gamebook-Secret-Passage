@@ -345,6 +345,10 @@
     "applyDetection": "Zastosuj wykrycie",
     "type_explicit": "jawne",
     "type_implicit": "niejawne",
-    "type_suggested": "sugerowane"
+    "type_suggested": "sugerowane",
+    "aiConnections": "AI: połączenia",
+    "aiSegment": "AI: segmentuj",
+    "aiFallback": "AI niedostępne — użyto lokalnej analizy",
+    "aiRateLimit": "Osiągnięto limit zapytań AI. Spróbuj ponownie za chwilę."
   }
 }

@@ -25,6 +25,16 @@ const applyConnectionsSchema = z.object({
 
 const applyDetectionSchema = z.object({
   projectId: z.string().min(1),
+  segments: z
+    .array(
+      z.object({
+        title: z.string().max(300).nullish(),
+        content: z.string().min(1).max(50_000),
+      })
+    )
+    .min(1)
+    .max(600)
+    .optional(),
 });
 
 export async function POST(req: Request) {
@@ -123,18 +133,26 @@ export async function POST(req: Request) {
         orderBy: { importedAt: "desc" },
       });
 
-      if (!importHistory?.rawContent) {
-        return NextResponse.json(
-          { error: "No hay contenido raw para analizar" },
-          { status: 400 }
-        );
-      }
+      let segments: { title: string | null; content: string }[];
 
-      const detector = createPassageDetector();
-      const detected = detector.detect(importHistory.rawContent);
-      const segments = detected
-        .filter((d) => d.content.trim().length > 0)
-        .map((d) => ({ content: d.content.trim() }));
+      if (parsed.data.segments) {
+        segments = parsed.data.segments
+          .map((s) => ({ title: s.title ?? null, content: s.content.trim() }))
+          .filter((s) => s.content.length > 0);
+      } else {
+        if (!importHistory?.rawContent) {
+          return NextResponse.json(
+            { error: "No hay contenido raw para analizar" },
+            { status: 400 }
+          );
+        }
+
+        const detector = createPassageDetector();
+        const detected = detector.detect(importHistory.rawContent);
+        segments = detected
+          .filter((d) => d.content.trim().length > 0)
+          .map((d) => ({ title: null, content: d.content.trim() }));
+      }
 
       if (segments.length === 0) {
         return NextResponse.json(

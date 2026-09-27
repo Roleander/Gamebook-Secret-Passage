@@ -345,6 +345,10 @@
     "applyDetection": "Použít detekci",
     "type_explicit": "explicitní",
     "type_implicit": "implicitní",
-    "type_suggested": "navržená"
+    "type_suggested": "navržená",
+    "aiConnections": "AI: spojení",
+    "aiSegment": "AI: segmentovat",
+    "aiFallback": "AI není k dispozici — použita místní analýza",
+    "aiRateLimit": "Dosažen limit AI požadavků. Zkuste to za chvíli znovu."
   }
 }

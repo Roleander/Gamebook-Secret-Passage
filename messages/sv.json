@@ -345,6 +345,10 @@
     "applyDetection": "Tillämpa detektion",
     "type_explicit": "explicit",
     "type_implicit": "implicit",
-    "type_suggested": "föreslagen"
+    "type_suggested": "föreslagen",
+    "aiConnections": "AI: kopplingar",
+    "aiSegment": "AI: segmentera",
+    "aiFallback": "AI otillgänglig — lokal analys användes",
+    "aiRateLimit": "AI-förfrågningsgräns nådd. Försök igen om några minuter."
   }
 }

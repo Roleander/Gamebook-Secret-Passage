@@ -345,6 +345,10 @@
     "applyDetection": "पहचान लागू करें",
     "type_explicit": "स्पष्ट",
     "type_implicit": "अंतर्निहित",
-    "type_suggested": "सुझाया गया"
+    "type_suggested": "सुझाया गया",
+    "aiConnections": "AI: कनेक्शन",
+    "aiSegment": "AI: खंड बनाएँ",
+    "aiFallback": "AI अनुपलब्ध — स्थानीय विश्लेषण उपयोग हुआ",
+    "aiRateLimit": "AI अनुरोध सीमा पूरी। कुछ मिनट बाद पुनः प्रयास करें।"
   }
 }

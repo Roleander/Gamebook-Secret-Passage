@@ -345,6 +345,10 @@
     "applyDetection": "Aplicar detección",
     "type_explicit": "explícita",
     "type_implicit": "implícita",
-    "type_suggested": "sugerida"
+    "type_suggested": "sugerida",
+    "aiConnections": "IA: conexiones",
+    "aiSegment": "IA: segmentar",
+    "aiFallback": "IA no disponible — se usó el análisis local",
+    "aiRateLimit": "Límite de peticiones de IA alcanzado. Inténtalo en unos minutos."
   }
 }
