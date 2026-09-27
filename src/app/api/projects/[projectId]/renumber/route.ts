@@ -3,21 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
+import { replaceNumberReferences } from "@/lib/number-references";
 
 export const dynamic = "force-dynamic";
-
-function updateAllNumberReferences(content: string, mapping: Map<number, number>): string {
-  const tempPrefix = "§REF§";
-  const tempSuffix = "§/REF§";
-  let result = content;
-  for (const [oldNum, newNum] of mapping) {
-    const regex = new RegExp(`\\b${oldNum}\\b`, "g");
-    result = result.replace(regex, `${tempPrefix}${newNum}${tempSuffix}`);
-  }
-  const tempRegex = new RegExp(`${tempPrefix}(\\d+)${tempSuffix}`, "g");
-  result = result.replace(tempRegex, "$1");
-  return result;
-}
 
 export async function POST(
   req: Request,
@@ -29,10 +17,7 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const ents = await getEntitlements(
-      (session.user as any).id,
-      (session.user as any).role
-    );
+    const ents = await getEntitlements(session.user.id, session.user.role);
     if (!ents.features.shuffle) {
       return upgradeRequired("renumber", "La renumeración de pasajes requiere un plan Pro");
     }
@@ -42,7 +27,7 @@ export async function POST(
     const { startFrom = 1, step = 1 } = body;
 
     const project = await db.project.findFirst({
-      where: { id: projectId, userId: (session.user as any).id },
+      where: { id: projectId, userId: session.user.id },
     });
 
     if (!project) {
@@ -75,9 +60,9 @@ export async function POST(
 
     // Update content references
     const allPassages = await db.passage.findMany({ where: { projectId } });
-    const contentUpdates: Promise<any>[] = [];
+    const contentUpdates: ReturnType<typeof db.passage.update>[] = [];
     for (const p of allPassages) {
-      const newContent = updateAllNumberReferences(p.content, numberMapping);
+      const newContent = replaceNumberReferences(p.content, numberMapping);
       if (newContent !== p.content) {
         contentUpdates.push(
           db.passage.update({ where: { id: p.id }, data: { content: newContent } })
