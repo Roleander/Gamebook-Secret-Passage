@@ -87,4 +87,140 @@ describe("PassageDetectorAgent", () => {
     expect(passages[0].markers).toEqual([]);
     expect(detector.suggestNumbers(passages)).toEqual([1]);
   });
+
+  it("splits passages separated by *** lines", () => {
+    const text = [
+      "Primer tramo con prosa.",
+      "Segunda línea del tramo.",
+      "***",
+      "Segundo tramo con prosa.",
+      "Otra línea del tramo.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("Primer tramo");
+    expect(passages[1].content).toContain("Segundo tramo");
+  });
+
+  it("splits passages separated by === lines", () => {
+    const text = [
+      "Primer tramo con prosa.",
+      "Segunda línea del tramo.",
+      "===",
+      "Segundo tramo con prosa.",
+      "Otra línea del tramo.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("Primer tramo");
+    expect(passages[1].content).toContain("Segundo tramo");
+  });
+
+  it("splits at lines starting with 'pasaje N'", () => {
+    const text = [
+      "Estás junto al árbol.",
+      "La hoja cruje al moverse.",
+      "Pasaje 5 empieza con niebla.",
+      "Oscurece de golpe.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("árbol");
+    expect(passages[1].content).toContain("niebla");
+  });
+
+  it("splits at lines starting with 'section N'", () => {
+    const text = [
+      "Primer bloque de prosa.",
+      "Otra línea aquí.",
+      "section 2 comienza tras el umbral.",
+      "Texto posterior al umbral.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[1].content).toContain("umbral.");
+    expect(passages[1].content).toContain("posterior");
+  });
+
+  it("splits at lines starting with 'capitulo N'", () => {
+    const text = [
+      "Primer bloque de prosa.",
+      "Otra línea aquí.",
+      "capitulo 3 arranca con el ruido.",
+      "Texto posterior al ruido.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[1].content).toContain("ruido.");
+    expect(passages[1].content).toContain("posterior");
+  });
+
+  it("splits at bracket links [ve al pasaje N]", () => {
+    const text = [
+      "Caminas por el puente.",
+      "El viento golpea con fuerza.",
+      "[ve al pasaje 4] aparece en el pergamino.",
+      "Guardas el pergamino.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("puente");
+    expect(passages[1].content).toContain("pergamino");
+  });
+
+  it("splits at conditional 'continua en N' links", () => {
+    const text = [
+      "Pisas la tabla suelta.",
+      "El piso cede bajo tus pies.",
+      "Si pierdes el agarre, continua en 4.",
+      "Caes a la habitación inferior.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("tabla suelta");
+    expect(passages[1].content).toContain("inferior");
+  });
+
+  it("splits when an end marker appears in a line", () => {
+    const text = [
+      "Sientes el frío en las manos.",
+      "La oscuridad te envuelve por completo.",
+      "Y entonces llega tu muerte.",
+      "Nada más queda después.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("frío");
+    expect(passages[1].content).toContain("muerte");
+  });
+
+  it("splits irregular numbering: '2)' and '3 ' prefixes", () => {
+    const text = [
+      "Uno con prosa.",
+      "Línea de apoyo.",
+      "2) Dos con paréntesis.",
+      "Más contenido.",
+      "3 Tres sin punto final.",
+      "Cierre del bloque.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(3);
+    expect(passages[0].content).toContain("Uno");
+    expect(passages[1].content).toContain("Dos");
+    expect(passages[2].content).toContain("Tres");
+  });
+
+  it("does not split on title-like lines alone (score below threshold)", () => {
+    const text = [
+      "La historia comienza en silencio.",
+      "Nadie mueve pieza en el tablero.",
+      "",
+      "EL GRAN TÍTULO",
+      "",
+      "El juego vuelve a empezar por otro lado.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(1);
+    expect(passages[0].content).toBe(text.trim());
+  });
 });
