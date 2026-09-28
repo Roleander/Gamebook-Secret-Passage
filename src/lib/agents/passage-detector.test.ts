@@ -64,4 +64,27 @@ describe("PassageDetectorAgent", () => {
     expect(passages.length).toBeGreaterThanOrEqual(1);
     expect(passages[0].content).toContain("cueva");
   });
+
+  it("does not invent passages in a continuous text without markers", () => {
+    const text = [
+      "Te despiertas sin recordar cómo llegaste hasta aquí,",
+      "con la cabeza pesada y un frío que se te mete en los huesos.",
+      "Delante de ti se alza una muralla cubierta de hiedra",
+      "y una puerta de madera entreabierta que cruje con el viento.",
+      "",
+      "El guardia que custodia el paso te mira con desconfianza",
+      "y apoya la lanza contra el suelo mientras decides qué hacer.",
+      "A tu izquierda hay un sendero estrecho que baja hacia el río,",
+      "y a la derecha una escalera que asciende hasta las almenas.",
+    ].join("\n");
+
+    const detector = createPassageDetector();
+    const passages = detector.detect(text);
+
+    expect(passages).toHaveLength(1);
+    expect(passages[0].content).toBe(text.trim());
+    expect(passages[0].confidence).toBe(0);
+    expect(passages[0].markers).toEqual([]);
+    expect(detector.suggestNumbers(passages)).toEqual([1]);
+  });
 });

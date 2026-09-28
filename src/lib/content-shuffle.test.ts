@@ -90,6 +90,47 @@ describe("buildContentShufflePlan", () => {
     expect(plan.storyToSlot.get(1)).toBe(2);
     expect(plan.storyToSlot.get(2)).toBe(3);
   });
+
+  it("keeps numbers, start slot and link targets coherent across 20 shuffles", () => {
+    const n = 12;
+    const links: Array<[number, number]> = [
+      [1, 2], [1, 3], [2, 4], [2, 5], [3, 6], [4, 7], [5, 8],
+      [6, 9], [7, 10], [8, 11], [9, 12], [10, 12], [11, 3], [12, 1],
+    ];
+    let changed = 0;
+
+    for (let seed = 1; seed <= 20; seed++) {
+      const plan = buildContentShufflePlan(makePassages(n), {
+        rng: seededRng(seed),
+      });
+
+      const slots = [...plan.storyToSlot.values()].sort((a, b) => a - b);
+      expect(slots).toEqual(Array.from({ length: n }, (_, i) => i + 1));
+      expect(plan.storyToSlot.get(1)).toBe(1);
+      expect(plan.slotToStory.get(1)).toBe(1);
+
+      let identity = true;
+      for (let story = 1; story <= n; story++) {
+        if (plan.storyToSlot.get(story) !== story) identity = false;
+      }
+      if (!identity) changed++;
+
+      for (const [source, target] of links) {
+        const mappedSource = plan.storyToSlot.get(source) ?? -1;
+        const mappedTarget = plan.storyToSlot.get(target) ?? -1;
+        expect(mappedSource).toBeGreaterThanOrEqual(1);
+        expect(mappedSource).toBeLessThanOrEqual(n);
+        expect(mappedTarget).toBeGreaterThanOrEqual(1);
+        expect(mappedTarget).toBeLessThanOrEqual(n);
+        expect(mappedSource).not.toBe(mappedTarget);
+        expect(rewriteShuffledContent(`Ve al pasaje ${target}.`, plan)).toBe(
+          `Ve al pasaje ${mappedTarget}.`
+        );
+      }
+    }
+
+    expect(changed).toBeGreaterThanOrEqual(18);
+  });
 });
 
 describe("rewriteShuffledContent", () => {
