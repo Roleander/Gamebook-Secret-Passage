@@ -4,14 +4,14 @@
   "installCommand": "npm install",
   "redirects": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "gamebook-secret-passage.vercel.app"
         }
       ],
-      "destination": "https://gamebooksecret.com/:splat",
+      "destination": "https://gamebooksecret.com/:path*",
       "permanent": true
     }
   ]
