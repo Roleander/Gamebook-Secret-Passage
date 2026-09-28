@@ -631,5 +631,28 @@
     "suggested": "Sugerida",
     "confidence": "Confianza {n}%",
     "error": "Error al procesar la sugerencia"
+  },
+  "Offline": {
+    "title": "Sin conexión",
+    "subtitle": "Proyectos guardados en este dispositivo para leer sin internet.",
+    "subtitleLocal": "Lectura local desde la copia guardada en este dispositivo.",
+    "empty": "Aún no hay proyectos guardados",
+    "emptyHint": "Abre un proyecto con conexión y se guardará automáticamente aquí.",
+    "read": "Leer",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Eliminar este proyecto de la caché local?",
+    "deleteError": "No se pudo eliminar el proyecto",
+    "exportError": "No se pudo exportar el proyecto",
+    "passages": "{n} pasajes",
+    "saved": "Guardado",
+    "notFound": "Este proyecto no está guardado en este dispositivo.",
+    "back": "Volver",
+    "passage": "Pasaje {n}",
+    "prev": "Atrás",
+    "continueTo": "Continuar al pasaje {n}",
+    "end": "Fin de la historia",
+    "restart": "Volver a empezar"
   }
 }

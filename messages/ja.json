@@ -631,5 +631,28 @@
     "suggested": "提案",
     "confidence": "信頼度 {n}%",
     "error": "提案の処理中にエラーが発生しました"
+  },
+  "Offline": {
+    "title": "オフライン",
+    "subtitle": "インターネットなしで読むためにこの端末に保存されたプロジェクト。",
+    "subtitleLocal": "この端末に保存されたコピーからのローカル閲覧です。",
+    "empty": "保存されたプロジェクトはまだありません",
+    "emptyHint": "接続中にプロジェクトを開くと、ここに自動保存されます。",
+    "read": "読む",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "削除",
+    "deleteConfirm": "このプロジェクトをローカルキャッシュから削除しますか？",
+    "deleteError": "プロジェクトを削除できませんでした",
+    "exportError": "プロジェクトを書き出せませんでした",
+    "passages": "{n} のパッセージ",
+    "saved": "保存済み",
+    "notFound": "このプロジェクトはこの端末に保存されていません。",
+    "back": "戻る",
+    "passage": "パッセージ {n}",
+    "prev": "戻る",
+    "continueTo": "パッセージ {n} へ進む",
+    "end": "物語の終わり",
+    "restart": "最初からやり直す"
   }
 }

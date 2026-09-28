@@ -631,5 +631,28 @@
     "suggested": "Suggested",
     "confidence": "Confidence {n}%",
     "error": "Error processing the suggestion"
+  },
+  "Offline": {
+    "title": "Offline",
+    "subtitle": "Projects saved on this device to read without internet.",
+    "subtitleLocal": "Local reading from the copy saved on this device.",
+    "empty": "No saved projects yet",
+    "emptyHint": "Open a project while online and it will be saved here automatically.",
+    "read": "Read",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this project from the local cache?",
+    "deleteError": "Could not delete the project",
+    "exportError": "Could not export the project",
+    "passages": "{n} passages",
+    "saved": "Saved",
+    "notFound": "This project is not saved on this device.",
+    "back": "Back",
+    "passage": "Passage {n}",
+    "prev": "Back",
+    "continueTo": "Continue to passage {n}",
+    "end": "The end of the story",
+    "restart": "Start again"
   }
 }

@@ -631,5 +631,28 @@
     "suggested": "Vorgeschlagen",
     "confidence": "Konfidenz {n}%",
     "error": "Fehler beim Verarbeiten des Vorschlags"
+  },
+  "Offline": {
+    "title": "Offline",
+    "subtitle": "Auf diesem Gerät gespeicherte Projekte zum Lesen ohne Internet.",
+    "subtitleLocal": "Lokales Lesen aus der auf diesem Gerät gespeicherten Kopie.",
+    "empty": "Noch keine gespeicherten Projekte",
+    "emptyHint": "Öffne ein Projekt mit Verbindung und es wird hier automatisch gespeichert.",
+    "read": "Lesen",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "Löschen",
+    "deleteConfirm": "Dieses Projekt aus dem lokalen Cache löschen?",
+    "deleteError": "Projekt konnte nicht gelöscht werden",
+    "exportError": "Projekt konnte nicht exportiert werden",
+    "passages": "{n} Abschnitte",
+    "saved": "Gespeichert",
+    "notFound": "Dieses Projekt ist auf diesem Gerät nicht gespeichert.",
+    "back": "Zurück",
+    "passage": "Abschnitt {n}",
+    "prev": "Zurück",
+    "continueTo": "Weiter zu Abschnitt {n}",
+    "end": "Ende der Geschichte",
+    "restart": "Neu beginnen"
   }
 }

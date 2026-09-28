@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import { cacheProject } from "@/lib/offline-cache";
+import { toOfflineSnapshot } from "@/lib/offline-snapshot";
   import { HistoryPanel } from "@/components/editor/history-panel";
 
 interface Entitlements {
@@ -115,6 +117,7 @@ export default function EditorPage() {
       if (response.ok) {
         const data = await response.json();
         setProject(data);
+        cacheProject(toOfflineSnapshot(data)).catch(() => {});
       } else {
         router.push("/projects");
       }

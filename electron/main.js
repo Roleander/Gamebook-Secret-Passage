@@ -12,7 +12,12 @@ let autoUpdater = null;
 
 function loadApp() {
   if (!mainWindow) return;
-  mainWindow.loadURL(APP_URL).catch(() => loadOffline());
+  mainWindow.loadURL(APP_URL).catch(() => loadOfflineApp());
+}
+
+function loadOfflineApp() {
+  if (!mainWindow) return;
+  mainWindow.loadURL(`${APP_URL}/offline`).catch(() => loadOffline());
 }
 
 function loadOffline() {

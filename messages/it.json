@@ -631,5 +631,28 @@
     "suggested": "Suggerito",
     "confidence": "Confidenza {n}%",
     "error": "Errore nell'elaborazione del suggerimento"
+  },
+  "Offline": {
+    "title": "Offline",
+    "subtitle": "Progetti salvati su questo dispositivo da leggere senza internet.",
+    "subtitleLocal": "Lettura locale dalla copia salvata su questo dispositivo.",
+    "empty": "Nessun progetto salvato ancora",
+    "emptyHint": "Apri un progetto connesso e verrà salvato qui automaticamente.",
+    "read": "Leggi",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "Elimina",
+    "deleteConfirm": "Eliminare questo progetto dalla cache locale?",
+    "deleteError": "Impossibile eliminare il progetto",
+    "exportError": "Impossibile esportare il progetto",
+    "passages": "{n} passaggi",
+    "saved": "Salvato",
+    "notFound": "Questo progetto non è salvato su questo dispositivo.",
+    "back": "Indietro",
+    "passage": "Passaggio {n}",
+    "prev": "Indietro",
+    "continueTo": "Continua al passaggio {n}",
+    "end": "Fine della storia",
+    "restart": "Ricomincia"
   }
 }

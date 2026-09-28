@@ -631,5 +631,28 @@
     "suggested": "Föreslaget",
     "confidence": "Konfidens {n}%",
     "error": "Fel vid behandling av förslaget"
+  },
+  "Offline": {
+    "title": "Offline",
+    "subtitle": "Projekt sparade på den här enheten att läsa utan internet.",
+    "subtitleLocal": "Lokal läsning från kopian sparad på den här enheten.",
+    "empty": "Inga sparade projekt än",
+    "emptyHint": "Öppna ett projekt med uppkoppling så sparas det här automatiskt.",
+    "read": "Läs",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "Ta bort",
+    "deleteConfirm": "Ta bort det här projektet från lokala cachen?",
+    "deleteError": "Kunde inte ta bort projektet",
+    "exportError": "Kunde inte exportera projektet",
+    "passages": "{n} avsnitt",
+    "saved": "Sparat",
+    "notFound": "Det här projektet är inte sparat på den här enheten.",
+    "back": "Tillbaka",
+    "passage": "Avsnitt {n}",
+    "prev": "Tillbaka",
+    "continueTo": "Fortsätt till avsnitt {n}",
+    "end": "Historiens slut",
+    "restart": "Börja om"
   }
 }

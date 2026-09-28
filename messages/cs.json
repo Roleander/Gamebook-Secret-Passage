@@ -631,5 +631,28 @@
     "suggested": "Navržené",
     "confidence": "Jistota {n}%",
     "error": "Chyba při zpracování návrhu"
+  },
+  "Offline": {
+    "title": "Offline",
+    "subtitle": "Projekty uložené na tomto zařízení pro čtení bez internetu.",
+    "subtitleLocal": "Místní čtení z kopie uložené na tomto zařízení.",
+    "empty": "Zatím žádné uložené projekty",
+    "emptyHint": "Otevřete projekt online a uloží se sem automaticky.",
+    "read": "Číst",
+    "exportJson": "JSON",
+    "exportMd": "Markdown",
+    "delete": "Smazat",
+    "deleteConfirm": "Smazat tento projekt z místní mezipaměti?",
+    "deleteError": "Nelze smazat projekt",
+    "exportError": "Nelze exportovat projekt",
+    "passages": "{n} pasáží",
+    "saved": "Uloženo",
+    "notFound": "Tento projekt není na tomto zařízení uložen.",
+    "back": "Zpět",
+    "passage": "Pasáž {n}",
+    "prev": "Zpět",
+    "continueTo": "Pokračovat na pasáž {n}",
+    "end": "Konec příběhu",
+    "restart": "Začít znovu"
   }
 }

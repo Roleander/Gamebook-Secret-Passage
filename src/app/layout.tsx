@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { SwRegister } from "@/components/sw-register";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme-context";
 import { SiteFooter } from "@/components/site-footer";
@@ -58,6 +59,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <SwRegister />
         <I18nProvider>
           <Providers>
             <ThemeProvider>
