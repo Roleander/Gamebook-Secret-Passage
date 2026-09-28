@@ -624,6 +624,7 @@
     "empty": "Brak oczekujących sugestii",
     "accept": "Zaakceptuj",
     "reject": "Odrzuć",
+    "rejectAll": "Odrzuc wszystkie",
     "goTo": "Zobacz pasaż",
     "explicit": "Jawna",
     "implicit": "Domniemana",

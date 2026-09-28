@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { normalizeSuggestions, RawSuggestion } from "@/lib/suggestions";
+import {
+  normalizeSuggestions,
+  planBulkAccept,
+  RawSuggestion,
+} from "@/lib/suggestions";
 
 function raw(
   sourceNumber: number,
@@ -65,5 +69,73 @@ describe("normalizeSuggestions", () => {
   it("ignores non-integer numbers", () => {
     const result = normalizeSuggestions([1], [raw(1.5, 1), raw(1, NaN)]);
     expect(result).toHaveLength(0);
+  });
+});
+
+describe("planBulkAccept", () => {
+  const passages = new Map([
+    [1, "p1"],
+    [2, "p2"],
+    [3, "p3"],
+  ]);
+
+  function pending(
+    id: string,
+    sourceNumber: number,
+    targetNumber: number
+  ) {
+    return { id, sourceNumber, targetNumber };
+  }
+
+  it("creates links for resolvable suggestions and accepts them", () => {
+    const plan = planBulkAccept(
+      [pending("a", 1, 2), pending("b", 2, 3)],
+      passages,
+      new Set()
+    );
+    expect(plan.toCreate).toEqual([
+      { sourceId: "p1", targetId: "p2", targetNumber: 2 },
+      { sourceId: "p2", targetId: "p3", targetNumber: 3 },
+    ]);
+    expect(plan.toAcceptIds).toEqual(["a", "b"]);
+    expect(plan.failedIds).toEqual([]);
+  });
+
+  it("fails suggestions whose passages no longer exist", () => {
+    const plan = planBulkAccept(
+      [pending("a", 1, 99), pending("b", 99, 2)],
+      passages,
+      new Set()
+    );
+    expect(plan.toCreate).toEqual([]);
+    expect(plan.toAcceptIds).toEqual([]);
+    expect(plan.failedIds).toEqual(["a", "b"]);
+  });
+
+  it("skips link creation for pairs that already exist but still accepts", () => {
+    const plan = planBulkAccept(
+      [pending("a", 1, 2)],
+      passages,
+      new Set(["p1:p2"])
+    );
+    expect(plan.toCreate).toEqual([]);
+    expect(plan.toAcceptIds).toEqual(["a"]);
+    expect(plan.failedIds).toEqual([]);
+  });
+
+  it("creates a pair only once when duplicated across suggestions", () => {
+    const plan = planBulkAccept(
+      [pending("a", 1, 2), pending("b", 1, 2)],
+      passages,
+      new Set()
+    );
+    expect(plan.toCreate).toHaveLength(1);
+    expect(plan.toAcceptIds).toEqual(["a", "b"]);
+  });
+
+  it("fails self-pair suggestions defensively", () => {
+    const plan = planBulkAccept([pending("a", 2, 2)], passages, new Set());
+    expect(plan.failedIds).toEqual(["a"]);
+    expect(plan.toCreate).toEqual([]);
   });
 });

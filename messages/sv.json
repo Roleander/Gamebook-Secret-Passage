@@ -624,6 +624,7 @@
     "empty": "Inga väntande förslag",
     "accept": "Acceptera",
     "reject": "Avvisa",
+    "rejectAll": "Avvisa alla",
     "goTo": "Visa pass",
     "explicit": "Explicit",
     "implicit": "Implicit",

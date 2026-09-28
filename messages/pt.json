@@ -624,6 +624,7 @@
     "empty": "Nenhuma sugestão pendente",
     "accept": "Aceitar",
     "reject": "Rejeitar",
+    "rejectAll": "Rejeitar todas",
     "goTo": "Ver passagem",
     "explicit": "Explícita",
     "implicit": "Implícita",

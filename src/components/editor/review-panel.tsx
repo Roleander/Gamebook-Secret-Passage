@@ -38,6 +38,7 @@ export function ReviewPanel({ projectId, onChanged, onOpenPassage }: ReviewPanel
   const { t } = useI18n();
   const [items, setItems] = useState<ReviewSuggestion[] | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,14 +81,59 @@ export function ReviewPanel({ projectId, onChanged, onOpenPassage }: ReviewPanel
     }
   };
 
+  const bulkResolve = async (action: "accept" | "reject") => {
+    setBulkBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/suggestions/bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        setError(data?.error || t("Review.error"));
+        return;
+      }
+      setItems([]);
+      if (action === "accept") onChanged();
+    } catch {
+      setError(t("Review.error"));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="flex items-center">
             <ListChecks className="w-5 h-5 mr-2 text-primary" />
             {t("Review.tab")} ({items?.length ?? 0})
           </CardTitle>
+          {items !== null && items.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={bulkBusy}
+                onClick={() => void bulkResolve("accept")}
+              >
+                <Check className="w-4 h-4 mr-1" />
+                {t("Analysis.applyAll")}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={bulkBusy}
+                onClick={() => void bulkResolve("reject")}
+              >
+                <X className="w-4 h-4 mr-1" />
+                {t("Review.rejectAll")}
+              </Button>
+            </div>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">{t("Review.subtitle")}</p>
       </CardHeader>

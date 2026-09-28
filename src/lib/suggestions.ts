@@ -66,3 +66,49 @@ export function normalizeSuggestions(
 
   return result;
 }
+
+export interface PendingSuggestion {
+  id: string;
+  sourceNumber: number;
+  targetNumber: number;
+}
+
+export interface BulkAcceptPlan {
+  toCreate: { sourceId: string; targetId: string; targetNumber: number }[];
+  toAcceptIds: string[];
+  failedIds: string[];
+}
+
+export function planBulkAccept(
+  pending: PendingSuggestion[],
+  passageIdByNumber: Map<number, string>,
+  existingPairKeys: Set<string>
+): BulkAcceptPlan {
+  const seen = new Set(existingPairKeys);
+  const toCreate: BulkAcceptPlan["toCreate"] = [];
+  const toAcceptIds: string[] = [];
+  const failedIds: string[] = [];
+
+  for (const suggestion of pending) {
+    const sourceId = passageIdByNumber.get(suggestion.sourceNumber);
+    const targetId = passageIdByNumber.get(suggestion.targetNumber);
+
+    if (!sourceId || !targetId || sourceId === targetId) {
+      failedIds.push(suggestion.id);
+      continue;
+    }
+
+    const key = `${sourceId}:${targetId}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      toCreate.push({
+        sourceId,
+        targetId,
+        targetNumber: suggestion.targetNumber,
+      });
+    }
+    toAcceptIds.push(suggestion.id);
+  }
+
+  return { toCreate, toAcceptIds, failedIds };
+}

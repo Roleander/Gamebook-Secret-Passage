@@ -624,6 +624,7 @@
     "empty": "Nessun suggerimento in attesa",
     "accept": "Accetta",
     "reject": "Rifiuta",
+    "rejectAll": "Rifiuta tutte",
     "goTo": "Vedi passaggio",
     "explicit": "Esplicito",
     "implicit": "Implicito",

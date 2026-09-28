@@ -624,6 +624,7 @@
     "empty": "Žádné čekající návrhy",
     "accept": "Přijmout",
     "reject": "Odmítnout",
+    "rejectAll": "Odmítnout vše",
     "goTo": "Zobrazit pasáž",
     "explicit": "Explicitní",
     "implicit": "Implicitní",

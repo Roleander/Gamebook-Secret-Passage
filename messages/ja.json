@@ -624,6 +624,7 @@
     "empty": "保留中の提案はありません",
     "accept": "承認",
     "reject": "却下",
+    "rejectAll": "すべて却下",
     "goTo": "パッセージを見る",
     "explicit": "明示",
     "implicit": "暗黙",

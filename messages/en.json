@@ -624,6 +624,7 @@
     "empty": "No pending suggestions",
     "accept": "Accept",
     "reject": "Reject",
+    "rejectAll": "Reject all",
     "goTo": "View passage",
     "explicit": "Explicit",
     "implicit": "Implicit",

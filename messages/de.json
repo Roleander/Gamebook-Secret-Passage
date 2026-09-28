@@ -624,6 +624,7 @@
     "empty": "Keine ausstehenden Vorschläge",
     "accept": "Annehmen",
     "reject": "Verwerfen",
+    "rejectAll": "Alle ablehnen",
     "goTo": "Passage ansehen",
     "explicit": "Explizit",
     "implicit": "Implizit",
