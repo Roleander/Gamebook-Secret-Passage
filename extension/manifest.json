@@ -5,6 +5,7 @@
   "description": "Guarda selecciones de texto directamente en tus proyectos de Gamebook.",
   "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
   "host_permissions": [
+    "https://www.gamebooksecret.com/*",
     "https://gamebooksecret.com/*",
     "https://gamebook-secret-passage.vercel.app/*"
   ],

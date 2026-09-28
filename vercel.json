@@ -11,7 +11,7 @@
           "value": "gamebook-secret-passage.vercel.app"
         }
       ],
-      "destination": "https://gamebooksecret.com/",
+      "destination": "https://www.gamebooksecret.com/",
       "permanent": true
     },
     {
@@ -22,7 +22,7 @@
           "value": "gamebook-secret-passage.vercel.app"
         }
       ],
-      "destination": "https://gamebooksecret.com/:path*",
+      "destination": "https://www.gamebooksecret.com/:path*",
       "permanent": true
     }
   ]

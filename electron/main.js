@@ -5,7 +5,7 @@ const fs = require('fs');
 const isDev = process.env.NODE_ENV === 'development';
 const APP_URL = isDev
   ? `http://localhost:${process.env.PORT || 3000}`
-  : process.env.NEXT_PUBLIC_APP_URL || 'https://gamebooksecret.com';
+  : process.env.NEXT_PUBLIC_APP_URL || 'https://www.gamebooksecret.com';
 
 let mainWindow = null;
 let autoUpdater = null;

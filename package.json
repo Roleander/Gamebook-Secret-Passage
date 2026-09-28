@@ -7,7 +7,7 @@
     "name": "Roleander",
     "email": "estudiodigital@tutanota.com"
   },
-  "homepage": "https://gamebooksecret.com",
+  "homepage": "https://www.gamebooksecret.com",
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",

@@ -1,5 +1,5 @@
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://gamebooksecret.com";
+  process.env.NEXT_PUBLIC_APP_URL || "https://www.gamebooksecret.com";
 
 export function appUrl(path = ""): string {
   const base = (

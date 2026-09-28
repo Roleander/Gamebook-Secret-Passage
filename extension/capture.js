@@ -1,4 +1,4 @@
-const API = "https://gamebooksecret.com";
+const API = "https://www.gamebooksecret.com";
 
 const $ = (id) => document.getElementById(id);
 
