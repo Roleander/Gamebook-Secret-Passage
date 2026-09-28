@@ -653,6 +653,10 @@
     "prev": "Zurück",
     "continueTo": "Weiter zu Abschnitt {n}",
     "end": "Ende der Geschichte",
-    "restart": "Neu beginnen"
+    "restart": "Neu beginnen",
+    "syncPending": "{n} ausstehend",
+    "syncOffline": "Offline",
+    "syncDropped": "{n} Offline-Änderungen wurden verworfen",
+    "syncHint": "Änderungen werden auf diesem Gerät gespeichert und bei Verbindung synchronisiert"
   }
 }

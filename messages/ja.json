@@ -653,6 +653,10 @@
     "prev": "戻る",
     "continueTo": "パッセージ {n} へ進む",
     "end": "物語の終わり",
-    "restart": "最初からやり直す"
+    "restart": "最初からやり直す",
+    "syncPending": "同期待ち {n} 件",
+    "syncOffline": "オフライン",
+    "syncDropped": "オフライン変更 {n} 件が破棄されました",
+    "syncHint": "変更はこのデバイスに保存され、接続が戻ると同期されます"
   }
 }

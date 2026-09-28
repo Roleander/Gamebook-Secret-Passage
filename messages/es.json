@@ -653,6 +653,10 @@
     "prev": "Atrás",
     "continueTo": "Continuar al pasaje {n}",
     "end": "Fin de la historia",
-    "restart": "Volver a empezar"
+    "restart": "Volver a empezar",
+    "syncPending": "{n} pendientes de sincronizar",
+    "syncOffline": "Sin conexión",
+    "syncDropped": "Se descartaron {n} cambios sin sincronizar",
+    "syncHint": "Los cambios se guardan en este dispositivo y se sincronizan al volver la conexión"
   }
 }

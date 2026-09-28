@@ -6,6 +6,7 @@ import { BookOpen, Flag, Target, ChevronUp, ChevronDown, Hash, GripVertical } fr
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useI18n } from "@/lib/i18n";
+import { queueableFetch } from "@/lib/offline-client";
 
 interface Passage {
   id: string;
@@ -199,17 +200,13 @@ export function PassageList({
 
   const handleMove = async (e: React.MouseEvent, passageId: string, direction: "up" | "down") => {
     e.stopPropagation();
-    try {
-      const response = await fetch(`/api/passages/${passageId}/reorder`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ direction }),
-      });
-      if (response.ok && onReorder) {
-        onReorder();
-      }
-    } catch (error) {
-      console.error("Error reordering:", error);
+    const result = await queueableFetch(`/api/passages/${passageId}/reorder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ direction }),
+    });
+    if (result.ok && !result.queued && onReorder) {
+      onReorder();
     }
   };
 
@@ -217,17 +214,13 @@ export function PassageList({
     const source = sortedPassages.find((p) => p.id === sourceId);
     const target = sortedPassages.find((p) => p.id === targetId);
     if (!source || !target || source.number === target.number) return;
-    try {
-      const response = await fetch(`/api/passages/${sourceId}/reorder`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toNumber: target.number }),
-      });
-      if (response.ok && onReorder) {
-        onReorder();
-      }
-    } catch (error) {
-      console.error("Error reordering:", error);
+    const result = await queueableFetch(`/api/passages/${sourceId}/reorder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ toNumber: target.number }),
+    });
+    if (result.ok && !result.queued && onReorder) {
+      onReorder();
     }
   };
 
@@ -237,18 +230,14 @@ export function PassageList({
       return;
     }
 
-    try {
-      const response = await fetch(`/api/passages/${passageId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: editValue }),
-      });
-      if (response.ok) {
-        setEditingId(null);
-        if (onRenumber) onRenumber();
-      }
-    } catch (error) {
-      console.error("Error renumbering:", error);
+    const result = await queueableFetch(`/api/passages/${passageId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ number: editValue }),
+    });
+    if (result.ok) {
+      setEditingId(null);
+      if (onRenumber && !result.queued) onRenumber();
     }
   };
 

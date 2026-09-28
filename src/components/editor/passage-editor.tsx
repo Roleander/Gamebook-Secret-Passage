@@ -22,6 +22,11 @@ interface PassageEditorProps {
   allPassages: Passage[];
   onUpdate: (updates: Partial<Passage>) => void;
   onDelete: () => void;
+  onLinkAction: (
+    action:
+      | { type: "create"; sourceId: string; targetId: string; linkText: string }
+      | { type: "delete"; sourceId: string; targetId: string }
+  ) => Promise<boolean>;
 }
 
 export function PassageEditor({
@@ -29,6 +34,7 @@ export function PassageEditor({
   allPassages,
   onUpdate,
   onDelete,
+  onLinkAction,
 }: PassageEditorProps) {
   const { t } = useI18n();
   const [title, setTitle] = useState(passage.title || "");
@@ -57,24 +63,15 @@ export function PassageEditor({
       return;
     }
 
-    try {
-      const response = await fetch("/api/links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sourceId: passage.id,
-          targetId: targetPassage.id,
-          linkText: t("Passage.goToLink", { n: linkTarget }),
-        }),
-      });
-
-      if (response.ok) {
-        setShowOutgoingDialog(false);
-        setLinkTarget("");
-        onUpdate({});
-      }
-    } catch (error) {
-      console.error("Error creating link:", error);
+    const ok = await onLinkAction({
+      type: "create",
+      sourceId: passage.id,
+      targetId: targetPassage.id,
+      linkText: t("Passage.goToLink", { n: linkTarget }),
+    });
+    if (ok) {
+      setShowOutgoingDialog(false);
+      setLinkTarget("");
     }
   };
 
@@ -87,39 +84,20 @@ export function PassageEditor({
       return;
     }
 
-    try {
-      const response = await fetch("/api/links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sourceId: sourcePassage.id,
-          targetId: passage.id,
-          linkText: t("Passage.goToLink", { n: passage.number }),
-        }),
-      });
-
-      if (response.ok) {
-        setShowIncomingDialog(false);
-        setLinkTarget("");
-        onUpdate({});
-      }
-    } catch (error) {
-      console.error("Error creating link:", error);
+    const ok = await onLinkAction({
+      type: "create",
+      sourceId: sourcePassage.id,
+      targetId: passage.id,
+      linkText: t("Passage.goToLink", { n: passage.number }),
+    });
+    if (ok) {
+      setShowIncomingDialog(false);
+      setLinkTarget("");
     }
   };
 
   const handleDeleteLink = async (targetId: string) => {
-    try {
-      const response = await fetch(
-        `/api/links?sourceId=${passage.id}&targetId=${targetId}`,
-        { method: "DELETE" }
-      );
-      if (response.ok) {
-        onUpdate({});
-      }
-    } catch (error) {
-      console.error("Error deleting link:", error);
-    }
+    await onLinkAction({ type: "delete", sourceId: passage.id, targetId });
   };
 
   // Available passages for linking (excluding current)
@@ -283,15 +261,11 @@ export function PassageEditor({
                   </span>
                   <button
                     onClick={async () => {
-                      try {
-                        const response = await fetch(
-                          `/api/links?sourceId=${link.sourceId}&targetId=${passage.id}`,
-                          { method: "DELETE" }
-                        );
-                        if (response.ok) onUpdate({});
-                      } catch (error) {
-                        console.error("Error:", error);
-                      }
+                      await onLinkAction({
+                        type: "delete",
+                        sourceId: link.sourceId,
+                        targetId: passage.id,
+                      });
                     }}
                     className="text-destructive hover:text-destructive/80 p-1"
                   >

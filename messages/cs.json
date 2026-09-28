@@ -653,6 +653,10 @@
     "prev": "Zpět",
     "continueTo": "Pokračovat na pasáž {n}",
     "end": "Konec příběhu",
-    "restart": "Začít znovu"
+    "restart": "Začít znovu",
+    "syncPending": "{n} čeká na synchronizaci",
+    "syncOffline": "Offline",
+    "syncDropped": "{n} offline zmín bylo zahozeno",
+    "syncHint": "Změny se ukládají v tomto zařízení a synchronizují se po obnovení připojení"
   }
 }

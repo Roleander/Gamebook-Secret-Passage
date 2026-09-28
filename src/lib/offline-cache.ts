@@ -1,4 +1,12 @@
 import type { OfflineProjectSnapshot } from "./offline-snapshot";
+import {
+  STORE_EDITOR,
+  STORE_PROJECTS,
+  hasIndexedDb,
+  openDb,
+  requestToPromise,
+  txDone,
+} from "./idb";
 
 export interface CachedProjectSummary {
   id: string;
@@ -8,48 +16,15 @@ export interface CachedProjectSummary {
   passageCount: number;
 }
 
-const DB_NAME = "gbsp-offline";
-const DB_VERSION = 1;
-const STORE = "projects";
-
-function hasIndexedDb(): boolean {
-  return typeof indexedDB !== "undefined";
-}
-
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        db.createObjectStore(STORE, { keyPath: "id" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
 export async function cacheProject(
   snapshot: OfflineProjectSnapshot
 ): Promise<void> {
   if (!hasIndexedDb()) return;
   const db = await openDb();
   try {
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).put(snapshot);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_PROJECTS, "readwrite");
+    tx.objectStore(STORE_PROJECTS).put(snapshot);
+    await txDone(tx);
   } finally {
     db.close();
   }
@@ -60,7 +35,7 @@ export async function listCachedProjects(): Promise<CachedProjectSummary[]> {
   const db = await openDb();
   try {
     const snapshots = await requestToPromise(
-      db.transaction(STORE, "readonly").objectStore(STORE).getAll()
+      db.transaction(STORE_PROJECTS, "readonly").objectStore(STORE_PROJECTS).getAll()
     );
     return (snapshots as OfflineProjectSnapshot[])
       .map((s) => ({
@@ -83,7 +58,7 @@ export async function getCachedProject(
   const db = await openDb();
   try {
     const snapshot = await requestToPromise(
-      db.transaction(STORE, "readonly").objectStore(STORE).get(id)
+      db.transaction(STORE_PROJECTS, "readonly").objectStore(STORE_PROJECTS).get(id)
     );
     return (snapshot as OfflineProjectSnapshot | undefined) ?? null;
   } finally {
@@ -95,13 +70,36 @@ export async function removeCachedProject(id: string): Promise<void> {
   if (!hasIndexedDb()) return;
   const db = await openDb();
   try {
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_PROJECTS, "readwrite");
+    tx.objectStore(STORE_PROJECTS).delete(id);
+    await txDone(tx);
+  } finally {
+    db.close();
+  }
+}
+
+export async function saveEditorProject<T extends { id: string }>(
+  project: T
+): Promise<void> {
+  if (!hasIndexedDb()) return;
+  const db = await openDb();
+  try {
+    const tx = db.transaction(STORE_EDITOR, "readwrite");
+    tx.objectStore(STORE_EDITOR).put(project);
+    await txDone(tx);
+  } finally {
+    db.close();
+  }
+}
+
+export async function getEditorProject<T>(id: string): Promise<T | null> {
+  if (!hasIndexedDb()) return null;
+  const db = await openDb();
+  try {
+    const project = await requestToPromise(
+      db.transaction(STORE_EDITOR, "readonly").objectStore(STORE_EDITOR).get(id)
+    );
+    return (project as T | undefined) ?? null;
   } finally {
     db.close();
   }

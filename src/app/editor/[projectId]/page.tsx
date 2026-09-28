@@ -20,8 +20,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
-import { cacheProject } from "@/lib/offline-cache";
+import { cacheProject, getEditorProject, saveEditorProject } from "@/lib/offline-cache";
 import { toOfflineSnapshot } from "@/lib/offline-snapshot";
+import { queueableFetch } from "@/lib/offline-client";
+import { replayQueue } from "@/lib/offline-queue";
+import { OfflineSyncIndicator } from "@/components/editor/offline-sync-indicator";
   import { HistoryPanel } from "@/components/editor/history-panel";
 
 interface Entitlements {
@@ -118,11 +121,18 @@ export default function EditorPage() {
         const data = await response.json();
         setProject(data);
         cacheProject(toOfflineSnapshot(data)).catch(() => {});
+        saveEditorProject(data).catch(() => {});
       } else {
         router.push("/projects");
       }
     } catch (error) {
       console.error("Error fetching project:", error);
+      const cached = await getEditorProject<Project>(projectId).catch(() => null);
+      if (cached) {
+        setProject(cached);
+      } else {
+        router.push("/offline");
+      }
     } finally {
       setLoading(false);
     }
@@ -166,38 +176,149 @@ export default function EditorPage() {
   useEffect(() => {
     if (project && selectedPassage) {
       const updated = project.passages.find((p) => p.id === selectedPassage.id);
-      if (updated && (updated.content !== selectedPassage.content || updated.title !== selectedPassage.title)) {
+      if (updated && updated !== selectedPassage) {
         setSelectedPassage(updated);
       }
     }
-  }, [project]);
+  }, [project, selectedPassage]);
+
+  // Replay queued offline mutations when online (on load and on reconnect)
+  useEffect(() => {
+    let cancelled = false;
+    const runReplay = () => {
+      replayQueue()
+        .then((result) => {
+          if (cancelled) return;
+          if (result.synced > 0 || result.dropped > 0) fetchProject();
+          if (result.dropped > 0) {
+            alert(t("Offline.syncDropped", { n: result.dropped }));
+          }
+        })
+        .catch(() => {});
+    };
+    if (navigator.onLine) runReplay();
+    window.addEventListener("online", runReplay);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", runReplay);
+    };
+  }, [fetchProject, t]);
 
   const handlePassageUpdate = async (updatedPassage: Partial<Passage>) => {
     if (!selectedPassage) return;
-    try {
-      const response = await fetch(`/api/passages/${selectedPassage.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedPassage),
-      });
-      if (response.ok) {
-        fetchProject();
-      }
-    } catch (error) {
-      console.error("Error updating passage:", error);
+    const result = await queueableFetch(`/api/passages/${selectedPassage.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedPassage),
+    });
+    if (result.queued) {
+      setProject((prev) =>
+        prev
+          ? {
+              ...prev,
+              passages: prev.passages.map((p) =>
+                p.id === selectedPassage.id ? { ...p, ...updatedPassage } : p
+              ),
+            }
+          : prev
+      );
+    } else if (result.ok) {
+      fetchProject();
     }
   };
 
   const handlePassageDelete = async (passageId: string) => {
-    try {
-      const response = await fetch(`/api/passages/${passageId}`, { method: "DELETE" });
-      if (response.ok) {
-        setSelectedPassage(null);
-        fetchProject();
-      }
-    } catch (error) {
-      console.error("Error deleting passage:", error);
+    const result = await queueableFetch(`/api/passages/${passageId}`, {
+      method: "DELETE",
+    });
+    if (result.queued) {
+      setSelectedPassage(null);
+      setProject((prev) =>
+        prev
+          ? { ...prev, passages: prev.passages.filter((p) => p.id !== passageId) }
+          : prev
+      );
+    } else if (result.ok) {
+      setSelectedPassage(null);
+      fetchProject();
     }
+  };
+
+  const handleLinkAction = async (
+    action:
+      | { type: "create"; sourceId: string; targetId: string; linkText: string }
+      | { type: "delete"; sourceId: string; targetId: string }
+  ): Promise<boolean> => {
+    if (!project) return false;
+    if (action.type === "create") {
+      const result = await queueableFetch("/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceId: action.sourceId,
+          targetId: action.targetId,
+          linkText: action.linkText,
+        }),
+      });
+      if (!result.ok) return false;
+      const source = project.passages.find((p) => p.id === action.sourceId);
+      const target = project.passages.find((p) => p.id === action.targetId);
+      if (source && target) {
+        setProject((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            passages: prev.passages.map((p) => {
+              if (p.id === action.sourceId) {
+                if (p.outgoingLinks.some((l) => l.targetId === action.targetId)) return p;
+                return {
+                  ...p,
+                  outgoingLinks: [
+                    ...p.outgoingLinks,
+                    { targetId: action.targetId, target: { number: target.number } },
+                  ],
+                };
+              }
+              if (p.id === action.targetId) {
+                if (p.incomingLinks.some((l) => l.sourceId === action.sourceId)) return p;
+                return {
+                  ...p,
+                  incomingLinks: [
+                    ...p.incomingLinks,
+                    { sourceId: action.sourceId, source: { number: source.number } },
+                  ],
+                };
+              }
+              return p;
+            }),
+          };
+        });
+      }
+      if (!result.queued) fetchProject();
+      return true;
+    }
+    const result = await queueableFetch(
+      `/api/links?sourceId=${encodeURIComponent(action.sourceId)}&targetId=${encodeURIComponent(action.targetId)}`,
+      { method: "DELETE" }
+    );
+    if (!result.ok) return false;
+    setProject((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        passages: prev.passages.map((p) => {
+          if (p.id === action.sourceId) {
+            return { ...p, outgoingLinks: p.outgoingLinks.filter((l) => l.targetId !== action.targetId) };
+          }
+          if (p.id === action.targetId) {
+            return { ...p, incomingLinks: p.incomingLinks.filter((l) => l.sourceId !== action.sourceId) };
+          }
+          return p;
+        }),
+      };
+    });
+    if (!result.queued) fetchProject();
+    return true;
   };
 
   const handleContentShuffle = async () => {
@@ -395,6 +516,7 @@ export default function EditorPage() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
+            <OfflineSyncIndicator />
             <Button
               variant="outline"
               onClick={() => setShowPreview(true)}
@@ -547,19 +669,38 @@ export default function EditorPage() {
                     size="sm"
                     onClick={async () => {
                       const maxNumber = Math.max(0, ...project.passages.map(p => p.number));
-                      const response = await fetch(`/api/projects/${projectId}/passages`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          number: maxNumber + 1,
-                          title: t("Editor.newPassageTitle"),
-                          content: t("Editor.newPassageContent"),
-                          isStart: project.passages.length === 0,
-                          isEndpoint: false,
-                        }),
-                      });
-                      if (await handleUpgradeResponse(response)) return;
-                      if (response.ok) {
+                      const payload = {
+                        number: maxNumber + 1,
+                        title: t("Editor.newPassageTitle"),
+                        content: t("Editor.newPassageContent"),
+                        isStart: project.passages.length === 0,
+                        isEndpoint: false,
+                      };
+                      const result = await queueableFetch(
+                        `/api/projects/${projectId}/passages`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                        },
+                        { syntheticPassage: true }
+                      );
+                      if (result.response && (await handleUpgradeResponse(result.response))) return;
+                      if (result.queued && result.syntheticId) {
+                        const localPassage: Passage = {
+                          id: result.syntheticId,
+                          ...payload,
+                          sortOrder: payload.number,
+                          outgoingLinks: [],
+                          incomingLinks: [],
+                        };
+                        setProject((prev) =>
+                          prev
+                            ? { ...prev, passages: [...prev.passages, localPassage] }
+                            : prev
+                        );
+                        setSelectedPassage(localPassage);
+                      } else if (result.ok) {
                         fetchProject();
                       }
                     }}
@@ -666,6 +807,7 @@ export default function EditorPage() {
                       allPassages={project.passages}
                       onUpdate={handlePassageUpdate}
                       onDelete={() => handlePassageDelete(selectedPassage.id)}
+                      onLinkAction={handleLinkAction}
                     />
                   ) : (
                     <div className="text-center py-12">

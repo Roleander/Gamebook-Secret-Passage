@@ -653,6 +653,10 @@
     "prev": "Retour",
     "continueTo": "Continuer au passage {n}",
     "end": "Fin de l'histoire",
-    "restart": "Recommencer"
+    "restart": "Recommencer",
+    "syncPending": "{n} en attente",
+    "syncOffline": "Hors ligne",
+    "syncDropped": "{n} modifications hors ligne ont été ignorées",
+    "syncHint": "Les modifications sont enregistrées sur cet appareil et synchronisées dès le retour de la connexion"
   }
 }

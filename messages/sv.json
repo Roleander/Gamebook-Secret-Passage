@@ -653,6 +653,10 @@
     "prev": "Tillbaka",
     "continueTo": "Fortsätt till avsnitt {n}",
     "end": "Historiens slut",
-    "restart": "Börja om"
+    "restart": "Börja om",
+    "syncPending": "{n} väntar på synk",
+    "syncOffline": "Offline",
+    "syncDropped": "{n} offlineändringar togs bort",
+    "syncHint": "Ändringar sparas på den här enheten och synkroniseras när anslutningen återkommer"
   }
 }

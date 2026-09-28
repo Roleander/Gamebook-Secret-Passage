@@ -653,6 +653,10 @@
     "prev": "Back",
     "continueTo": "Continue to passage {n}",
     "end": "The end of the story",
-    "restart": "Start again"
+    "restart": "Start again",
+    "syncPending": "{n} awaiting sync",
+    "syncOffline": "Offline",
+    "syncDropped": "{n} offline changes were discarded",
+    "syncHint": "Changes are stored on this device and synced when the connection returns"
   }
 }

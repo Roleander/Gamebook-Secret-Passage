@@ -653,6 +653,10 @@
     "prev": "Indietro",
     "continueTo": "Continua al passaggio {n}",
     "end": "Fine della storia",
-    "restart": "Ricomincia"
+    "restart": "Ricomincia",
+    "syncPending": "{n} in attesa di sync",
+    "syncOffline": "Offline",
+    "syncDropped": "{n} modifiche offline sono state scartate",
+    "syncHint": "Le modifiche sono salvate su questo dispositivo e sincronizzate al ritorno della connessione"
   }
 }
