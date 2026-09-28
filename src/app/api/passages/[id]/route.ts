@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { replaceNumberReferences } from "@/lib/number-references";
+import { rewriteProjectLinkTexts } from "@/lib/link-texts";
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +123,7 @@ export async function PATCH(
       for (const update of contentUpdates) {
         await update;
       }
+      await rewriteProjectLinkTexts(passage.projectId, numberMapping);
     }
 
     const updatedPassage = await db.passage.findUnique({

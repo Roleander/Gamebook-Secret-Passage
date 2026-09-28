@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { replaceNumberReferences } from "@/lib/number-references";
+import { rewriteProjectLinkTexts } from "@/lib/link-texts";
 
 export const dynamic = "force-dynamic";
 
@@ -75,12 +76,15 @@ export async function POST(
       }
     }
 
+    const linkTextUpdates = await rewriteProjectLinkTexts(projectId, numberMapping);
+
     return NextResponse.json({
       message: `Pasajes renumerados: ${passages.length} pasajes (${startFrom} a ${startFrom + (passages.length - 1) * step})`,
       count: passages.length,
       from: startFrom,
       to: startFrom + (passages.length - 1) * step,
       contentUpdates: contentUpdates.length,
+      linkTextUpdates,
     });
   } catch (error) {
     console.error("Renumber error:", error);

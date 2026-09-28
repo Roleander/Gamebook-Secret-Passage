@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { replaceNumberReferences } from "@/lib/number-references";
+import { rewriteProjectLinkTexts } from "@/lib/link-texts";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -98,11 +99,17 @@ async function moveToSlot(passage: PassageWithOwner, toNumber: number) {
     await update;
   }
 
+  const linkTextUpdates = await rewriteProjectLinkTexts(
+    passage.projectId,
+    numberMapping
+  );
+
   return NextResponse.json({
     message: `Pasaje movido a la posición de ${toNumber}`,
     oldNumber: passage.number,
     newNumber: newNumberById.get(passage.id),
     contentUpdates: contentUpdates.length,
+    linkTextUpdates,
   });
 }
 
@@ -199,11 +206,17 @@ export async function POST(
       }
     }
 
+    const linkTextUpdates = await rewriteProjectLinkTexts(
+      passage.projectId,
+      numberMapping
+    );
+
     return NextResponse.json({
       message: `Pasaje movido ${direction === "up" ? "arriba" : "abajo"}`,
       oldNumber: passage.number,
       newNumber: targetNumber,
       contentUpdates: updates.length,
+      linkTextUpdates,
     });
   } catch (error) {
     console.error("Error reordering passage:", error);
