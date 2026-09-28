@@ -1,5 +1,20 @@
+export type EmailProvider = "resend" | "brevo" | "postmark" | "mailgun";
+
 export function isEmailConfigured(): boolean {
   return Boolean(process.env.EMAIL_API_KEY && process.env.EMAIL_FROM);
+}
+
+export function resolveProvider(): EmailProvider {
+  const raw = (process.env.EMAIL_PROVIDER || "").trim().toLowerCase();
+  return raw === "brevo" || raw === "postmark" || raw === "mailgun" ? raw : "resend";
+}
+
+export function parseFromHeader(from: string): { email: string; name: string | null } {
+  const angled = from.match(/^\s*"?([^"]*?)"?\s*<\s*([^<>]+)\s*>\s*$/);
+  if (angled) {
+    return { email: angled[2].trim(), name: angled[1].trim() || null };
+  }
+  return { email: from.trim(), name: null };
 }
 
 interface SendEmailOptions {
@@ -9,36 +24,109 @@ interface SendEmailOptions {
   text: string;
 }
 
+interface ProviderRequest {
+  url: string;
+  headers: Record<string, string>;
+  body: string | URLSearchParams;
+}
+
+export function buildEmailRequest(
+  provider: EmailProvider,
+  apiKey: string,
+  from: string,
+  options: SendEmailOptions
+): ProviderRequest {
+  const override = (process.env.EMAIL_API_URL || "").replace(/\/+$/, "");
+
+  switch (provider) {
+    case "brevo": {
+      const parsed = parseFromHeader(from);
+      return {
+        url: override || "https://api.brevo.com/v3/smtp/email",
+        headers: { "Content-Type": "application/json", "api-key": apiKey },
+        body: JSON.stringify({
+          sender: {
+            email: parsed.email,
+            ...(parsed.name ? { name: parsed.name } : {}),
+          },
+          to: [{ email: options.to }],
+          subject: options.subject,
+          htmlContent: options.html,
+          textContent: options.text,
+        }),
+      };
+    }
+    case "postmark":
+      return {
+        url: override || "https://api.postmarkapp.com/email",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Postmark-Server-Token": apiKey,
+        },
+        body: JSON.stringify({
+          From: from,
+          To: [options.to],
+          Subject: options.subject,
+          HtmlBody: options.html,
+          TextBody: options.text,
+        }),
+      };
+    case "mailgun": {
+      const { email } = parseFromHeader(from);
+      const domain = email.split("@")[1] || "example.com";
+      const form = new URLSearchParams();
+      form.set("from", from);
+      form.set("to", options.to);
+      form.set("subject", options.subject);
+      form.set("html", options.html);
+      form.set("text", options.text);
+      return {
+        url: override || `https://api.mailgun.net/v3/${domain}/messages`,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization:
+            "Basic " + Buffer.from(`api:${apiKey}`).toString("base64"),
+        },
+        body: form,
+      };
+    }
+    default:
+      return {
+        url: override || "https://api.resend.com/emails",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          from,
+          to: [options.to],
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        }),
+      };
+  }
+}
+
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   const apiKey = process.env.EMAIL_API_KEY;
   const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) return false;
 
-  const apiUrl = (process.env.EMAIL_API_URL || "https://api.resend.com/emails").replace(
-    /\/+$/,
-    ""
-  );
+  const provider = resolveProvider();
+  const request = buildEmailRequest(provider, apiKey, from, options);
 
   try {
-    const res = await fetch(apiUrl, {
+    const res = await fetch(request.url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        from,
-        to: [options.to],
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      }),
+      headers: request.headers,
+      body: request.body,
       signal: AbortSignal.timeout(15_000),
     });
 
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
-      console.error(`Email send failed (${res.status}):`, detail.slice(0, 500));
+      console.error(`Email send failed (${provider} ${res.status}):`, detail.slice(0, 500));
       return false;
     }
     return true;

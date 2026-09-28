@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
+import { appUrl } from "@/lib/site-url";
 
 export async function POST(req: Request) {
   try {
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${token}`;
+    const resetUrl = appUrl(`/auth/reset-password?token=${token}`);
 
     if (isEmailConfigured()) {
       const sent = await sendPasswordResetEmail(user.email, resetUrl);
