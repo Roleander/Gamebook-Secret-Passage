@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 
+type SessionUser = { id?: string };
+
 export const dynamic = "force-dynamic";
 
 export async function GET(
@@ -12,8 +14,9 @@ export async function GET(
   try {
     const { projectId } = await context.params;
     const session = await getServerSession(authOptions);
+    const user = session?.user as SessionUser | undefined;
 
-    if (!session?.user) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "No autorizado" },
         { status: 401 }
@@ -23,7 +26,7 @@ export async function GET(
     const project = await db.project.findFirst({
       where: {
         id: projectId,
-        userId: (session.user as any).id,
+        userId: user.id,
       },
       include: {
         passages: {
@@ -74,8 +77,9 @@ export async function DELETE(
   try {
     const { projectId } = await context.params;
     const session = await getServerSession(authOptions);
+    const user = session?.user as SessionUser | undefined;
 
-    if (!session?.user) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "No autorizado" },
         { status: 401 }
@@ -85,7 +89,7 @@ export async function DELETE(
     const project = await db.project.findFirst({
       where: {
         id: projectId,
-        userId: (session.user as any).id,
+        userId: user.id,
       },
     });
 

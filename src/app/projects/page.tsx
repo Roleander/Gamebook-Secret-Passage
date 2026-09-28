@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Header } from "@/components/header";
 import { HeroLogo } from "@/components/hero-logo";
 import { Button } from "@/components/ui/button";
@@ -32,14 +33,30 @@ interface Project {
 
 export default function ProjectsPage() {
   const { t, locale } = useI18n();
+  const { status } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProjects = () => {
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status === "unauthenticated") {
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        window.location.replace("/auth/login?callbackUrl=/projects");
+      }
+      Promise.resolve().then(() => setLoading(false));
+      return;
+    }
+    let cancelled = false;
     fetch("/api/projects")
-      .then((response) => (response.ok ? response.json() : null))
+      .then((response) => {
+        if (response.status === 401) {
+          window.location.replace("/auth/login?callbackUrl=/projects");
+          return null;
+        }
+        return response.ok ? response.json() : null;
+      })
       .then((data) => {
-        if (data) {
+        if (!cancelled && data) {
           setProjects(data);
         }
       })
@@ -47,13 +64,12 @@ export default function ProjectsPage() {
         console.error("Error fetching projects:", error);
       })
       .finally(() => {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       });
-  };
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   const handleDelete = async (projectId: string, e: React.MouseEvent) => {
     e.preventDefault();

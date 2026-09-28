@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Check, Heart, Zap, Crown } from "lucide-react";
-import { PayPalDonate } from "@/components/paypal-donate";
+import { Button } from "@/components/ui/button";
+import { Check, Heart, Zap, Crown, ArrowLeft } from "lucide-react";
+import { PayPalDonate, PayPalProvider } from "@/components/paypal-donate";
 import { StripeCheckout } from "@/components/stripe-checkout";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, type Variants } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 
@@ -34,23 +37,31 @@ interface Plan {
 
 export default function PricingPage() {
   const { t } = useI18n();
+  const router = useRouter();
+  const { status: sessionStatus } = useSession();
   const [plans, setPlans] = useState<Plan[]>([]);
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
-    try {
-      const response = await fetch("/api/subscriptions");
-      if (response.ok) {
-        const data = await response.json();
-        setPlans(data);
-      }
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-    }
+  const goBack = () => {
+    if (window.history.length > 1) router.back();
+    else router.push("/");
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/subscriptions")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled && data) {
+          setPlans(data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching plans:", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Default plans if none in database
   const displayPlans = plans.length > 0 ? plans : [
@@ -111,8 +122,15 @@ export default function PricingPage() {
   ];
 
   return (
+    <PayPalProvider>
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
+        <div className="max-w-5xl mx-auto mb-4">
+          <Button variant="outline" size="sm" onClick={goBack} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            {t("Common.back")}
+          </Button>
+        </div>
         <motion.div
           className="text-center mb-12"
           initial="hidden"
@@ -216,12 +234,14 @@ export default function PricingPage() {
                       planId={plan.id}
                       label={`Suscribirse con Stripe (${plan.price}€/mes)`}
                     />
-                    <p className="text-xs text-muted-foreground text-center">
-                      {t("Pricing.hasAccount")}{" "}
-                      <Link href="/auth/login?callbackUrl=/pricing" className="text-primary underline">
-                        {t("Pricing.loginFirst")}
-                      </Link>
-                    </p>
+                    {sessionStatus === "unauthenticated" && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        {t("Pricing.hasAccount")}{" "}
+                        <Link href="/auth/login?callbackUrl=/pricing" className="text-primary underline">
+                          {t("Pricing.loginFirst")}
+                        </Link>
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -247,5 +267,6 @@ export default function PricingPage() {
         </div>
       </div>
     </div>
+    </PayPalProvider>
   );
 }

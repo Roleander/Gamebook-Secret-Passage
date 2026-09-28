@@ -4,20 +4,23 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, limitReached } from "@/lib/entitlements";
 
+type SessionUser = { id?: string; role?: string };
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as SessionUser | undefined)?.id;
 
-    if (!session?.user) {
+    if (!userId) {
       return NextResponse.json(
         { error: "No autorizado" },
-        { status: 401 }
+        { status: 401, headers: { "Cache-Control": "private, no-store" } }
       );
     }
 
     const projects = await db.project.findMany({
       where: {
-        userId: (session.user as any).id,
+        userId,
       },
       include: {
         _count: {
@@ -31,7 +34,9 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(projects);
+    return NextResponse.json(projects, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     console.error("Error fetching projects:", error);
     return NextResponse.json(
@@ -44,14 +49,16 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+    const user = session?.user as SessionUser | undefined;
 
-    if (!session?.user) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "No autorizado" },
         { status: 401 }
       );
     }
 
+    const userId = user.id;
     const { title, description } = await req.json();
 
     if (!title) {
@@ -61,8 +68,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const userId = (session.user as any).id;
-    const ents = await getEntitlements(userId, (session.user as any).role);
+    const ents = await getEntitlements(userId, user.role);
 
     if (ents.maxProjects !== null) {
       const count = await db.project.count({ where: { userId } });
