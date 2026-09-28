@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { lookup } from "dns/promises";
 import Stripe from "stripe";
+import { appUrl } from "@/lib/site-url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -133,8 +134,8 @@ export async function GET(req: Request) {
             },
           ],
           mode: "subscription",
-          success_url: "https://gamebook-secret-passage.vercel.app/",
-          cancel_url: "https://gamebook-secret-passage.vercel.app/",
+          success_url: appUrl("/"),
+          cancel_url: appUrl("/"),
         });
         await stripe.checkout.sessions.expire(cs.id);
         result.checkoutDryRun = { ok: true, sessionId: cs.id, expired: true };
@@ -172,7 +173,7 @@ export async function GET(req: Request) {
 
   try {
     const res = await fetch(
-      "https://gamebook-secret-passage.vercel.app/api/webhooks/stripe",
+      appUrl("/api/webhooks/stripe"),
       {
         method: "POST",
         headers: {

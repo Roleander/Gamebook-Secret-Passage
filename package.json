@@ -7,7 +7,7 @@
     "name": "Roleander",
     "email": "estudiodigital@tutanota.com"
   },
-  "homepage": "https://gamebook-secret-passage.vercel.app",
+  "homepage": "https://gamebooksecret.com",
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",

@@ -1,4 +1,4 @@
-const API = "https://gamebook-secret-passage.vercel.app";
+const API = "https://gamebooksecret.com";
 
 const $ = (id) => document.getElementById(id);
 

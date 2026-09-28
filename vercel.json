@@ -1,5 +1,18 @@
 {
   "framework": "nextjs",
   "buildCommand": "prisma generate && prisma db push --skip-generate && prisma db seed && next build",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "gamebook-secret-passage.vercel.app"
+        }
+      ],
+      "destination": "https://gamebooksecret.com/:splat",
+      "permanent": true
+    }
+  ]
 }
