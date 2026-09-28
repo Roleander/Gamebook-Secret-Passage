@@ -3,8 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
-import { updateAllNumberReferences } from "@/lib/utils";
 import { createProjectSnapshot } from "@/lib/snapshots";
+import {
+  buildContentShufflePlan,
+  rewriteShuffledContent,
+} from "@/lib/content-shuffle";
 
 export const dynamic = "force-dynamic";
 
@@ -48,131 +51,96 @@ export async function POST(
       return NextResponse.json({ error: "Se necesitan al menos 2 pasajes" }, { status: 400 });
     }
 
-    // === SNAPSHOT: save current state before shuffle (for undo) ===
-    await createProjectSnapshot(projectId, "Barajar Contenido");
+    const plan = buildContentShufflePlan(
+      project.passages.map((p) => ({ number: p.number, isStart: p.isStart })),
+      { preserveStart }
+    );
 
-    // === PHASE 2: Separate start passage from shuffle pool ===
-    const startPassage = preserveStart
-      ? project.passages.find((p) => p.isStart)
-      : null;
-
-    const passagesToShuffle = startPassage
-      ? project.passages.filter((p) => p.id !== startPassage.id)
-      : [...project.passages];
-
-    if (passagesToShuffle.length < 2) {
+    const poolCount =
+      project.passages.length - (plan.startStory !== null ? 1 : 0);
+    if (poolCount < 2) {
       return NextResponse.json({ error: "No hay suficientes pasajes para barajar" }, { status: 400 });
     }
 
-    // Save original order BEFORE shuffling
-    const originalNumbers = passagesToShuffle.map((p) => p.number);
+    // === SNAPSHOT: save current state before shuffle (for undo) ===
+    await createProjectSnapshot(projectId, "Barajar Contenido");
 
-    // Fisher-Yates shuffle
-    for (let i = passagesToShuffle.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [passagesToShuffle[i], passagesToShuffle[j]] = [passagesToShuffle[j], passagesToShuffle[i]];
-    }
-
-    // Assign shuffled content to passage slots:
-    // originalNumbers[i] = number of the passage slot that receives
-    // passagesToShuffle[i] = shuffled content that goes into that slot
-    const numberToContent = new Map<number, (typeof passagesToShuffle)[0]>();
-    for (let i = 0; i < passagesToShuffle.length; i++) {
-      numberToContent.set(originalNumbers[i], passagesToShuffle[i]);
-    }
-
-    // Build inline reference mapping: oldNumber → newNumber
-    // The content that was in passage originalNumbers[i] now lives in passage passagesToShuffle[i].number
-    const inlineMapping = new Map<number, number>();
-    for (let i = 0; i < passagesToShuffle.length; i++) {
-      inlineMapping.set(originalNumbers[i], passagesToShuffle[i].number);
-    }
-
-    // === PHASE 1: Update content and inline text references ===
-    for (const passage of project.passages) {
-      if (startPassage && passage.id === startPassage.id) continue; // skip start passage
-
-      const newData = numberToContent.get(passage.number);
-      if (!newData) continue;
-
-      // Update inline number references in the shuffled content
-      const updatedContent = updateAllNumberReferences(newData.content, inlineMapping);
-
-      await db.passage.update({
-        where: { id: passage.id },
-        data: {
-          content: updatedContent,
-          title: newData.title,
-          isEndpoint: newData.isEndpoint,
-        },
-      });
-    }
-
-    // === Rebuild PassageLink records ===
-    const passageIds = project.passages.map((p) => p.id);
-    await db.passageLink.deleteMany({
-      where: { sourceId: { in: passageIds } },
-    });
+    const byNumber = new Map(project.passages.map((p) => [p.number, p]));
+    const byId = new Map(project.passages.map((p) => [p.id, p]));
 
     let linksCreated = 0;
-    for (const passage of project.passages) {
-      if (startPassage && passage.id === startPassage.id) continue;
 
-      const newData = numberToContent.get(passage.number);
-      if (!newData) continue;
+    await db.$transaction(async (tx) => {
+      // === Move each story into its slot, rewriting inline references ===
+      for (const slot of project.passages) {
+        const storyNumber = plan.slotToStory.get(slot.number);
+        if (storyNumber === undefined) continue;
+        const story = byNumber.get(storyNumber);
+        if (!story) continue;
 
-      for (const link of newData.outgoingLinks) {
-        // Find where the original target's content now lives
-        const originalTarget = project.passages.find((p) => p.id === link.targetId);
-        if (!originalTarget) continue;
+        const newContent = rewriteShuffledContent(story.content, plan);
 
-        const newTargetNumber = inlineMapping.get(originalTarget.number);
-        if (newTargetNumber === undefined) continue;
-
-        const newTargetPassage = project.passages.find((p) => p.number === newTargetNumber);
-        if (!newTargetPassage) continue;
-
-        // Skip self-links
-        if (passage.id === newTargetPassage.id) continue;
-
-        // === PHASE 3: Update linkText to match new target number ===
-        let updatedLinkText = link.linkText;
-        if (updatedLinkText) {
-          // Replace old target number with new target number in linkText
-          updatedLinkText = updateAllNumberReferences(
-            updatedLinkText,
-            new Map([[originalTarget.number, newTargetNumber]])
-          );
-        }
-
-        const existing = await db.passageLink.findUnique({
-          where: {
-            sourceId_targetId: {
-              sourceId: passage.id,
-              targetId: newTargetPassage.id,
-            },
-          },
-        });
-
-        if (!existing) {
-          await db.passageLink.create({
+        if (storyNumber === slot.number) {
+          if (newContent !== story.content) {
+            await tx.passage.update({
+              where: { id: slot.id },
+              data: { content: newContent },
+            });
+          }
+        } else {
+          await tx.passage.update({
+            where: { id: slot.id },
             data: {
-              sourceId: passage.id,
-              targetId: newTargetPassage.id,
-              linkText: updatedLinkText,
+              content: newContent,
+              title: story.title,
+              isEndpoint: story.isEndpoint,
+            },
+          });
+        }
+      }
+
+      // === Rebuild links so they follow their stories ===
+      await tx.passageLink.deleteMany({
+        where: { sourceId: { in: project.passages.map((p) => p.id) } },
+      });
+
+      for (const story of project.passages) {
+        const sourceSlotNumber = plan.storyToSlot.get(story.number);
+        if (sourceSlotNumber === undefined) continue;
+        const sourceSlot = byNumber.get(sourceSlotNumber);
+        if (!sourceSlot) continue;
+
+        for (const link of story.outgoingLinks) {
+          const targetStory = byId.get(link.targetId);
+          if (!targetStory) continue;
+
+          const targetSlotNumber = plan.storyToSlot.get(targetStory.number);
+          if (targetSlotNumber === undefined) continue;
+          const targetSlot = byNumber.get(targetSlotNumber);
+          if (!targetSlot) continue;
+
+          if (sourceSlot.id === targetSlot.id) continue;
+
+          await tx.passageLink.create({
+            data: {
+              sourceId: sourceSlot.id,
+              targetId: targetSlot.id,
+              linkText: link.linkText
+                ? rewriteShuffledContent(link.linkText, plan)
+                : link.linkText,
               condition: link.condition,
             },
           });
           linksCreated++;
         }
       }
-    }
+    });
 
     return NextResponse.json({
       message: "Contenido barajado entre pasajes (números mantenidos)",
       passageCount: project.passages.length,
       linksCreated,
-      startPreserved: !!startPassage,
+      startPreserved: plan.startStory !== null,
     });
   } catch (error) {
     console.error("Error in content shuffle:", error);
