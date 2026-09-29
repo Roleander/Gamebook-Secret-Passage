@@ -24,7 +24,7 @@ type SavedPassage = {
   links?: { targetId: string; linkText?: string | null; condition?: string | null }[];
 };
 
-const MAX_SNAPSHOTS = 5;
+const MAX_SNAPSHOTS = 20;
 
 export async function createProjectSnapshot(
   projectId: string,

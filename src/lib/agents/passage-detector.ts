@@ -24,7 +24,7 @@ export class PassageDetectorAgent {
     // Patterns that indicate passage boundaries
     this.patterns = [
       // Explicit numbering
-      { regex: /^\d+[\.\)\s]/gm, weight: 10, name: "numbered" },
+      { regex: /^\d{1,3}[\.\)\s]\s*[A-ZÁÉÍÓÚÑ]/gm, weight: 10, name: "numbered" },
       { regex: /^pasaje\s+\d+/gim, weight: 10, name: "pasaje_prefix" },
       { regex: /^section\s+\d+/gim, weight: 8, name: "section_prefix" },
       { regex: /^capitulo\s+\d+/gim, weight: 8, name: "chapter_prefix" },
@@ -43,7 +43,7 @@ export class PassageDetectorAgent {
       { regex: /\b(fin|termina|acaba|game\s*over|muerte)\b/gi, weight: 6, name: "end_marker" },
 
       // Title-like lines (short, capitalized, followed by longer content)
-      { regex: /^[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{2,50}$/gm, weight: 4, name: "possible_title" },
+      { regex: /^[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{2,50}$/gm, weight: 5, name: "possible_title" },
     ];
   }
 

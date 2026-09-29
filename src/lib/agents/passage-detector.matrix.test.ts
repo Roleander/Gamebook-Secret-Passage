@@ -106,7 +106,7 @@ const fixtures: Fixture[] = [
       "Cierre del fragmento.",
     ].join("\n"),
     gt: [2, 4, 6, 10],
-    expected: [2, 4, 6, 8, 10],
+    expected: [2, 4, 6, 10],
   },
   {
     name: "mezcla sucia: condicional, título, separador, muerte",
@@ -125,7 +125,7 @@ const fixtures: Fixture[] = [
       "Acabas tu travesía por el refugio.",
     ].join("\n"),
     gt: [2, 4, 6, 9],
-    expected: [2, 6, 9],
+    expected: [2, 4, 6, 9],
   },
   {
     name: "control: prosa continua sin marcadores",
@@ -161,18 +161,6 @@ describe("matriz de efectividad por patrón de marcador", () => {
       if (f.gt.length === 0) {
         expect(s.fp).toBe(0);
         expect(pred).toEqual([]);
-      } else if (f.name.includes("señuelo")) {
-        expect(s.tp).toBe(4);
-        expect(s.fp).toBe(1);
-        expect(s.fn).toBe(0);
-        expect(s.precision).toBeCloseTo(0.8, 5);
-        expect(s.recall).toBeCloseTo(1, 5);
-      } else if (f.name.includes("mezcla")) {
-        expect(s.tp).toBe(3);
-        expect(s.fp).toBe(0);
-        expect(s.fn).toBe(1);
-        expect(s.precision).toBeCloseTo(1, 5);
-        expect(s.recall).toBeCloseTo(0.75, 5);
       } else {
         expect(s.fp).toBe(0);
         expect(s.fn).toBe(0);

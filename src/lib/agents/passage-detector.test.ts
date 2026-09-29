@@ -37,7 +37,7 @@ describe("PassageDetectorAgent", () => {
   });
 
   it("keeps confidence within [0, 1]", () => {
-    const passages = createPassageDetector().detect("1. uno\ntexto\n2. dos\nfin");
+    const passages = createPassageDetector().detect("1. Uno\ntexto\n2. Dos\nfin");
     expect(passages.length).toBeGreaterThan(0);
     for (const passage of passages) {
       expect(passage.confidence).toBeGreaterThanOrEqual(0);
@@ -47,7 +47,7 @@ describe("PassageDetectorAgent", () => {
 
   it("suggests sequential numbers for every passage", () => {
     const detector = createPassageDetector();
-    const passages = detector.detect("1. a\nb\n2. c\nd");
+    const passages = detector.detect("1. Alfa\nb\n2. Beta\nd");
     expect(detector.suggestNumbers(passages)).toEqual(
       passages.map((_, index) => index + 1)
     );
@@ -210,7 +210,7 @@ describe("PassageDetectorAgent", () => {
     expect(passages[2].content).toContain("Tres");
   });
 
-  it("does not split on title-like lines alone (score below threshold)", () => {
+  it("splits on title-like lines (weight reaches threshold)", () => {
     const text = [
       "La historia comienza en silencio.",
       "Nadie mueve pieza en el tablero.",
@@ -220,7 +220,23 @@ describe("PassageDetectorAgent", () => {
       "El juego vuelve a empezar por otro lado.",
     ].join("\n");
     const passages = createPassageDetector().detect(text);
-    expect(passages).toHaveLength(1);
-    expect(passages[0].content).toBe(text.trim());
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("tablero");
+    expect(passages[1].content).toContain("EL GRAN TÍTULO");
+  });
+
+  it("does not split on a year decoy line (numbered requires title-case)", () => {
+    const text = [
+      "1. Primer bloque con prosa.",
+      "Línea de apoyo del primero.",
+      "1984 se publicó mucho después de la guerra.",
+      "La literatura no para de crecer.",
+      "2. Segundo bloque con prosa.",
+      "Cierre del texto.",
+    ].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(2);
+    expect(passages[0].content).toContain("Primer bloque");
+    expect(passages[1].content).toContain("Segundo bloque");
   });
 });
