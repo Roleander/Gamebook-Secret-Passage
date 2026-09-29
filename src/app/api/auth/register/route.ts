@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email y contraseña son requeridos" },
+        { error: "Email y contraseña son requeridos", code: "REGISTER_MISSING" },
         { status: 400 }
       );
     }
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "El email ya está registrado" },
+        { error: "El email ya está registrado", code: "EMAIL_TAKEN" },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "Error al crear el usuario" },
+      { error: "Error al crear el usuario", code: "REGISTER_SERVER" },
       { status: 500 }
     );
   }

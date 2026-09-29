@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
     if (!email) {
       return NextResponse.json(
-        { error: "El email es requerido" },
+        { error: "El email es requerido", code: "EMAIL_REQUIRED" },
         { status: 400 }
       );
     }
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Forgot password error:", error);
     return NextResponse.json(
-      { error: "Error al procesar la solicitud" },
+      { error: "Error al procesar la solicitud", code: "FORGOT_SERVER" },
       { status: 500 }
     );
   }

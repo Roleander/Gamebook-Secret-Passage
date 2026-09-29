@@ -8,14 +8,14 @@ export async function POST(req: Request) {
 
     if (!token || !password) {
       return NextResponse.json(
-        { error: "Token y contraseña son requeridos" },
+        { error: "Token y contraseña son requeridos", code: "RESET_MISSING" },
         { status: 400 }
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: "La contraseña debe tener al menos 6 caracteres" },
+        { error: "La contraseña debe tener al menos 6 caracteres", code: "WEAK_PASSWORD" },
         { status: 400 }
       );
     }
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     if (!resetToken) {
       return NextResponse.json(
-        { error: "Token inválido o expirado" },
+        { error: "Token inválido o expirado", code: "TOKEN_INVALID" },
         { status: 400 }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     // Check if token is expired
     if (resetToken.expiresAt < new Date()) {
       return NextResponse.json(
-        { error: "Token expirado. Solicita uno nuevo." },
+        { error: "Token expirado. Solicita uno nuevo.", code: "TOKEN_EXPIRED" },
         { status: 400 }
       );
     }
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     // Check if token was already used
     if (resetToken.used) {
       return NextResponse.json(
-        { error: "Token ya utilizado. Solicita uno nuevo." },
+        { error: "Token ya utilizado. Solicita uno nuevo.", code: "TOKEN_USED" },
         { status: 400 }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Reset password error:", error);
     return NextResponse.json(
-      { error: "Error al restablecer la contraseña" },
+      { error: "Error al restablecer la contraseña", code: "RESET_SERVER" },
       { status: 500 }
     );
   }

@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
+import { authError } from "@/lib/auth-errors";
 
 export default function ForgotPasswordPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string; resetUrl?: string } | null>(null);
@@ -26,16 +29,24 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-      setResult({
-        success: true,
-        message: data.message,
-        resetUrl: data.resetUrl,
-      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data) {
+        setResult({
+          success: false,
+          message: authError(t, data, "Auth.sendRequestError"),
+        });
+      } else {
+        setResult({
+          success: true,
+          message: t("Auth.resetEmailSent"),
+          resetUrl: data.resetUrl,
+        });
+      }
     } catch (error) {
       setResult({
         success: false,
-        message: "Error al enviar la solicitud",
+        message: t("Auth.sendRequestError"),
       });
     } finally {
       setLoading(false);
@@ -51,7 +62,7 @@ export default function ForgotPasswordPage() {
           className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver al inicio de sesión
+          {t("Auth.backToLogin")}
         </Link>
 
         <motion.div
@@ -64,10 +75,10 @@ export default function ForgotPasswordPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Mail className="w-5 h-5 mr-2 text-primary" />
-              Recuperar contraseña
+              {t("Auth.recoverPassword")}
             </CardTitle>
             <CardDescription>
-              Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
+              {t("Auth.recoverPasswordDesc")}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -87,7 +98,7 @@ export default function ForgotPasswordPage() {
                     <p>{result.message}</p>
                     {result.resetUrl && (
                       <div className="mt-2">
-                        <p className="text-xs text-muted-foreground mb-1">(Modo desarrollo — enlace de reseteo):</p>
+                        <p className="text-xs text-muted-foreground mb-1">{t("Auth.devResetLink")}</p>
                         <a href={result.resetUrl} className="text-xs text-primary underline break-all">
                           {result.resetUrl}
                         </a>
@@ -98,12 +109,12 @@ export default function ForgotPasswordPage() {
               )}
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
-                  Email
+                  {t("Auth.email")}
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="tu@email.com"
+                  placeholder={t("Auth.emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -113,11 +124,11 @@ export default function ForgotPasswordPage() {
             <CardFooter className="flex justify-between">
               <Link href="/auth/login">
                 <Button variant="ghost" type="button">
-                  Cancelar
+                  {t("Common.cancel")}
                 </Button>
               </Link>
               <Button type="submit" disabled={loading || result?.success}>
-                {loading ? "Enviando..." : "Enviar enlace"}
+                {loading ? t("Auth.sending") : t("Auth.sendLink")}
               </Button>
             </CardFooter>
           </form>

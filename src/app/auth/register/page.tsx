@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
+import { authError } from "@/lib/auth-errors";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,13 +27,13 @@ export default function RegisterPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError(t("Auth.passwordMismatch"));
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setError(t("Auth.passwordTooShort"));
       setLoading(false);
       return;
     }
@@ -47,7 +50,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Error al crear la cuenta");
+        setError(authError(t, data, "Auth.registerError"));
         setLoading(false);
         return;
       }
@@ -56,7 +59,7 @@ export default function RegisterPage() {
       const callbackUrl = params.get("callbackUrl");
       router.push(callbackUrl ? `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&registered=true` : "/auth/login?registered=true");
     } catch (err) {
-      setError("Error de conexión");
+      setError(t("Auth.connectionError"));
       setLoading(false);
     }
   };
@@ -72,13 +75,20 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md border-medieval">
         <CardHeader className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/20 rounded-full mx-auto mb-4">
-            <BookOpen className="w-8 h-8 text-primary" />
+            <Image
+              src="/icon.png"
+              alt="Secret Passage"
+              width={40}
+              height={40}
+              priority
+              className="rounded-full"
+            />
           </div>
           <CardTitle className="text-2xl font-pixel text-primary">
-            Crear Cuenta
+            {t("Auth.registerButton")}
           </CardTitle>
           <CardDescription>
-            Regístrate para empezar a crear librojuegos
+            {t("Auth.registerSubtitle")}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -90,24 +100,24 @@ export default function RegisterPage() {
             )}
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
-                Nombre
+                {t("Auth.name")}
               </label>
               <Input
                 id="name"
                 type="text"
-                placeholder="Tu nombre"
+                placeholder={t("Auth.namePlaceholder")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
-                Email
+                {t("Auth.email")}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder={t("Auth.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -115,7 +125,7 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                Contraseña
+                {t("Auth.password")}
               </label>
               <Input
                 id="password"
@@ -128,7 +138,7 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirmar Contraseña
+                {t("Auth.confirmPassword")}
               </label>
               <Input
                 id="confirmPassword"
@@ -142,12 +152,12 @@ export default function RegisterPage() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creando cuenta..." : "Crear Cuenta"}
+              {loading ? t("Auth.creatingAccount") : t("Auth.registerButton")}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              ¿Ya tienes cuenta?{" "}
+              {t("Auth.hasAccount")}{" "}
               <Link href="/auth/login" className="text-primary hover:underline">
-                Inicia sesión
+                {t("Auth.loginLink")}
               </Link>
             </p>
           </CardFooter>

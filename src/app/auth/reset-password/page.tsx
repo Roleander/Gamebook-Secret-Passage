@@ -10,10 +10,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeft, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Suspense } from "react";
 import { motion } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
+import { authError } from "@/lib/auth-errors";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const { t } = useI18n();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,21 +27,21 @@ function ResetPasswordForm() {
     if (!token) {
       setResult({
         success: false,
-        message: "Token no proporcionado. Solicita un nuevo enlace de recuperación.",
+        message: t("Auth.tokenMissing"),
       });
     }
-  }, [token]);
+  }, [token, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      setResult({ success: false, message: "Las contraseñas no coinciden" });
+      setResult({ success: false, message: t("Auth.passwordMismatch") });
       return;
     }
 
     if (password.length < 6) {
-      setResult({ success: false, message: "La contraseña debe tener al menos 6 caracteres" });
+      setResult({ success: false, message: t("Auth.passwordTooShort") });
       return;
     }
 
@@ -52,15 +55,15 @@ function ResetPasswordForm() {
         body: JSON.stringify({ token, password }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (response.ok) {
-        setResult({ success: true, message: data.message });
+        setResult({ success: true, message: t("Auth.passwordResetOk") });
       } else {
-        setResult({ success: false, message: data.error || "Error al restablecer la contraseña" });
+        setResult({ success: false, message: authError(t, data, "Auth.resetError") });
       }
     } catch (error) {
-      setResult({ success: false, message: "Error al conectar con el servidor" });
+      setResult({ success: false, message: t("Auth.serverConnectionError") });
     } finally {
       setLoading(false);
     }
@@ -75,7 +78,7 @@ function ResetPasswordForm() {
           className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver al inicio de sesión
+          {t("Auth.backToLogin")}
         </Link>
 
         <motion.div
@@ -88,10 +91,10 @@ function ResetPasswordForm() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Lock className="w-5 h-5 mr-2 text-primary" />
-              Nueva contraseña
+              {t("Auth.newPassword")}
             </CardTitle>
             <CardDescription>
-              Introduce tu nueva contraseña.
+              {t("Auth.newPasswordDesc")}
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -114,18 +117,18 @@ function ResetPasswordForm() {
               {!token && !result && (
                 <div className="p-3 text-sm rounded-md bg-destructive/10 border border-destructive/50 text-destructive flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                  <p>No se proporcionó un token válido. Solicita un nuevo enlace de recuperación.</p>
+                  <p>{t("Auth.tokenInvalid")}</p>
                 </div>
               )}
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
-                  Nueva contraseña
+                  {t("Auth.newPassword")}
                 </label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={t("Auth.minSixChars")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -135,12 +138,12 @@ function ResetPasswordForm() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirmar contraseña
+                  {t("Auth.confirmPassword")}
                 </label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Repite la contraseña"
+                  placeholder={t("Auth.repeatPassword")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -152,16 +155,16 @@ function ResetPasswordForm() {
             <CardFooter className="flex justify-between">
               <Link href="/auth/login">
                 <Button variant="ghost" type="button">
-                  Cancelar
+                  {t("Common.cancel")}
                 </Button>
               </Link>
               {result?.success ? (
                 <Link href="/auth/login">
-                  <Button>Iniciar sesión</Button>
+                  <Button>{t("Auth.login")}</Button>
                 </Link>
               ) : (
                 <Button type="submit" disabled={loading || !token}>
-                  {loading ? "Restableciendo..." : "Restablecer contraseña"}
+                  {loading ? t("Auth.resetting") : t("Auth.resetPasswordButton")}
                 </Button>
               )}
             </CardFooter>
@@ -173,9 +176,18 @@ function ResetPasswordForm() {
   );
 }
 
+function LoadingFallback() {
+  const { t } = useI18n();
+  return (
+    <div className="min-h-screen bg-dungeon flex items-center justify-center text-muted-foreground">
+      {t("Common.loading")}
+    </div>
+  );
+}
+
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-dungeon flex items-center justify-center text-muted-foreground">Cargando...</div>}>
+    <Suspense fallback={<LoadingFallback />}>
       <ResetPasswordForm />
     </Suspense>
   );

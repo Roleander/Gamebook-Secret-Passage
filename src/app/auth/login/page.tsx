@@ -4,15 +4,17 @@ import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
+import { useI18n } from "@/lib/i18n";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -37,7 +39,7 @@ function LoginForm() {
     });
 
     if (result?.error) {
-      setError("Email o contraseña incorrectos");
+      setError(t("Auth.invalidCredentials"));
       setLoading(false);
     } else {
       const callbackUrl = searchParams.get("callbackUrl") || "/projects";
@@ -57,20 +59,27 @@ function LoginForm() {
       <Card className="w-full max-w-md border-medieval">
         <CardHeader className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/20 rounded-full mx-auto mb-4">
-            <BookOpen className="w-8 h-8 text-primary" />
+            <Image
+              src="/icon.png"
+              alt="Secret Passage"
+              width={40}
+              height={40}
+              priority
+              className="rounded-full"
+            />
           </div>
           <CardTitle className="text-2xl font-pixel text-primary">
             Secret Passage
           </CardTitle>
           <CardDescription>
-            Inicia sesión para acceder a tus proyectos
+            {t("Auth.loginSubtitle")}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {registered && !error && (
               <div className="p-3 text-sm text-green-500 bg-green-500/10 rounded-md border border-green-500/30">
-                Cuenta creada correctamente. Inicia sesión para continuar.
+                {t("Auth.registeredSuccess")}
               </div>
             )}
             {error && (
@@ -80,12 +89,12 @@ function LoginForm() {
             )}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
-                Email
+                {t("Auth.email")}
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder={t("Auth.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -93,7 +102,7 @@ function LoginForm() {
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
-                Contraseña
+                {t("Auth.password")}
               </label>
               <Input
                 id="password"
@@ -106,16 +115,16 @@ function LoginForm() {
             </div>
             <div className="text-right">
               <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
-                ¿Olvidaste tu contraseña?
+                {t("Auth.forgotPassword")}
               </Link>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              {loading ? t("Auth.loggingIn") : t("Auth.login")}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              ¿No tienes cuenta?{" "}
+              {t("Auth.noAccount")}{" "}
               <Link
                 href={
                   searchParams.get("callbackUrl")
@@ -124,7 +133,7 @@ function LoginForm() {
                 }
                 className="text-primary hover:underline"
               >
-                Regístrate aquí
+                {t("Auth.signupLink")}
               </Link>
             </p>
           </CardFooter>
