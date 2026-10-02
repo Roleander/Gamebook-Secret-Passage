@@ -406,7 +406,21 @@
     "extCopy": "Copier le token",
     "extCopied": "Copié !",
     "extHint": "Collez le token dans l'extension. Il expire après 30 jours.",
-    "extTokenError": "Impossible de générer le token"
+    "extTokenError": "Impossible de générer le token",
+    "deleteAccountTitle": "Zone dangereuse",
+    "deleteAccountDesc": "Tu peux supprimer définitivement ton compte. Cette action est irréversible.",
+    "deleteAccountWipe": "Tes projets, abonnements et données personnelles seront supprimés.",
+    "deleteAccountKeep": "Tes dons sont conservés de manière anonyme (sans lien avec ton compte).",
+    "deleteAccountSubActive": "Tu as un abonnement actif : il sera résilié automatiquement lorsque tu supprimeras ton compte.",
+    "deleteAccountBtn": "Supprimer mon compte",
+    "deleteAccountPassword": "Mot de passe actuel",
+    "deleteAccountEmail": "Écris ton e-mail pour confirmer",
+    "deleteAccountCancel": "Annuler",
+    "deleteAccountFinalBtn": "Supprimer définitivement",
+    "deleteAccountMissing": "Saisis ton mot de passe et ton e-mail.",
+    "deleteAccountWrongPass": "Le mot de passe est incorrect.",
+    "deleteAccountEmailMismatch": "L'e-mail ne correspond pas à celui de ton compte.",
+    "deleteAccountServerError": "Erreur lors de la suppression du compte. Réessaie."
   },
   "Analysis": {
     "tab": "Analyse",

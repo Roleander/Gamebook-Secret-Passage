@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,14 @@ import { ThemeCustomizer } from "@/components/theme-customizer";
 import { LogoUpload } from "@/components/logo-upload";
 import { useTheme } from "@/lib/theme-context";
 import { useI18n } from "@/lib/i18n";
-import { User, Lock, CreditCard, Settings, Globe, CheckCircle, Puzzle } from "lucide-react";
+import { User, Lock, CreditCard, Settings, Globe, CheckCircle, Puzzle, Trash2 } from "lucide-react";
+
+const DELETE_ERROR_KEYS: Record<string, string> = {
+  DELETE_MISSING: "Profile.deleteAccountMissing",
+  WRONG_PASSWORD: "Profile.deleteAccountWrongPass",
+  EMAIL_MISMATCH: "Profile.deleteAccountEmailMismatch",
+  DELETE_SERVER: "Profile.deleteAccountServerError",
+};
 
 interface UserProfile {
   id: string;
@@ -60,6 +67,13 @@ export default function ProfilePage() {
   const [extToken, setExtToken] = useState<string | null>(null);
   const [generatingToken, setGeneratingToken] = useState(false);
   const [tokenCopied, setTokenCopied] = useState(false);
+
+  // Account deletion
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleGenerateExtToken = async () => {
     setGeneratingToken(true);
@@ -271,6 +285,34 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error canceling subscription:", error);
       alert(t("Profile.connectionError"));
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword || !deleteEmail.trim()) {
+      setDeleteError(t("Profile.deleteAccountMissing"));
+      return;
+    }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = await fetch("/api/user", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword, confirmEmail: deleteEmail }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const key = DELETE_ERROR_KEYS[data.code];
+        setDeleteError(key ? t(key) : data.error || t("Profile.deleteAccountServerError"));
+        return;
+      }
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      setDeleteError(t("Profile.connectionError"));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -527,6 +569,79 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Danger zone */}
+        <Card className="mt-6 border-destructive">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              {t("Profile.deleteAccountTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t("Profile.deleteAccountDesc")}</p>
+            <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+              <li>{t("Profile.deleteAccountWipe")}</li>
+              <li>{t("Profile.deleteAccountKeep")}</li>
+            </ul>
+            {profile.subscription && (
+              <p className="text-sm text-amber-500">{t("Profile.deleteAccountSubActive")}</p>
+            )}
+            {!deleteOpen ? (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setDeleteOpen(true);
+                  setDeleteError(null);
+                }}
+              >
+                {t("Profile.deleteAccountBtn")}
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">{t("Profile.deleteAccountPassword")}</label>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    autoComplete="current-password"
+                    className="w-full mt-1 p-2 rounded border border-border bg-input text-foreground"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">{t("Profile.deleteAccountEmail")}</label>
+                  <input
+                    type="email"
+                    value={deleteEmail}
+                    onChange={(e) => setDeleteEmail(e.target.value)}
+                    placeholder={profile.email}
+                    autoComplete="off"
+                    className="w-full mt-1 p-2 rounded border border-border bg-input text-foreground"
+                  />
+                </div>
+                {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={deleting}
+                    onClick={() => {
+                      setDeleteOpen(false);
+                      setDeleteError(null);
+                      setDeletePassword("");
+                      setDeleteEmail("");
+                    }}
+                  >
+                    {t("Profile.deleteAccountCancel")}
+                  </Button>
+                  <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleting}>
+                    {deleting ? t("Profile.saving") : t("Profile.deleteAccountFinalBtn")}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

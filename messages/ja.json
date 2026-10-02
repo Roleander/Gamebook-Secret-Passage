@@ -406,7 +406,21 @@
     "extCopy": "トークンをコピー",
     "extCopied": "コピーしました！",
     "extHint": "トークンを拡張機能に貼り付けてください。30日で失効します。",
-    "extTokenError": "トークンを生成できませんでした"
+    "extTokenError": "トークンを生成できませんでした",
+    "deleteAccountTitle": "危険地帯",
+    "deleteAccountDesc": "アカウントを完全に削除できます。この操作は取り消せません。",
+    "deleteAccountWipe": "プロジェクト、サブスクリプション、個人データは削除されます。",
+    "deleteAccountKeep": "寄付は匿名のまま保持されます（アカウントとの連携は解除されます）。",
+    "deleteAccountSubActive": "有効なサブスクリプションがあります。アカウント削除時に自動的に解約されます。",
+    "deleteAccountBtn": "アカウントを削除する",
+    "deleteAccountPassword": "現在のパスワード",
+    "deleteAccountEmail": "確認のためメールアドレスを入力してください",
+    "deleteAccountCancel": "キャンセル",
+    "deleteAccountFinalBtn": "完全に削除する",
+    "deleteAccountMissing": "パスワードとメールアドレスを入力してください。",
+    "deleteAccountWrongPass": "パスワードが正しくありません。",
+    "deleteAccountEmailMismatch": "メールアドレスがアカウントのものと一致しません。",
+    "deleteAccountServerError": "アカウントの削除中にエラーが発生しました。もう一度お試しください。"
   },
   "Analysis": {
     "tab": "分析",

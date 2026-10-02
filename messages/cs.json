@@ -406,7 +406,21 @@
     "extCopy": "Kopírovat token",
     "extCopied": "Zkopírováno!",
     "extHint": "Vložte token do rozšíření. Vyprší po 30 dnech.",
-    "extTokenError": "Token se nepodařilo vygenerovat"
+    "extTokenError": "Token se nepodařilo vygenerovat",
+    "deleteAccountTitle": "Nebezpečná zóna",
+    "deleteAccountDesc": "Svůj účet můžete trvale smazat. Tuto akci nelze vrátit zpět.",
+    "deleteAccountWipe": "Vaše projekty, předplatné a osobní údaje budou smazány.",
+    "deleteAccountKeep": "Vaše dary zůstávají anonymní (nejsou propojeny s účtem).",
+    "deleteAccountSubActive": "Máte aktivní předplatné: při smazání účtu se automaticky zruší.",
+    "deleteAccountBtn": "Smazat můj účet",
+    "deleteAccountPassword": "Aktuální heslo",
+    "deleteAccountEmail": "Pro potvrzení zadejte svůj e-mail",
+    "deleteAccountCancel": "Zrušit",
+    "deleteAccountFinalBtn": "Smazat trvale",
+    "deleteAccountMissing": "Zadejte své heslo a e-mail.",
+    "deleteAccountWrongPass": "Heslo je nesprávné.",
+    "deleteAccountEmailMismatch": "E-mail neodpovídá e-mailu vašeho účtu.",
+    "deleteAccountServerError": "Chyba při mazání účtu. Zkuste to znovu."
   },
   "Analysis": {
     "tab": "Analýza",

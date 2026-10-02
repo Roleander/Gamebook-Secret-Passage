@@ -406,7 +406,21 @@
     "extCopy": "Token kopieren",
     "extCopied": "Kopiert!",
     "extHint": "Füge das Token in die Erweiterung ein. Es läuft nach 30 Tagen ab.",
-    "extTokenError": "Token konnte nicht erstellt werden"
+    "extTokenError": "Token konnte nicht erstellt werden",
+    "deleteAccountTitle": "Gefahrenbereich",
+    "deleteAccountDesc": "Du kannst dein Konto dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteAccountWipe": "Deine Projekte, Abonnements und persönlichen Daten werden gelöscht.",
+    "deleteAccountKeep": "Deine Spenden bleiben anonym erhalten (nicht mit deinem Konto verknüpft).",
+    "deleteAccountSubActive": "Du hast ein aktives Abonnement: Es wird bei der Kontolöschung automatisch gekündigt.",
+    "deleteAccountBtn": "Mein Konto löschen",
+    "deleteAccountPassword": "Aktuelles Passwort",
+    "deleteAccountEmail": "Gib zur Bestätigung deine E-Mail-Adresse ein",
+    "deleteAccountCancel": "Abbrechen",
+    "deleteAccountFinalBtn": "Endgültig löschen",
+    "deleteAccountMissing": "Gib dein Passwort und deine E-Mail-Adresse ein.",
+    "deleteAccountWrongPass": "Das Passwort ist falsch.",
+    "deleteAccountEmailMismatch": "Die E-Mail-Adresse stimmt nicht mit der deines Kontos überein.",
+    "deleteAccountServerError": "Fehler beim Löschen des Kontos. Bitte versuche es erneut."
   },
   "Analysis": {
     "tab": "Analyse",

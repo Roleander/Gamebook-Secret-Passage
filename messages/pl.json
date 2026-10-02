@@ -406,7 +406,21 @@
     "extCopy": "Kopiuj token",
     "extCopied": "Skopiowano!",
     "extHint": "Wklej token do rozszerzenia. Wygasa po 30 dniach.",
-    "extTokenError": "Nie udało się wygenerować tokena"
+    "extTokenError": "Nie udało się wygenerować tokena",
+    "deleteAccountTitle": "Strefa zagrożenia",
+    "deleteAccountDesc": "Możesz trwale usunąć swoje konto. Tej operacji nie można cofnąć.",
+    "deleteAccountWipe": "Twoje projekty, subskrypcje i dane osobowe zostaną usunięte.",
+    "deleteAccountKeep": "Twoje darowizny są zachowane anonimowo (bez powiązania z kontem).",
+    "deleteAccountSubActive": "Masz aktywną subskrypcję: zostanie automatycznie anulowana po usunięciu konta.",
+    "deleteAccountBtn": "Usuń moje konto",
+    "deleteAccountPassword": "Obecne hasło",
+    "deleteAccountEmail": "Wpisz swój e-mail, aby potwierdzić",
+    "deleteAccountCancel": "Anuluj",
+    "deleteAccountFinalBtn": "Usuń trwale",
+    "deleteAccountMissing": "Podaj swoje hasło i e-mail.",
+    "deleteAccountWrongPass": "Hasło jest nieprawidłowe.",
+    "deleteAccountEmailMismatch": "E-mail nie pasuje do adresu Twojego konta.",
+    "deleteAccountServerError": "Błąd podczas usuwania konta. Spróbuj ponownie."
   },
   "Analysis": {
     "tab": "Analiza",

@@ -2,14 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
-import Stripe from "stripe";
+import { getStripe, cancelSubscriptionAtProvider } from "@/lib/billing";
 import { SITE_URL } from "@/lib/site-url";
-
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2026-08-26.dahlia",
-  });
-}
 
 // GET - Get user's current subscription
 export async function GET() {
@@ -100,46 +94,8 @@ export async function DELETE() {
       );
     }
 
-    // Cancel at Stripe if it's a Stripe subscription
-    if (subscription.stripeSubscriptionId && !subscription.stripeSubscriptionId.startsWith("pi_")) {
-      try {
-        await getStripe().subscriptions.cancel(subscription.stripeSubscriptionId);
-      } catch (stripeError) {
-        console.error("Stripe cancel error:", stripeError);
-        // Continue with DB cancel even if Stripe fails
-      }
-    }
-
-    // Cancel at PayPal if it's a PayPal subscription
-    if (subscription.paypalSubscriptionId) {
-      try {
-        const auth = Buffer.from(
-          `${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
-        ).toString("base64");
-        const tokenRes = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
-          method: "POST",
-          headers: {
-            Authorization: `Basic ${auth}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: "grant_type=client_credentials",
-        });
-        const { access_token } = await tokenRes.json();
-        await fetch(
-          `https://api-m.paypal.com/v1/billing/subscriptions/${subscription.paypalSubscriptionId}/cancel`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${access_token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ reason: "Canceled by user" }),
-          }
-        );
-      } catch (paypalError) {
-        console.error("PayPal cancel error:", paypalError);
-      }
-    }
+    // Cancel at Stripe/PayPal first (best-effort)
+    await cancelSubscriptionAtProvider(subscription);
 
     const updated = await db.subscription.update({
       where: { id: subscription.id },

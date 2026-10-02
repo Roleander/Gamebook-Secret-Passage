@@ -406,7 +406,21 @@
     "extCopy": "Copiar token",
     "extCopied": "Copiado!",
     "extHint": "Cole o token na extensão. Ele expira em 30 dias.",
-    "extTokenError": "Não foi possível gerar o token"
+    "extTokenError": "Não foi possível gerar o token",
+    "deleteAccountTitle": "Zona de perigo",
+    "deleteAccountDesc": "Você pode excluir sua conta permanentemente. Esta ação não pode ser desfeita.",
+    "deleteAccountWipe": "Seus projetos, assinaturas e dados pessoais serão excluídos.",
+    "deleteAccountKeep": "Suas doações são mantidas de forma anônima (sem vínculo com sua conta).",
+    "deleteAccountSubActive": "Você tem uma assinatura ativa: ela será cancelada automaticamente ao excluir sua conta.",
+    "deleteAccountBtn": "Excluir minha conta",
+    "deleteAccountPassword": "Senha atual",
+    "deleteAccountEmail": "Digite seu e-mail para confirmar",
+    "deleteAccountCancel": "Cancelar",
+    "deleteAccountFinalBtn": "Excluir definitivamente",
+    "deleteAccountMissing": "Informe sua senha e seu e-mail.",
+    "deleteAccountWrongPass": "A senha está incorreta.",
+    "deleteAccountEmailMismatch": "O e-mail não corresponde ao da sua conta.",
+    "deleteAccountServerError": "Erro ao excluir a conta. Tente novamente."
   },
   "Analysis": {
     "tab": "Análise",

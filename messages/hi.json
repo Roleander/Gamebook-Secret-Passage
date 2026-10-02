@@ -406,7 +406,21 @@
     "extCopy": "टोकन कॉपी करें",
     "extCopied": "कॉपी हो गया!",
     "extHint": "टोकन को एक्सटेंशन में पेस्ट करें। 30 दिनों में समाप्त हो जाता है।",
-    "extTokenError": "टोकन नहीं बनाया जा सका"
+    "extTokenError": "टोकन नहीं बनाया जा सका",
+    "deleteAccountTitle": "खतरे का क्षेत्र",
+    "deleteAccountDesc": "आप अपना खाता स्थायी रूप से हटा सकते हैं। यह क्रिया पूर्ववत नहीं की जा सकती।",
+    "deleteAccountWipe": "आपके प्रोजेक्ट, सदस्यताएँ और व्यक्तिगत डेटा हटा दिए जाएँगे।",
+    "deleteAccountKeep": "आपके दान अनाम रूप से रखे जाते हैं (खाते से जुड़े नहीं)।",
+    "deleteAccountSubActive": "आपके पास एक सक्रिय सदस्यता है: खाता हटाने पर यह स्वचालित रूप से रद्द हो जाएगी।",
+    "deleteAccountBtn": "मेरा खाता हटाएँ",
+    "deleteAccountPassword": "वर्तमान पासवर्ड",
+    "deleteAccountEmail": "पुष्टि के लिए अपना ईमेल लिखें",
+    "deleteAccountCancel": "रद्द करें",
+    "deleteAccountFinalBtn": "स्थायी रूप से हटाएँ",
+    "deleteAccountMissing": "अपना पासवर्ड और ईमेल दर्ज करें।",
+    "deleteAccountWrongPass": "पासवर्ड गलत है।",
+    "deleteAccountEmailMismatch": "ईमेल आपके खाते के ईमेल से मेल नहीं खाता।",
+    "deleteAccountServerError": "खाता हटाने में त्रुटि। पुनः प्रयास करें।"
   },
   "Analysis": {
     "tab": "विश्लेषण",

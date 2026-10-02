@@ -406,7 +406,21 @@
     "extCopy": "Copy token",
     "extCopied": "Copied!",
     "extHint": "Paste the token into the extension. It expires after 30 days.",
-    "extTokenError": "Could not generate the token"
+    "extTokenError": "Could not generate the token",
+    "deleteAccountTitle": "Danger zone",
+    "deleteAccountDesc": "You can permanently delete your account. This action cannot be undone.",
+    "deleteAccountWipe": "Your projects, subscriptions and personal data will be deleted.",
+    "deleteAccountKeep": "Your donations are kept anonymously (not linked to your account).",
+    "deleteAccountSubActive": "You have an active subscription: it will be cancelled automatically when you delete your account.",
+    "deleteAccountBtn": "Delete my account",
+    "deleteAccountPassword": "Current password",
+    "deleteAccountEmail": "Type your email to confirm",
+    "deleteAccountCancel": "Cancel",
+    "deleteAccountFinalBtn": "Delete permanently",
+    "deleteAccountMissing": "Enter your password and your email.",
+    "deleteAccountWrongPass": "The password is incorrect.",
+    "deleteAccountEmailMismatch": "The email does not match your account email.",
+    "deleteAccountServerError": "Error deleting the account. Please try again."
   },
   "Analysis": {
     "tab": "Analysis",

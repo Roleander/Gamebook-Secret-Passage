@@ -406,7 +406,21 @@
     "extCopy": "Kopiera token",
     "extCopied": "Kopierat!",
     "extHint": "Klistra in token i tillägget. Går ut efter 30 dagar.",
-    "extTokenError": "Kunde inte generera token"
+    "extTokenError": "Kunde inte generera token",
+    "deleteAccountTitle": "Farlig zon",
+    "deleteAccountDesc": "Du kan ta bort ditt konto permanent. Denna åtgärd kan inte ångras.",
+    "deleteAccountWipe": "Dina projekt, prenumerationer och personuppgifter tas bort.",
+    "deleteAccountKeep": "Dina donationer sparas anonymt (inte kopplade till ditt konto).",
+    "deleteAccountSubActive": "Du har ett aktivt abonnemang: det avslutas automatiskt när du tar bort ditt konto.",
+    "deleteAccountBtn": "Ta bort mitt konto",
+    "deleteAccountPassword": "Nuvarande lösenord",
+    "deleteAccountEmail": "Skriv din e-postadress för att bekräfta",
+    "deleteAccountCancel": "Avbryt",
+    "deleteAccountFinalBtn": "Ta bort permanent",
+    "deleteAccountMissing": "Ange ditt lösenord och din e-postadress.",
+    "deleteAccountWrongPass": "Lösenordet är felaktigt.",
+    "deleteAccountEmailMismatch": "E-postadressen matchar inte ditt konto.",
+    "deleteAccountServerError": "Fel vid borttagning av kontot. Försök igen."
   },
   "Analysis": {
     "tab": "Analys",
