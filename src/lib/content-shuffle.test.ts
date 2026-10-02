@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildContentShufflePlan,
   rewriteShuffledContent,
+  computeShuffleMutations,
 } from "@/lib/content-shuffle";
 
 function seededRng(seed: number): () => number {
@@ -170,5 +171,182 @@ describe("rewriteShuffledContent", () => {
     expect(rewriteShuffledContent("Vuelves al pasaje 1.", plan)).toBe(
       "Vuelves al pasaje 1."
     );
+  });
+});
+
+function makeMutationPassages() {
+  return [
+    {
+      id: "p1",
+      number: 1,
+      title: "Inicio",
+      content: "Empiezas. Ve al pasaje 2.",
+      isEndpoint: false,
+      outgoingLinks: [
+        { targetId: "p2", linkText: "Ve al 2", condition: "tesoro == 1" },
+      ],
+    },
+    {
+      id: "p2",
+      number: 2,
+      title: "Camino",
+      content: "Un camino.",
+      isEndpoint: true,
+      outgoingLinks: [],
+    },
+    {
+      id: "p3",
+      number: 3,
+      title: "Bosque",
+      content: "Un bosque.",
+      isEndpoint: false,
+      outgoingLinks: [],
+    },
+  ];
+}
+
+describe("computeShuffleMutations", () => {
+  it("moves titles and endpoints with their stories and rewrites content", () => {
+    const passages = makeMutationPassages();
+    const plan = buildContentShufflePlan(passages, {
+      preserveStart: false,
+      rng: sequenceRng([0.5, 0.1]),
+    });
+    expect(plan.storyToSlot.get(3)).toBe(1);
+    expect(plan.storyToSlot.get(1)).toBe(2);
+    expect(plan.storyToSlot.get(2)).toBe(3);
+
+    const { passageUpdates, newLinks } = computeShuffleMutations(
+      passages,
+      plan
+    );
+
+    expect(passageUpdates).toEqual([
+      { id: "p1", content: "Un bosque.", title: "Bosque", isEndpoint: false },
+      {
+        id: "p2",
+        content: "Empiezas. Ve al pasaje 3.",
+        title: "Inicio",
+        isEndpoint: false,
+      },
+      { id: "p3", content: "Un camino.", title: "Camino", isEndpoint: true },
+    ]);
+    expect(newLinks).toEqual([
+      {
+        sourceId: "p2",
+        targetId: "p3",
+        linkText: "Ve al 3",
+        condition: "tesoro == 1",
+      },
+    ]);
+  });
+
+  it("updates same-slot passages with content only, without title or endpoint", () => {
+    const passages = [
+      {
+        id: "p1",
+        number: 1,
+        title: "Inicio",
+        content: "Ve al pasaje 2.",
+        isEndpoint: false,
+        outgoingLinks: [],
+      },
+      {
+        id: "p2",
+        number: 2,
+        title: "Camino",
+        content: "Un camino.",
+        isEndpoint: false,
+        outgoingLinks: [],
+      },
+      {
+        id: "p3",
+        number: 3,
+        title: "Bosque",
+        content: "Un bosque.",
+        isEndpoint: true,
+        outgoingLinks: [],
+      },
+    ];
+    const plan = buildContentShufflePlan(
+      passages.map((p, i) => ({ number: p.number, isStart: i === 0 })),
+      { rng: sequenceRng([0]) }
+    );
+    expect(plan.storyToSlot.get(1)).toBe(1);
+    expect(plan.storyToSlot.get(3)).toBe(2);
+    expect(plan.storyToSlot.get(2)).toBe(3);
+
+    const { passageUpdates, newLinks } = computeShuffleMutations(
+      passages,
+      plan
+    );
+
+    expect(passageUpdates).toHaveLength(3);
+    const startUpdate = passageUpdates.find((u) => u.id === "p1");
+    expect(startUpdate).toEqual({ id: "p1", content: "Ve al pasaje 3." });
+    expect(startUpdate).not.toHaveProperty("title");
+    expect(startUpdate).not.toHaveProperty("isEndpoint");
+    expect(passageUpdates).toContainEqual({
+      id: "p2",
+      content: "Un bosque.",
+      title: "Bosque",
+      isEndpoint: true,
+    });
+    expect(passageUpdates).toContainEqual({
+      id: "p3",
+      content: "Un camino.",
+      title: "Camino",
+      isEndpoint: false,
+    });
+    expect(newLinks).toEqual([]);
+  });
+
+  it("skips self-links and links to passages outside the project", () => {
+    const passages = [
+      {
+        id: "p1",
+        number: 1,
+        title: "Inicio",
+        content: "Hola.",
+        isEndpoint: false,
+        outgoingLinks: [
+          { targetId: "p1", linkText: "A sí mismo", condition: null },
+          { targetId: "missing", linkText: "Fuera", condition: null },
+        ],
+      },
+      ...makeMutationPassages().slice(1),
+    ];
+    const plan = buildContentShufflePlan(passages, { rng: seededRng(8) });
+
+    const { newLinks } = computeShuffleMutations(passages, plan);
+
+    expect(newLinks).toEqual([]);
+  });
+
+  it("recreates links unchanged for an identity shuffle", () => {
+    const passages = Array.from({ length: 4 }, (_, i) => ({
+      id: `p${i + 1}`,
+      number: i + 1,
+      title: `T${i + 1}`,
+      content: `Contenido ${i + 1}.`,
+      isEndpoint: false,
+      outgoingLinks:
+        i < 3
+          ? [{ targetId: `p${i + 2}`, linkText: "Siguiente", condition: null }]
+          : [],
+    }));
+    const plan = buildContentShufflePlan(passages, { rng: () => 0.9999 });
+
+    const { passageUpdates, newLinks } = computeShuffleMutations(
+      passages,
+      plan
+    );
+
+    expect(passageUpdates).toEqual([]);
+    expect(newLinks).toEqual([
+      { sourceId: "p1", targetId: "p2", linkText: "Siguiente", condition: null },
+      { sourceId: "p2", targetId: "p3", linkText: "Siguiente", condition: null },
+      { sourceId: "p3", targetId: "p4", linkText: "Siguiente", condition: null },
+    ]);
   });
 });

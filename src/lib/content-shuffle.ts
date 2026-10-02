@@ -51,3 +51,90 @@ export function rewriteShuffledContent(
 ): string {
   return replaceNumberReferences(content, plan.storyToSlot);
 }
+
+export interface ShuffleMutationInput {
+  id: string;
+  number: number;
+  title?: string | null;
+  content: string;
+  isEndpoint: boolean;
+  outgoingLinks: {
+    targetId: string;
+    linkText?: string | null;
+    condition?: string | null;
+  }[];
+}
+
+export interface PassageMutation {
+  id: string;
+  content: string;
+  title?: string | null;
+  isEndpoint?: boolean;
+}
+
+export interface LinkMutation {
+  sourceId: string;
+  targetId: string;
+  linkText?: string | null;
+  condition?: string | null;
+}
+
+export function computeShuffleMutations(
+  passages: ShuffleMutationInput[],
+  plan: ContentShufflePlan
+): { passageUpdates: PassageMutation[]; newLinks: LinkMutation[] } {
+  const byNumber = new Map(passages.map((p) => [p.number, p]));
+  const byId = new Map(passages.map((p) => [p.id, p]));
+
+  const passageUpdates: PassageMutation[] = [];
+  for (const slot of passages) {
+    const storyNumber = plan.slotToStory.get(slot.number);
+    if (storyNumber === undefined) continue;
+    const story = byNumber.get(storyNumber);
+    if (!story) continue;
+
+    const newContent = rewriteShuffledContent(story.content, plan);
+
+    if (storyNumber === slot.number) {
+      if (newContent !== story.content) {
+        passageUpdates.push({ id: slot.id, content: newContent });
+      }
+    } else {
+      passageUpdates.push({
+        id: slot.id,
+        content: newContent,
+        title: story.title,
+        isEndpoint: story.isEndpoint,
+      });
+    }
+  }
+
+  const newLinks: LinkMutation[] = [];
+  for (const story of passages) {
+    const sourceSlotNumber = plan.storyToSlot.get(story.number);
+    if (sourceSlotNumber === undefined) continue;
+    const sourceSlot = byNumber.get(sourceSlotNumber);
+    if (!sourceSlot) continue;
+
+    for (const link of story.outgoingLinks) {
+      const targetStory = byId.get(link.targetId);
+      if (!targetStory) continue;
+      const targetSlotNumber = plan.storyToSlot.get(targetStory.number);
+      if (targetSlotNumber === undefined) continue;
+      const targetSlot = byNumber.get(targetSlotNumber);
+      if (!targetSlot) continue;
+      if (sourceSlot.id === targetSlot.id) continue;
+
+      newLinks.push({
+        sourceId: sourceSlot.id,
+        targetId: targetSlot.id,
+        linkText: link.linkText
+          ? rewriteShuffledContent(link.linkText, plan)
+          : link.linkText,
+        condition: link.condition,
+      });
+    }
+  }
+
+  return { passageUpdates, newLinks };
+}

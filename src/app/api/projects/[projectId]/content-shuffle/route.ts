@@ -6,10 +6,11 @@ import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { createProjectSnapshot } from "@/lib/snapshots";
 import {
   buildContentShufflePlan,
-  rewriteShuffledContent,
+  computeShuffleMutations,
 } from "@/lib/content-shuffle";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function POST(
   req: Request,
@@ -65,81 +66,58 @@ export async function POST(
     // === SNAPSHOT: save current state before shuffle (for undo) ===
     await createProjectSnapshot(projectId, "Barajar Contenido");
 
-    const byNumber = new Map(project.passages.map((p) => [p.number, p]));
-    const byId = new Map(project.passages.map((p) => [p.id, p]));
+    const { passageUpdates, newLinks } = computeShuffleMutations(
+      project.passages,
+      plan
+    );
 
-    let linksCreated = 0;
-
-    await db.$transaction(async (tx) => {
-      // === Move each story into its slot, rewriting inline references ===
-      for (const slot of project.passages) {
-        const storyNumber = plan.slotToStory.get(slot.number);
-        if (storyNumber === undefined) continue;
-        const story = byNumber.get(storyNumber);
-        if (!story) continue;
-
-        const newContent = rewriteShuffledContent(story.content, plan);
-
-        if (storyNumber === slot.number) {
-          if (newContent !== story.content) {
-            await tx.passage.update({
-              where: { id: slot.id },
-              data: { content: newContent },
-            });
-          }
-        } else {
+    await db.$transaction(
+      async (tx) => {
+        for (const update of passageUpdates) {
           await tx.passage.update({
-            where: { id: slot.id },
+            where: { id: update.id },
             data: {
-              content: newContent,
-              title: story.title,
-              isEndpoint: story.isEndpoint,
+              content: update.content,
+              ...(update.title !== undefined ? { title: update.title } : {}),
+              ...(update.isEndpoint !== undefined
+                ? { isEndpoint: update.isEndpoint }
+                : {}),
             },
           });
         }
-      }
 
-      // === Rebuild links so they follow their stories ===
-      await tx.passageLink.deleteMany({
-        where: { sourceId: { in: project.passages.map((p) => p.id) } },
-      });
+        await tx.passageLink.deleteMany({
+          where: { sourceId: { in: project.passages.map((p) => p.id) } },
+        });
 
-      for (const story of project.passages) {
-        const sourceSlotNumber = plan.storyToSlot.get(story.number);
-        if (sourceSlotNumber === undefined) continue;
-        const sourceSlot = byNumber.get(sourceSlotNumber);
-        if (!sourceSlot) continue;
-
-        for (const link of story.outgoingLinks) {
-          const targetStory = byId.get(link.targetId);
-          if (!targetStory) continue;
-
-          const targetSlotNumber = plan.storyToSlot.get(targetStory.number);
-          if (targetSlotNumber === undefined) continue;
-          const targetSlot = byNumber.get(targetSlotNumber);
-          if (!targetSlot) continue;
-
-          if (sourceSlot.id === targetSlot.id) continue;
-
-          await tx.passageLink.create({
-            data: {
-              sourceId: sourceSlot.id,
-              targetId: targetSlot.id,
-              linkText: link.linkText
-                ? rewriteShuffledContent(link.linkText, plan)
-                : link.linkText,
-              condition: link.condition,
-            },
+        if (newLinks.length > 0) {
+          await tx.passageLink.createMany({
+            data: newLinks.map((link) => ({
+              sourceId: link.sourceId,
+              targetId: link.targetId,
+              linkText: link.linkText ?? null,
+              condition: link.condition ?? null,
+            })),
+            skipDuplicates: true,
           });
-          linksCreated++;
         }
-      }
-    });
+      },
+      { maxWait: 10_000, timeout: 45_000 }
+    );
+
+    console.log(
+      "Content shuffle OK:",
+      projectId,
+      project.passages.length,
+      "passages,",
+      newLinks.length,
+      "links"
+    );
 
     return NextResponse.json({
       message: "Contenido barajado entre pasajes (números mantenidos)",
       passageCount: project.passages.length,
-      linksCreated,
+      linksCreated: newLinks.length,
       startPreserved: plan.startStory !== null,
     });
   } catch (error) {
