@@ -4,6 +4,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { detectLinksInPassage } from "@/lib/parsers/txt";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const autofixSchema = z.object({
+  projectId: z
+    .string({ error: "projectId requerido" })
+    .min(1, { error: "projectId requerido" })
+    .max(100),
+});
 
 export async function POST(req: Request) {
   try {
@@ -21,11 +30,9 @@ export async function POST(req: Request) {
       return upgradeRequired("autofix", "El auto-fix avanzado requiere un plan Pro");
     }
 
-    const { projectId } = await req.json();
-
-    if (!projectId) {
-      return NextResponse.json({ error: "projectId requerido" }, { status: 400 });
-    }
+    const parsed = parseOr400(autofixSchema, await req.json().catch(() => null));
+    if (!parsed.ok) return parsed.response;
+    const { projectId } = parsed.data;
 
     const project = await db.project.findFirst({
       where: {

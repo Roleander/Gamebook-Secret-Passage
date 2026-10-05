@@ -3,8 +3,22 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, limitReached } from "@/lib/entitlements";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
 
 export const dynamic = "force-dynamic";
+
+const createPassageSchema = z.object({
+  number: z
+    .number({ error: "Número de pasaje inválido" })
+    .int()
+    .min(1)
+    .max(100000),
+  title: z.string().max(300).nullable().optional(),
+  content: z.string().max(2000000).optional(),
+  isStart: z.boolean().optional(),
+  isEndpoint: z.boolean().optional(),
+});
 
 export async function POST(
   req: Request,
@@ -29,7 +43,12 @@ export async function POST(
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
 
-    const { number, title, content, isStart, isEndpoint } = await req.json();
+    const parsed = parseOr400(
+      createPassageSchema,
+      await req.json().catch(() => null)
+    );
+    if (!parsed.ok) return parsed.response;
+    const { number, title, content, isStart, isEndpoint } = parsed.data;
 
     const ents = await getEntitlements(
       (session.user as any).id,

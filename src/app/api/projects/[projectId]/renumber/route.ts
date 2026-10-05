@@ -5,8 +5,15 @@ import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import { replaceNumberReferences } from "@/lib/number-references";
 import { rewriteProjectLinkTexts } from "@/lib/link-texts";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
 
 export const dynamic = "force-dynamic";
+
+const renumberSchema = z.object({
+  startFrom: z.number().int().min(1).max(1000000).optional(),
+  step: z.number().int().min(1).max(1000000).optional(),
+});
 
 export async function POST(
   req: Request,
@@ -25,7 +32,9 @@ export async function POST(
 
     const { projectId } = await params;
     const body = await req.json().catch(() => ({}));
-    const { startFrom = 1, step = 1 } = body;
+    const parsed = parseOr400(renumberSchema, body);
+    if (!parsed.ok) return parsed.response;
+    const { startFrom = 1, step = 1 } = parsed.data;
 
     const project = await db.project.findFirst({
       where: { id: projectId, userId: session.user.id },

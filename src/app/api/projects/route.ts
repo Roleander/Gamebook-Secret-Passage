@@ -3,6 +3,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, limitReached } from "@/lib/entitlements";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const createProjectSchema = z.object({
+  title: z
+    .string({ error: "El título es requerido" })
+    .min(1, { error: "El título es requerido" })
+    .max(300),
+  description: z.string().max(5000).nullable().optional(),
+});
 
 type SessionUser = { id?: string; role?: string };
 
@@ -59,14 +69,12 @@ export async function POST(req: Request) {
     }
 
     const userId = user.id;
-    const { title, description } = await req.json();
-
-    if (!title) {
-      return NextResponse.json(
-        { error: "El título es requerido" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseOr400(
+      createProjectSchema,
+      await req.json().catch(() => null)
+    );
+    if (!parsed.ok) return parsed.response;
+    const { title, description } = parsed.data;
 
     const ents = await getEntitlements(userId, user.role);
 

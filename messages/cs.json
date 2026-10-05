@@ -378,7 +378,7 @@
     "profileUpdated": "Profil aktualizován",
     "profileUpdateError": "Chyba při aktualizaci profilu",
     "passwordMismatch": "Hesla se neshodují",
-    "passwordTooShort": "Heslo musí mít alespoň 6 znaků",
+    "passwordTooShort": "Heslo musí mít alespoň 8 znaků",
     "passwordChanged": "Heslo změněno",
     "passwordChangeError": "Chyba při změně hesla",
     "themeSavedAlert": "Motiv byl úspěšně uložen",

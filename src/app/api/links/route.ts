@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const linkSchema = z.object({
+  sourceId: z
+    .string({ error: "sourceId y targetId son requeridos" })
+    .min(1, { error: "sourceId y targetId son requeridos" })
+    .max(100),
+  targetId: z
+    .string({ error: "sourceId y targetId son requeridos" })
+    .min(1, { error: "sourceId y targetId son requeridos" })
+    .max(100),
+  linkText: z.string().max(500).nullable().optional(),
+  condition: z.string().max(500).nullable().optional(),
+});
 
 export async function POST(req: Request) {
   try {
@@ -14,14 +29,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const { sourceId, targetId, linkText, condition } = await req.json();
-
-    if (!sourceId || !targetId) {
-      return NextResponse.json(
-        { error: "sourceId y targetId son requeridos" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseOr400(linkSchema, await req.json().catch(() => null));
+    if (!parsed.ok) return parsed.response;
+    const { sourceId, targetId, linkText, condition } = parsed.data;
 
     // Verify both passages exist and belong to user
     const [source, target] = await Promise.all([

@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  email: z.string().min(1).max(254),
+  name: z.unknown().optional(),
+  password: z.string().min(1).max(200),
+});
 
 export async function POST(req: Request) {
   try {
-    const { email, name, password } = await req.json();
+    const body = await req.json().catch(() => null);
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Email y contraseña son requeridos", code: "REGISTER_MISSING" },
+        { status: 400 }
+      );
+    }
+    const { email, name, password } = parsed.data;
 
     const normalizedEmail =
       typeof email === "string" ? email.trim().toLowerCase() : "";

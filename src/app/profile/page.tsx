@@ -204,7 +204,7 @@ export default function ProfilePage() {
       alert(t("Profile.passwordMismatch"));
       return;
     }
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       alert(t("Profile.passwordTooShort"));
       return;
     }

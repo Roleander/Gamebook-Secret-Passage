@@ -9,6 +9,20 @@ import { generateODT } from "@/lib/exporters/odt";
 import { generateDOC } from "@/lib/exporters/doc";
 import { generateDOCX } from "@/lib/exporters/docx";
 import JSZip from "jszip";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const exportSchema = z.object({
+  projectId: z
+    .string({ error: "projectId y format son requeridos" })
+    .min(1, { error: "projectId y format son requeridos" })
+    .max(100),
+  format: z
+    .string({ error: "projectId y format son requeridos" })
+    .min(1, { error: "projectId y format son requeridos" })
+    .max(16),
+  readingMode: z.boolean().optional(),
+});
 
 export async function POST(req: Request) {
   try {
@@ -18,14 +32,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { projectId, format, readingMode } = await req.json();
-
-    if (!projectId || !format) {
-      return NextResponse.json(
-        { error: "projectId y format son requeridos" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseOr400(exportSchema, await req.json().catch(() => null));
+    if (!parsed.ok) return parsed.response;
+    const { projectId, format, readingMode } = parsed.data;
 
     if (format !== "txt") {
       const ents = await getEntitlements(
@@ -76,7 +85,7 @@ export async function POST(req: Request) {
         });
       }
       case "epub": {
-        const epubBuffer = await generateEPUB(project, readingMode);
+        const epubBuffer = await generateEPUB(project, readingMode ?? false);
         return new NextResponse(new Uint8Array(epubBuffer), {
           headers: {
             "Content-Type": "application/epub+zip",

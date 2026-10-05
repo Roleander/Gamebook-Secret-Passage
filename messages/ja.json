@@ -378,7 +378,7 @@
     "profileUpdated": "プロフィールを更新しました",
     "profileUpdateError": "プロフィールの更新中にエラーが発生しました",
     "passwordMismatch": "パスワードが一致しません",
-    "passwordTooShort": "パスワードは6文字以上にしてください",
+    "passwordTooShort": "パスワードは8文字以上にしてください",
     "passwordChanged": "パスワードを変更しました",
     "passwordChangeError": "パスワードの変更中にエラーが発生しました",
     "themeSavedAlert": "テーマを保存しました",

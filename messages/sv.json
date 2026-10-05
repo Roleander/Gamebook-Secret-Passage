@@ -378,7 +378,7 @@
     "profileUpdated": "Profil uppdaterad",
     "profileUpdateError": "Fel vid uppdatering av profilen",
     "passwordMismatch": "Lösenorden matchar inte",
-    "passwordTooShort": "Lösenordet måste vara minst 6 tecken",
+    "passwordTooShort": "Lösenordet måste vara minst 8 tecken",
     "passwordChanged": "Lösenordet bytt",
     "passwordChangeError": "Fel vid byte av lösenord",
     "themeSavedAlert": "Tema sparat",

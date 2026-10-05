@@ -378,7 +378,7 @@
     "profileUpdated": "Profil mis à jour",
     "profileUpdateError": "Erreur lors de la mise à jour du profil",
     "passwordMismatch": "Les mots de passe ne correspondent pas",
-    "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
     "passwordChanged": "Mot de passe modifié",
     "passwordChangeError": "Erreur lors du changement de mot de passe",
     "themeSavedAlert": "Thème enregistré avec succès",

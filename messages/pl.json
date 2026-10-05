@@ -378,7 +378,7 @@
     "profileUpdated": "Profil zaktualizowany",
     "profileUpdateError": "Błąd podczas aktualizacji profilu",
     "passwordMismatch": "Hasła nie są zgodne",
-    "passwordTooShort": "Hasło musi mieć co najmniej 6 znaków",
+    "passwordTooShort": "Hasło musi mieć co najmniej 8 znaków",
     "passwordChanged": "Hasło zmienione",
     "passwordChangeError": "Błąd podczas zmiany hasła",
     "themeSavedAlert": "Motyw zapisany pomyślnie",

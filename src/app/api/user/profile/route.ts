@@ -3,6 +3,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const profileSchema = z.object({
+  name: z.string().max(200).optional(),
+  bio: z.string().max(2000).nullable().optional(),
+  theme: z.string().max(4096).nullable().optional(),
+  currentPassword: z.string().max(200).optional(),
+  newPassword: z.string().max(200).optional(),
+});
 
 export async function GET() {
   try {
@@ -55,8 +65,9 @@ export async function PUT(req: Request) {
     }
 
     const userId = (session.user as any).id;
-    const body = await req.json();
-    const { name, bio, theme, currentPassword, newPassword } = body;
+    const parsed = parseOr400(profileSchema, await req.json().catch(() => null));
+    if (!parsed.ok) return parsed.response;
+    const { name, bio, theme, currentPassword, newPassword } = parsed.data;
 
     // Password change
     if (currentPassword && newPassword) {
@@ -70,8 +81,8 @@ export async function PUT(req: Request) {
         return NextResponse.json({ error: "Contraseña actual incorrecta" }, { status: 400 });
       }
 
-      if (newPassword.length < 6) {
-        return NextResponse.json({ error: "La nueva contraseña debe tener al menos 6 caracteres" }, { status: 400 });
+      if (newPassword.length < 8) {
+        return NextResponse.json({ error: "La nueva contraseña debe tener al menos 8 caracteres" }, { status: 400 });
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 12);

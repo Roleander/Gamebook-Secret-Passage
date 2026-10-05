@@ -3,17 +3,23 @@ import crypto from "crypto";
 import { db } from "@/lib/db";
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
 import { appUrl } from "@/lib/site-url";
+import { z } from "zod";
+
+const forgotSchema = z.object({
+  email: z.string().min(1).max(254),
+});
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
-
-    if (!email) {
+    const body = await req.json().catch(() => null);
+    const parsed = forgotSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
         { error: "El email es requerido", code: "EMAIL_REQUIRED" },
         { status: 400 }
       );
     }
+    const { email } = parsed.data;
 
     // Find user
     const user = await db.user.findFirst({

@@ -4,6 +4,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import Stripe from "stripe";
 import { SITE_URL } from "@/lib/site-url";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const subscribeSchema = z.object({
+  planId: z
+    .string({ error: "planId requerido" })
+    .min(1, { error: "planId requerido" })
+    .max(100),
+});
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -18,12 +27,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { planId } = body;
-
-    if (!planId) {
-      return NextResponse.json({ error: "planId requerido" }, { status: 400 });
-    }
+    const parsed = parseOr400(subscribeSchema, await req.json().catch(() => null));
+    if (!parsed.ok) return parsed.response;
+    const { planId } = parsed.data;
 
     const plan = await db.subscriptionPlan.findUnique({ where: { id: planId } });
     if (!plan) {

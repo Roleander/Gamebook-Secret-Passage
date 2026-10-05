@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { z } from "zod";
+
+const resetSchema = z.object({
+  token: z.string().min(1).max(500),
+  password: z.string().min(1).max(200),
+});
 
 export async function POST(req: Request) {
   try {
-    const { token, password } = await req.json();
-
-    if (!token || !password) {
+    const body = await req.json().catch(() => null);
+    const parsed = resetSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
         { error: "Token y contraseña son requeridos", code: "RESET_MISSING" },
         { status: 400 }
       );
     }
+    const { token, password } = parsed.data;
 
     if (password.length < 8) {
       return NextResponse.json(

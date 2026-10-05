@@ -378,7 +378,7 @@
     "profileUpdated": "Profilo aggiornato",
     "profileUpdateError": "Errore nell'aggiornamento del profilo",
     "passwordMismatch": "Le password non corrispondono",
-    "passwordTooShort": "La password deve avere almeno 6 caratteri",
+    "passwordTooShort": "La password deve avere almeno 8 caratteri",
     "passwordChanged": "Password cambiata",
     "passwordChangeError": "Errore nel cambio della password",
     "themeSavedAlert": "Tema salvato correttamente",

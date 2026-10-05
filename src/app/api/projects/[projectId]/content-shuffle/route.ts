@@ -8,9 +8,15 @@ import {
   buildContentShufflePlan,
   computeShuffleMutations,
 } from "@/lib/content-shuffle";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+const shuffleSchema = z.object({
+  preserveStart: z.boolean().optional(),
+});
 
 export async function POST(
   req: Request,
@@ -30,7 +36,9 @@ export async function POST(
     }
 
     const body = await req.json().catch(() => ({}));
-    const preserveStart = body.preserveStart !== false; // default true
+    const parsed = parseOr400(shuffleSchema, body);
+    if (!parsed.ok) return parsed.response;
+    const preserveStart = parsed.data.preserveStart !== false; // default true
 
     const project = await db.project.findFirst({
       where: { id: projectId, userId: session.user.id },

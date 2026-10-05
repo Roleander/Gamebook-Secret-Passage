@@ -2,20 +2,32 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const donationSchema = z.object({
+  amount: z
+    .number({ error: "Importe inválido" })
+    .positive({ error: "Importe inválido" })
+    .max(1000000, { error: "Importe inválido" }),
+  currency: z.string().max(10).optional(),
+  paymentMethod: z.string().max(32).optional(),
+  paypalOrderId: z.string().max(100).nullable().optional(),
+  message: z.string().max(1000).nullable().optional(),
+});
 
 // POST - Record a donation
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    const { amount, currency, paymentMethod, paypalOrderId, message } = await req.json();
-
-    if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: "Importe inválido" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseOr400(
+      donationSchema,
+      await req.json().catch(() => null)
+    );
+    if (!parsed.ok) return parsed.response;
+    const { amount, currency, paymentMethod, paypalOrderId, message } =
+      parsed.data;
 
     const donation = await db.donation.create({
       data: {

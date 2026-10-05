@@ -2,10 +2,20 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
 
 const PAYPAL_API = "https://api-m.paypal.com";
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
+
+const paypalDonationSchema = z.object({
+  orderId: z
+    .string({ error: "orderId requerido" })
+    .regex(/^[A-Za-z0-9_-]{1,100}$/, { error: "orderId requerido" }),
+  amount: z.number().finite().optional(),
+  message: z.string().max(500).nullable().optional(),
+});
 
 async function getPayPalAccessToken(): Promise<string> {
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET}`).toString("base64");
@@ -34,12 +44,12 @@ async function verifyPayPalOrder(orderId: string) {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const body = await req.json();
-    const { orderId, amount, message } = body;
-
-    if (!orderId) {
-      return NextResponse.json({ error: "orderId requerido" }, { status: 400 });
-    }
+    const parsed = parseOr400(
+      paypalDonationSchema,
+      await req.json().catch(() => null)
+    );
+    if (!parsed.ok) return parsed.response;
+    const { orderId, amount, message } = parsed.data;
 
     if (!PAYPAL_SECRET) {
       return NextResponse.json({ error: "PayPal no configurado" }, { status: 500 });

@@ -378,7 +378,7 @@
     "profileUpdated": "प्रोफाइल अपडेट हुई",
     "profileUpdateError": "प्रोफाइल अपडेट करने में त्रुटि",
     "passwordMismatch": "पासवर्ड मेल नहीं खाते",
-    "passwordTooShort": "पासवर्ड कम से कम से 6 अक्षर का होना चाहिए",
+    "passwordTooShort": "पासवर्ड कम से कम से 8 अक्षर का होना चाहिए",
     "passwordChanged": "पासवर्ड बदल गया",
     "passwordChangeError": "पासवर्ड बदलने में त्रुटि",
     "themeSavedAlert": "थीम सफलतापूर्व सहेजी गयी",

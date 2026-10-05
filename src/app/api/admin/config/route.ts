@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { z } from "zod";
+import { parseOr400 } from "@/lib/api-validate";
+
+const configSchema = z.record(
+  z.string().min(1).max(64),
+  z.string().max(4000)
+);
 
 export async function GET() {
   try {
@@ -21,13 +28,13 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
-    const body = await req.json();
+    const parsed = parseOr400(configSchema, await req.json().catch(() => null));
+    if (!parsed.ok) return parsed.response;
+
     const updates: { key: string; value: string }[] = [];
 
-    for (const [key, value] of Object.entries(body)) {
-      if (typeof value === "string") {
-        updates.push({ key, value });
-      }
+    for (const [key, value] of Object.entries(parsed.data)) {
+      updates.push({ key, value });
     }
 
     for (const update of updates) {
