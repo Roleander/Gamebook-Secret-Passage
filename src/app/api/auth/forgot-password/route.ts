@@ -16,8 +16,13 @@ export async function POST(req: Request) {
     }
 
     // Find user
-    const user = await db.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const user = await db.user.findFirst({
+      where: {
+        email: {
+          equals: typeof email === "string" ? email.trim() : "",
+          mode: "insensitive",
+        },
+      },
     });
 
     // Always return success to prevent email enumeration
@@ -56,11 +61,14 @@ export async function POST(req: Request) {
     if (isEmailConfigured()) {
       const sent = await sendPasswordResetEmail(user.email, resetUrl);
       if (!sent) {
-        console.error(`[PASSWORD RESET] email send failed for ${user.email}: ${resetUrl}`);
+        console.error(`[PASSWORD RESET] email send failed for ${user.email}`);
       }
-    } else {
-      // Fallback while EMAIL_API_KEY/EMAIL_FROM are not configured (dev only)
+    } else if (process.env.NODE_ENV !== "production") {
       console.log(`[PASSWORD RESET] ${user.email}: ${resetUrl}`);
+    } else {
+      console.error(
+        `[PASSWORD RESET] EMAIL_API_KEY/EMAIL_FROM no configurados; no se envió reset a ${user.email}`
+      );
     }
 
     return NextResponse.json({

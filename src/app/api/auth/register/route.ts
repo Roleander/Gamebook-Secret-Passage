@@ -6,15 +6,30 @@ export async function POST(req: Request) {
   try {
     const { email, name, password } = await req.json();
 
-    if (!email || !password) {
+    const normalizedEmail =
+      typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
         { error: "Email y contraseña son requeridos", code: "REGISTER_MISSING" },
         { status: 400 }
       );
     }
 
-    const existingUser = await db.user.findUnique({
-      where: { email },
+    if (typeof password !== "string" || password.length < 8) {
+      return NextResponse.json(
+        {
+          error: "La contraseña debe tener al menos 8 caracteres",
+          code: "WEAK_PASSWORD",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingUser = await db.user.findFirst({
+      where: {
+        email: { equals: normalizedEmail, mode: "insensitive" },
+      },
     });
 
     if (existingUser) {
@@ -26,16 +41,19 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await db.user.create({
+    await db.user.create({
       data: {
-        email,
-        name: name || email.split("@")[0],
+        email: normalizedEmail,
+        name:
+          typeof name === "string" && name.trim()
+            ? name.trim()
+            : normalizedEmail.split("@")[0],
         password: hashedPassword,
       },
     });
 
     return NextResponse.json(
-      { message: "Usuario creado exitosamente", userId: user.id },
+      { message: "Usuario creado exitosamente" },
       { status: 201 }
     );
   } catch (error) {

@@ -5,6 +5,9 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+const DUMMY_HASH =
+  "$2b$12$blvjMO6P6RZZkEx48rcPluBkR9QkNeOfCXZ0RxV51VFl44LJBNN4u";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -15,15 +18,21 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email y contraseña son requeridos");
+          throw new Error("Credenciales incorrectas");
         }
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
+        const user = await db.user.findFirst({
+          where: {
+            email: {
+              equals: credentials.email.trim(),
+              mode: "insensitive",
+            },
+          },
         });
 
         if (!user) {
-          throw new Error("Usuario no encontrado");
+          await bcrypt.compare(credentials.password, DUMMY_HASH);
+          throw new Error("Credenciales incorrectas");
         }
 
         const isPasswordValid = await bcrypt.compare(
@@ -32,7 +41,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
-          throw new Error("Contraseña incorrecta");
+          throw new Error("Credenciales incorrectas");
         }
 
         return {

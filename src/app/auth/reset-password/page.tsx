@@ -40,7 +40,7 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setResult({ success: false, message: t("Auth.passwordTooShort") });
       return;
     }
@@ -132,7 +132,7 @@ function ResetPasswordForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                   disabled={!token || result?.success}
                 />
               </div>
@@ -147,7 +147,7 @@ function ResetPasswordForm() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                   disabled={!token || result?.success}
                 />
               </div>
