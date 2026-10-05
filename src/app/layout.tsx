@@ -24,6 +24,25 @@ const SITE_DESCRIPTION =
 const OG_IMAGE =
   "https://0qd6kvwc4iqbiywd.public.blob.vercel-storage.com/logo/cmu5boi0i000010wkg0uerexs.jpg";
 
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      inLanguage: "es",
+    },
+    {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: OG_IMAGE,
+    },
+  ],
+};
+
 export const metadata: Metadata = {
   title: {
     default: SITE_NAME,
@@ -59,6 +78,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         <SwRegister />
         <I18nProvider>
           <Providers>
