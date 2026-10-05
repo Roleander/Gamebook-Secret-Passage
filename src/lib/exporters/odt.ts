@@ -14,33 +14,23 @@ interface Passage {
   }[];
 }
 
-export async function generateODT(projectId: string, readingMode = false): Promise<Buffer> {
-  const project = await db.project.findUnique({
-    where: { id: projectId },
-    include: {
-      passages: {
-        include: {
-          outgoingLinks: {
-            include: { target: { select: { number: true } } },
-          },
-        },
-        orderBy: { number: "asc" },
-      },
-    },
-  });
+export interface OdtData {
+  title: string;
+  passages: Passage[];
+}
 
-  if (!project) throw new Error("Proyecto no encontrado");
+function escapeXml(text: string): string {
+  return text
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
-  const passageNumbers = new Set(project.passages.map(p => p.number));
-
-  function escapeXml(text: string): string {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&apos;");
-  }
+export function buildContentXml(project: OdtData, readingMode: boolean): string {
+  const passageNumbers = new Set(project.passages.map((p) => p.number));
 
   function convertInlineLinks(line: string): string {
     const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
@@ -61,14 +51,13 @@ export async function generateODT(projectId: string, readingMode = false): Promi
     return result;
   }
 
-  // Build content.xml
   let contentXml = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
-  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office"
-  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text"
-  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style"
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
   xmlns:xlink="http://www.w3.org/1999/xlink"
-  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
   office:version="1.2">
   <office:body>
     <office:text>
@@ -116,13 +105,15 @@ export async function generateODT(projectId: string, readingMode = false): Promi
   </office:body>
 </office:document-content>`;
 
-  // Build styles.xml
-  const stylesXml = `<?xml version="1.0" encoding="UTF-8"?>
+  return contentXml;
+}
+
+export const ODT_STYLES_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-styles
-  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office"
-  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style"
-  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible"
-  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible"
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
   office:version="1.2">
   <office:styles>
     <style:default-style style:family="paragraph">
@@ -162,27 +153,30 @@ export async function generateODT(projectId: string, readingMode = false): Promi
   </office:master-styles>
 </office:document-styles>`;
 
-  // Build meta.xml
-  const metaXml = `<?xml version="1.0" encoding="UTF-8"?>
+export const ODT_META_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-meta
-  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office"
-  xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta"
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0"
   office:version="1.2">
   <office:meta>
     <meta:generator>Secret Passage</meta:generator>
   </office:meta>
 </office:document-meta>`;
 
-  // Build META-INF/manifest.xml
-  const manifestXml = `<?xml version="1.0" encoding="UTF-8"?>
-<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest" manifest:version="1.2">
+export const ODT_MANIFEST_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
   <manifest:file-entry manifest:media-type="application/vnd.oasis.opendocument.text" manifest:full-path="/"/>
   <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="content.xml"/>
   <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="styles.xml"/>
   <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="meta.xml"/>
 </manifest:manifest>`;
 
-  // Use archiver to guarantee file order (mimetype MUST be first for ODF)
+export function packOdtArchive(parts: {
+  content: string;
+  styles: string;
+  meta: string;
+  manifest: string;
+}): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     const archive = new (ZipArchive as any)("zip", { zlib: { level: 9 } });
@@ -205,18 +199,41 @@ export async function generateODT(projectId: string, readingMode = false): Promi
       store: true,
     });
 
-    // 2. content.xml
-    archive.append(contentXml, { name: "content.xml" });
-
-    // 3. styles.xml
-    archive.append(stylesXml, { name: "styles.xml" });
-
-    // 4. meta.xml
-    archive.append(metaXml, { name: "meta.xml" });
-
-    // 5. META-INF/manifest.xml
-    archive.append(manifestXml, { name: "META-INF/manifest.xml" });
+    archive.append(parts.content, { name: "content.xml" });
+    archive.append(parts.styles, { name: "styles.xml" });
+    archive.append(parts.meta, { name: "meta.xml" });
+    archive.append(parts.manifest, { name: "META-INF/manifest.xml" });
 
     archive.finalize();
+  });
+}
+
+export async function generateODT(projectId: string, readingMode = false): Promise<Buffer> {
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    include: {
+      passages: {
+        include: {
+          outgoingLinks: {
+            include: { target: { select: { number: true } } },
+          },
+        },
+        orderBy: { number: "asc" },
+      },
+    },
+  });
+
+  if (!project) throw new Error("Proyecto no encontrado");
+
+  const contentXml = buildContentXml(
+    { title: project.title, passages: project.passages },
+    readingMode
+  );
+
+  return packOdtArchive({
+    content: contentXml,
+    styles: ODT_STYLES_XML,
+    meta: ODT_META_XML,
+    manifest: ODT_MANIFEST_XML,
   });
 }
