@@ -1,3 +1,8 @@
+import {
+  buildKeywordNumberRegex,
+  classifyNumber,
+} from "@/lib/reference-classifier";
+
 export interface ParsedPassage {
   number: number;
   title?: string;
@@ -372,6 +377,8 @@ function detectInlineLinks(
   allPassageNumbers: number[]
 ): { targetNumber: number; text: string }[] {
   const links: { targetNumber: number; text: string }[] = [];
+  const isReference = (index: number, length: number) =>
+    classifyNumber(content, index, length) === "reference";
 
   // TWINE-STYLE GOTO
   const gotoRegex = /<<goto\s+"([^"]+)">>/gi;
@@ -380,7 +387,15 @@ function detectInlineLinks(
     const numMatch = gotoMatch[1].match(/(\d+(?:[.,]\d+)?)/);
     if (numMatch) {
       const target = parseFloat(numMatch[1].replace(",", "."));
-      if (!isNaN(target) && allPassageNumbers.includes(target)) {
+      const offset =
+        gotoMatch.index +
+        gotoMatch[0].indexOf(gotoMatch[1]) +
+        (numMatch.index ?? 0);
+      if (
+        !isNaN(target) &&
+        allPassageNumbers.includes(target) &&
+        isReference(offset, numMatch[1].length)
+      ) {
         links.push({ targetNumber: target, text: gotoMatch[0] });
       }
     }
@@ -391,7 +406,12 @@ function detectInlineLinks(
   let arrowMatch;
   while ((arrowMatch = arrowRegex.exec(content)) !== null) {
     const target = parseFloat(arrowMatch[1].replace(",", "."));
-    if (!isNaN(target) && allPassageNumbers.includes(target)) {
+    const offset = arrowMatch.index + arrowMatch[0].indexOf(arrowMatch[1]);
+    if (
+      !isNaN(target) &&
+      allPassageNumbers.includes(target) &&
+      isReference(offset, arrowMatch[1].length)
+    ) {
       links.push({ targetNumber: target, text: arrowMatch[0].trim() });
     }
   }
@@ -401,17 +421,31 @@ function detectInlineLinks(
   let bracketMatch;
   while ((bracketMatch = bracketRegex.exec(content)) !== null) {
     const target = parseFloat(bracketMatch[1].replace(",", "."));
-    if (!isNaN(target) && allPassageNumbers.includes(target)) {
+    const offset =
+      bracketMatch.index + bracketMatch[0].indexOf(bracketMatch[1]);
+    if (
+      !isNaN(target) &&
+      allPassageNumbers.includes(target) &&
+      isReference(offset, bracketMatch[1].length)
+    ) {
       links.push({ targetNumber: target, text: bracketMatch[0] });
     }
   }
 
-  // DIRECT PASSAGE REFERENCES: "ve al 25", "pasaje 25"
-  const directRefRegex = /(?:ve(?:s|r)?|ir|continuar|pasar|acudir|dirigir(?:te|se)?)\s+(?:al?\s+)?(?:pasaje|apartado|punto|sección|seccion|párrafo)?\s*(\d+(?:[.,]\d+)?)/gi;
+  // DIRECT PASSAGE REFERENCES: "ve al 25", "pasaje 25", "Turn to 25"
+  const directRefRegex = buildKeywordNumberRegex("giu");
   let directRefMatch;
   while ((directRefMatch = directRefRegex.exec(content)) !== null) {
     const target = parseFloat(directRefMatch[1].replace(",", "."));
-    if (!isNaN(target) && allPassageNumbers.includes(target)) {
+    const offset =
+      directRefMatch.index +
+      directRefMatch[0].length -
+      directRefMatch[1].length;
+    if (
+      !isNaN(target) &&
+      allPassageNumbers.includes(target) &&
+      isReference(offset, directRefMatch[1].length)
+    ) {
       links.push({ targetNumber: target, text: directRefMatch[0] });
     }
   }

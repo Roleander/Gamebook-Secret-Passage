@@ -1,3 +1,8 @@
+import {
+  buildKeywordNumberRegex,
+  classifyNumber,
+} from "@/lib/reference-classifier";
+
 /**
  * Connection Finder Agent
  * 
@@ -36,6 +41,7 @@ export class ConnectionFinderAgent {
       { regex: /\((\d+)\)/g, type: "explicit" },
       { regex: /→\s*(\d+)/g, type: "explicit" },
       { regex: /->\s*(\d+)/g, type: "explicit" },
+      { regex: buildKeywordNumberRegex("giu"), type: "explicit" },
 
       // Implicit links (contextual)
       { regex: /si\s+.+?,?\s+(?:entonces\s+)?(?:ve|ir|continuar)\s+(?:al?\s+)?(\d+)/gi, type: "implicit" },
@@ -62,7 +68,15 @@ export class ConnectionFinderAgent {
         
         while ((match = regex.exec(passage.content)) !== null) {
           const targetNumber = parseInt(match[1]);
-          
+          const digitOffset =
+            match.index + match[0].lastIndexOf(match[1]);
+          if (
+            classifyNumber(passage.content, digitOffset, match[1].length) !==
+            "reference"
+          ) {
+            continue;
+          }
+
           if (allNumbers.includes(targetNumber) && targetNumber !== passage.number) {
             connections.push({
               sourceNumber: passage.number,

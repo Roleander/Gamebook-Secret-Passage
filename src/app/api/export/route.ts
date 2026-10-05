@@ -10,6 +10,7 @@ import { generateDOC } from "@/lib/exporters/doc";
 import { generateDOCX } from "@/lib/exporters/docx";
 import JSZip from "jszip";
 import { z } from "zod";
+import { findPassageLinks } from "@/lib/reference-links";
 import { parseOr400 } from "@/lib/api-validate";
 
 const exportSchema = z.object({
@@ -156,7 +157,9 @@ function escapeXml(text: string): string {
 async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer> {
   const zip = new JSZip();
 
-  const passageNumbers = new Set(project.passages.map((p: any) => p.number));
+  const passageNumbers = new Set<number>(
+    project.passages.map((p: any) => p.number)
+  );
   const linkMap = new Map<number, { targetNumber: number; text: string }[]>();
   for (const p of project.passages) {
     if (p.outgoingLinks.length > 0) {
@@ -168,19 +171,14 @@ async function generateEPUB(project: any, readingMode: boolean): Promise<Buffer>
   }
 
   function linkifyContent(content: string, passageNumber: number): string {
-    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    const links = findPassageLinks(content, passageNumbers, passageNumber);
     let result = "";
     let lastIndex = 0;
-    let match;
 
-    while ((match = regex.exec(content)) !== null) {
-      const numStr = match[1].replace(",", ".");
-      const num = parseFloat(numStr);
-      if (passageNumbers.has(num) && num !== passageNumber) {
-        result += escapeXml(content.slice(lastIndex, match.index));
-        result += `<a href="chapter${num}.xhtml" style="color:#8b4513;border-bottom:1px dotted #c9a96e">${escapeXml(match[0])}</a>`;
-        lastIndex = match.index + match[0].length;
-      }
+    for (const link of links) {
+      result += escapeXml(content.slice(lastIndex, link.start));
+      result += `<a href="chapter${link.target}.xhtml" style="color:#8b4513;border-bottom:1px dotted #c9a96e">${escapeXml(link.text)}</a>`;
+      lastIndex = link.end;
     }
     result += escapeXml(content.slice(lastIndex));
     return result;

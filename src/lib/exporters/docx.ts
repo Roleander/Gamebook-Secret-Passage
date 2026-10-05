@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { findPassageLinks } from "@/lib/reference-links";
 import {
   Document, Packer, Paragraph, TextRun, Bookmark, InternalHyperlink,
   HeadingLevel, AlignmentType, TabStopType, TabStopPosition,
@@ -37,30 +38,25 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
   const passageNumbers = new Set(project.passages.map(p => p.number));
 
   function linkifyContent(content: string, passageNumber: number): (TextRun | InternalHyperlink)[] {
-    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    const links = findPassageLinks(content, passageNumbers, passageNumber);
     const runs: (TextRun | InternalHyperlink)[] = [];
     let lastIndex = 0;
-    let match;
 
-    while ((match = regex.exec(content)) !== null) {
-      const numStr = match[1].replace(",", ".");
-      const num = parseFloat(numStr);
-      if (passageNumbers.has(num) && num !== passageNumber) {
-        if (match.index > lastIndex) {
-          runs.push(new TextRun({ text: content.slice(lastIndex, match.index), font: "Times New Roman", size: 24 }));
-        }
-        runs.push(new InternalHyperlink({
-          anchor: `passage-${num}`,
-          children: [new TextRun({
-            text: match[0],
-            font: "Times New Roman",
-            size: 24,
-            color: "8B4513",
-            underline: { type: "dotted" as any },
-          })],
-        }));
-        lastIndex = match.index + match[0].length;
+    for (const link of links) {
+      if (link.start > lastIndex) {
+        runs.push(new TextRun({ text: content.slice(lastIndex, link.start), font: "Times New Roman", size: 24 }));
       }
+      runs.push(new InternalHyperlink({
+        anchor: `passage-${link.target}`,
+        children: [new TextRun({
+          text: link.text,
+          font: "Times New Roman",
+          size: 24,
+          color: "8B4513",
+          underline: { type: "dotted" as any },
+        })],
+      }));
+      lastIndex = link.end;
     }
     if (lastIndex < content.length) {
       runs.push(new TextRun({ text: content.slice(lastIndex), font: "Times New Roman", size: 24 }));

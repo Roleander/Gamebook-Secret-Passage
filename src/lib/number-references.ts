@@ -1,3 +1,5 @@
+import { classifyNumber } from "./reference-classifier";
+
 type NumberMapping = Map<number, number> | Record<number, number>;
 
 function toEntries(mapping: NumberMapping): [number, number][] {
@@ -20,8 +22,15 @@ export function replaceNumberReferences(
   if (entries.length === 0) return content;
   const lookup = new Map(entries);
   const alternation = entries.map(([oldNum]) => `\\b${oldNum}\\b`).join("|");
-  return content.replace(new RegExp(alternation, "g"), (match) => {
-    const newNum = lookup.get(Number(match));
-    return newNum === undefined ? match : String(newNum);
-  });
+  return content.replace(
+    new RegExp(alternation, "g"),
+    (match: string, offset: number) => {
+      const newNum = lookup.get(Number(match));
+      if (newNum === undefined) return match;
+      if (classifyNumber(content, offset, match.length) !== "reference") {
+        return match;
+      }
+      return String(newNum);
+    }
+  );
 }

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { findPassageLinks } from "@/lib/reference-links";
 import { ZipArchive } from "archiver";
 import { Writable } from "stream";
 
@@ -33,19 +34,14 @@ export function buildContentXml(project: OdtData, readingMode: boolean): string 
   const passageNumbers = new Set(project.passages.map((p) => p.number));
 
   function convertInlineLinks(line: string): string {
-    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    const links = findPassageLinks(line, passageNumbers);
     let result = "";
     let lastIdx = 0;
-    let m;
 
-    while ((m = regex.exec(line)) !== null) {
-      const numStr = m[1].replace(",", ".");
-      const num = parseFloat(numStr);
-      if (passageNumbers.has(num)) {
-        result += escapeXml(line.slice(lastIdx, m.index));
-        result += `<text:a xlink:href="#passage${num}" text:style-name="Hyperlink">${escapeXml(m[0])}</text:a>`;
-        lastIdx = m.index + m[0].length;
-      }
+    for (const link of links) {
+      result += escapeXml(line.slice(lastIdx, link.start));
+      result += `<text:a xlink:href="#passage${link.target}" text:style-name="Hyperlink">${escapeXml(link.text)}</text:a>`;
+      lastIdx = link.end;
     }
     result += escapeXml(line.slice(lastIdx));
     return result;

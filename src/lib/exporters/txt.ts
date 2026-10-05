@@ -29,27 +29,6 @@ export async function generateTXT(projectId: string, readingMode = false): Promi
 
   if (!project) throw new Error("Proyecto no encontrado");
 
-  const passageNumbers = new Set(project.passages.map(p => p.number));
-
-  function annotateContent(content: string, passageNumber: number): string {
-    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
-    let result = "";
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(content)) !== null) {
-      const numStr = match[1].replace(",", ".");
-      const num = parseFloat(numStr);
-      if (passageNumbers.has(num) && num !== passageNumber) {
-        result += content.slice(lastIndex, match.index);
-        result += match[0];
-        lastIndex = match.index + match[0].length;
-      }
-    }
-    result += content.slice(lastIndex);
-    return result;
-  }
-
   let txt = `${project.title}\n`;
   txt += `${"=".repeat(project.title.length)}\n\n`;
 

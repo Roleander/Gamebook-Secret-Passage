@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { findPassageLinks } from "@/lib/reference-links";
 
 interface Passage {
   id: string;
@@ -40,19 +41,14 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
   }
 
   function linkifyContent(content: string, passageNumber: number): string {
-    const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+    const links = findPassageLinks(content, passageNumbers, passageNumber);
     let result = "";
     let lastIndex = 0;
-    let match;
 
-    while ((match = regex.exec(content)) !== null) {
-      const numStr = match[1].replace(",", ".");
-      const num = parseFloat(numStr);
-      if (passageNumbers.has(num) && num !== passageNumber) {
-        result += escapeHtml(content.slice(lastIndex, match.index));
-        result += `<a href="#passage-${num}" style="color:#8B4513;text-decoration:none;border-bottom:1px dotted #C9A96E">${escapeHtml(match[0])}</a><span style="color:#999;font-size:9pt"> [${num}]</span>`;
-        lastIndex = match.index + match[0].length;
-      }
+    for (const link of links) {
+      result += escapeHtml(content.slice(lastIndex, link.start));
+      result += `<a href="#passage-${link.target}" style="color:#8B4513;text-decoration:none;border-bottom:1px dotted #C9A96E">${escapeHtml(link.text)}</a><span style="color:#999;font-size:9pt"> [${link.target}]</span>`;
+      lastIndex = link.end;
     }
     result += escapeHtml(content.slice(lastIndex));
     return result;

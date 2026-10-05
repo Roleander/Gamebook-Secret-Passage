@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { findPassageLinks } from "@/lib/reference-links";
 
 interface Passage {
   id: string;
@@ -36,19 +37,14 @@ function buildLinkMap(passages: Passage[]): Set<number> {
 }
 
 function linkifyContent(content: string, passageNumber: number, passageNumbers: Set<number>, escapeHtml: (t: string) => string): string {
-  const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+  const links = findPassageLinks(content, passageNumbers, passageNumber);
   let result = "";
   let lastIndex = 0;
-  let match;
 
-  while ((match = regex.exec(content)) !== null) {
-    const numStr = match[1].replace(",", ".");
-    const num = parseFloat(numStr);
-    if (passageNumbers.has(num) && num !== passageNumber) {
-      result += escapeHtml(content.slice(lastIndex, match.index));
-      result += `<a href="#passage-${num}" style="color:#8b4513;text-decoration:none;border-bottom:1px dotted #c9a96e">${escapeHtml(match[0])}</a>`;
-      lastIndex = match.index + match[0].length;
-    }
+  for (const link of links) {
+    result += escapeHtml(content.slice(lastIndex, link.start));
+    result += `<a href="#passage-${link.target}" style="color:#8b4513;text-decoration:none;border-bottom:1px dotted #c9a96e">${escapeHtml(link.text)}</a>`;
+    lastIndex = link.end;
   }
   result += escapeHtml(content.slice(lastIndex));
   return result;

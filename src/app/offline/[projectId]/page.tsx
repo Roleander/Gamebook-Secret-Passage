@@ -6,6 +6,7 @@ import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { getCachedProject } from "@/lib/offline-cache";
+import { findPassageLinks } from "@/lib/reference-links";
 import {
   OfflineProjectSnapshot,
   findPassage,
@@ -20,30 +21,26 @@ function linkifyContent(
   onNavigate: (n: number) => void
 ): ReactNode[] {
   const parts: ReactNode[] = [];
-  const regex = /\b(\d+(?:[.,]\d+)?)\b/g;
+  const links = findPassageLinks(content, passageNumbers, currentNumber);
   let lastIndex = 0;
-  let match: RegExpExecArray | null;
   let key = 0;
 
-  while ((match = regex.exec(content)) !== null) {
-    const num = parseFloat(match[1].replace(",", "."));
-    parts.push(content.slice(lastIndex, match.index));
-    if (passageNumbers.has(num) && num !== currentNumber) {
-      const target = num;
-      parts.push(
-        <button
-          key={`link-${key++}`}
-          type="button"
-          className="text-primary underline underline-offset-2 hover:opacity-80"
-          onClick={() => onNavigate(target)}
-        >
-          {match[0]}
-        </button>
-      );
-    } else {
-      parts.push(match[0]);
+  for (const link of links) {
+    if (link.start > lastIndex) {
+      parts.push(content.slice(lastIndex, link.start));
     }
-    lastIndex = match.index + match[0].length;
+    const target = link.target;
+    parts.push(
+      <button
+        key={`link-${key++}`}
+        type="button"
+        className="text-primary underline underline-offset-2 hover:opacity-80"
+        onClick={() => onNavigate(target)}
+      >
+        {link.text}
+      </button>
+    );
+    lastIndex = link.end;
   }
   parts.push(content.slice(lastIndex));
   return parts;
