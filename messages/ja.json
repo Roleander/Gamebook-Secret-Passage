@@ -98,7 +98,6 @@
     "preview": "プレビュー",
     "shuffle": "コンテンツをシャッフル",
     "export": "エクスポート",
-    "autofix": "自動修正",
     "delete": "削除",
     "newPassage": "+ 新規",
     "selectPassage": "パッセージを選択",
@@ -249,16 +248,21 @@
       "basicLinks": "基本リンク検出",
       "unlimitedProjects": "無制限プロジェクト",
       "unlimitedPassages": "無制限パッセージ",
-      "allFormats": "PDF, EPUB, ODT, DOCエクスポート",
+      "allFormats": "PDF, EPUB, ODT, DOCエクスポート, DOCX",
       "advancedFix": "高度な自動修正",
       "aiAgents": "AIエージェント",
       "prioritySupport": "優先サポート",
       "lifetimeAccess": "永久アクセス",
       "updatesIncluded": "更新 포함",
-      "earlyAccess": "機能への早期アクセス"
+      "earlyAccess": "機能への早期アクセス",
+      "shuffleContent": "コンテンツをシャッフル",
+      "everythingPro": "Proの全機能"
     },
     "hasAccount": "すでにアカウントがありますか？",
-    "loginFirst": "先にサインイン"
+    "loginFirst": "先にサインイン",
+    "payStripe": "Stripeで{price}€を支払う",
+    "subscribeStripe": "Stripeで購読（{price}€/月）",
+    "donateStripe": "Stripeで{price}€を寄付"
   },
   "Auth": {
     "login": "ログイン",

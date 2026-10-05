@@ -98,7 +98,6 @@
     "preview": "Pré-visualizar",
     "shuffle": "Embaralhar conteúdo",
     "export": "Exportar",
-    "autofix": "Auto-correção",
     "delete": "Excluir",
     "newPassage": "+ Novo",
     "selectPassage": "Selecione uma passagem",
@@ -249,16 +248,21 @@
       "basicLinks": "Detecção básica de links",
       "unlimitedProjects": "Projetos ilimitados",
       "unlimitedPassages": "Passagens ilimitadas",
-      "allFormats": "Exportar PDF, EPUB, ODT, DOC",
+      "allFormats": "Exportar PDF, EPUB, ODT, DOC, DOCX",
       "advancedFix": "Auto-correção avançada",
       "aiAgents": "Agentes IA",
       "prioritySupport": "Suporte prioritário",
       "lifetimeAccess": "Acesso vitalício",
       "updatesIncluded": "Atualizações incluídas",
-      "earlyAccess": "Acesso antecipado a funcionalidades"
+      "earlyAccess": "Acesso antecipado a funcionalidades",
+      "shuffleContent": "Embaralhar conteúdo",
+      "everythingPro": "Tudo do Pro"
     },
     "hasAccount": "Já tem conta?",
-    "loginFirst": "Entre primeiro"
+    "loginFirst": "Entre primeiro",
+    "payStripe": "Pagar {price}€ com Stripe",
+    "subscribeStripe": "Subscrever com Stripe ({price}€/mês)",
+    "donateStripe": "Doar {price}€ com Stripe"
   },
   "Auth": {
     "login": "Entrar",

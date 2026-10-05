@@ -35,6 +35,39 @@ interface Plan {
   maxPassages: number | null;
 }
 
+const PLAN_COPY: Record<string, { descriptionKey: string; featureKeys: string[] }> = {
+  free: {
+    descriptionKey: "Pricing.freeDesc",
+    featureKeys: [
+      "Pricing.features.projects3",
+      "Pricing.features.passages500",
+      "Pricing.features.exportTxt",
+      "Pricing.features.basicLinks",
+    ],
+  },
+  pro: {
+    descriptionKey: "Pricing.proDesc",
+    featureKeys: [
+      "Pricing.features.unlimitedProjects",
+      "Pricing.features.unlimitedPassages",
+      "Pricing.features.allFormats",
+      "Pricing.features.advancedFix",
+      "Pricing.features.aiAgents",
+      "Pricing.features.shuffleContent",
+      "Pricing.features.prioritySupport",
+    ],
+  },
+  lifetime: {
+    descriptionKey: "Pricing.lifetimeDesc",
+    featureKeys: [
+      "Pricing.features.everythingPro",
+      "Pricing.features.lifetimeAccess",
+      "Pricing.features.updatesIncluded",
+      "Pricing.features.earlyAccess",
+    ],
+  },
+};
+
 export default function PricingPage() {
   const { t } = useI18n();
   const router = useRouter();
@@ -121,6 +154,22 @@ export default function PricingPage() {
     },
   ];
 
+  const getPlanCopy = (plan: Plan) => {
+    const copy = PLAN_COPY[plan.name];
+    if (!copy) {
+      return {
+        displayName: plan.displayName,
+        description: plan.description,
+        features: plan.features,
+      };
+    }
+    return {
+      displayName: t(`Pricing.${plan.name}`),
+      description: t(copy.descriptionKey),
+      features: copy.featureKeys.map((key) => t(key)),
+    };
+  };
+
   return (
     <PayPalProvider>
     <div className="min-h-screen bg-background">
@@ -157,7 +206,9 @@ export default function PricingPage() {
           animate="show"
           variants={stagger}
         >
-          {displayPlans.map((plan) => (
+          {displayPlans.map((plan) => {
+            const copy = getPlanCopy(plan);
+            return (
             <motion.div
               key={plan.id}
               variants={fadeUp}
@@ -184,8 +235,8 @@ export default function PricingPage() {
                   {plan.name === "pro" && <Zap className="w-12 h-12 text-primary" />}
                   {plan.name === "lifetime" && <Crown className="w-12 h-12 text-yellow-500" />}
                 </div>
-                <CardTitle className="text-2xl">{plan.displayName}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
+                <CardTitle className="text-2xl">{copy.displayName}</CardTitle>
+                <CardDescription>{copy.description}</CardDescription>
                 <div className="mt-4">
                   <span className="text-4xl font-bold">
                     {plan.price === 0 ? t("Pricing.free") : `${plan.price}€`}
@@ -203,7 +254,7 @@ export default function PricingPage() {
 
               <CardContent>
                 <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, index) => (
+                  {copy.features.map((feature, index) => (
                     <li key={index} className="flex items-center">
                       <Check className="w-5 h-5 text-green-500 mr-2 shrink-0" />
                       <span className="text-sm">{feature}</span>
@@ -223,7 +274,7 @@ export default function PricingPage() {
                     <StripeCheckout
                       type="one-time-subscription"
                       planId={plan.id}
-                      label={`Pagar ${plan.price}€ con Stripe`}
+                      label={t("Pricing.payStripe", { price: plan.price })}
                     />
                     <PayPalDonate amount={plan.price} />
                   </div>
@@ -232,7 +283,7 @@ export default function PricingPage() {
                     <StripeCheckout
                       type="subscription"
                       planId={plan.id}
-                      label={`Suscribirse con Stripe (${plan.price}€/mes)`}
+                      label={t("Pricing.subscribeStripe", { price: plan.price })}
                     />
                     {sessionStatus === "unauthenticated" && (
                       <p className="text-xs text-muted-foreground text-center">
@@ -247,7 +298,8 @@ export default function PricingPage() {
               </CardContent>
             </Card>
             </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
 
         <div className="mt-16 text-center">
@@ -259,7 +311,7 @@ export default function PricingPage() {
                 {t("Pricing.donateDesc")}
               </p>
               <div className="flex gap-2 justify-center">
-                <StripeCheckout type="donation" amount={5} label="Donar 5€ con Stripe" />
+                <StripeCheckout type="donation" amount={5} label={t("Pricing.donateStripe", { price: 5 })} />
                 <PayPalDonate amount={5} />
               </div>
             </CardContent>

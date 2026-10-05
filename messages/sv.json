@@ -98,7 +98,6 @@
     "preview": "Förhandsvisa",
     "shuffle": "Blanda innehåll",
     "export": "Exportera",
-    "autofix": "Auto-fix",
     "delete": "Ta bort",
     "newPassage": "+ Nytt",
     "selectPassage": "Välj ett pass",
@@ -249,16 +248,21 @@
       "basicLinks": "Grundläggande länkidentifiering",
       "unlimitedProjects": "Obegränsade projekt",
       "unlimitedPassages": "Obegränsade stycken",
-      "allFormats": "Exportera PDF, EPUB, ODT, DOC",
+      "allFormats": "Exportera PDF, EPUB, ODT, DOC, DOCX",
       "advancedFix": "Avancerad auto-fix",
       "aiAgents": "AI-agenter",
       "prioritySupport": "Prioriterat stöd",
       "lifetimeAccess": "Livstidsåtkomst",
       "updatesIncluded": "Uppdateringar ingår",
-      "earlyAccess": "Tidig åtkomst till funktioner"
+      "earlyAccess": "Tidig åtkomst till funktioner",
+      "shuffleContent": "Blanda innehåll",
+      "everythingPro": "Allt i Pro"
     },
     "hasAccount": "Har du redan konto?",
-    "loginFirst": "Logga in först"
+    "loginFirst": "Logga in först",
+    "payStripe": "Betala {price}€ med Stripe",
+    "subscribeStripe": "Prenumerera med Stripe ({price}€/mån)",
+    "donateStripe": "Donera {price}€ med Stripe"
   },
   "Auth": {
     "login": "Logga in",

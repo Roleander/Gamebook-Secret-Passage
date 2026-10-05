@@ -98,7 +98,6 @@
     "preview": "पूर्वावलोकन",
     "shuffle": "सामग्री शफल करें",
     "export": "निर्यात",
-    "autofix": "ऑटो-फ़िक्स",
     "delete": "हटाएं",
     "newPassage": "+ नया",
     "selectPassage": "एक खंड चुनें",
@@ -249,16 +248,21 @@
       "basicLinks": "बेसिक लिंक डिटेक्शन",
       "unlimitedProjects": "असीमित प्रोजेक्ट",
       "unlimitedPassages": "असीमित पैसेज",
-      "allFormats": "PDF, EPUB, ODT, DOC एक्सपोर्ट",
+      "allFormats": "PDF, EPUB, ODT, DOC एक्सपोर्ट, DOCX",
       "advancedFix": "उन्नत ऑटो-फ़िक्स",
       "aiAgents": "AI एजेंट",
       "prioritySupport": "प्राथमिकता समर्थन",
       "lifetimeAccess": "आजीवन पहुँच",
       "updatesIncluded": "अपडेट शामिल",
-      "earlyAccess": "फ़ीचर्स तक जल्दी पहुँच"
+      "earlyAccess": "फ़ीचर्स तक जल्दी पहुँच",
+      "shuffleContent": "सामग्री शफ़ल करें",
+      "everythingPro": "Pro की सारी सुविधाएँ"
     },
     "hasAccount": "पहले से खाता है?",
-    "loginFirst": "पहले साइन इन करें"
+    "loginFirst": "पहले साइन इन करें",
+    "payStripe": "Stripe से {price}€ का भुगतान करें",
+    "subscribeStripe": "Stripe के साथ सब्सक्राइब करें ({price}€/माह)",
+    "donateStripe": "Stripe से {price}€ दान करें"
   },
   "Auth": {
     "login": "लॉग इन",

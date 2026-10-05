@@ -98,7 +98,6 @@
     "preview": "Preview",
     "shuffle": "Shuffle Content",
     "export": "Export",
-    "autofix": "Auto-fix",
     "delete": "Delete",
     "newPassage": "+ New",
     "selectPassage": "Select a passage",
@@ -249,16 +248,21 @@
       "basicLinks": "Basic link detection",
       "unlimitedProjects": "Unlimited projects",
       "unlimitedPassages": "Unlimited passages",
-      "allFormats": "Export PDF, EPUB, ODT, DOC",
+      "allFormats": "Export PDF, EPUB, ODT, DOC, DOCX",
       "advancedFix": "Advanced auto-fix",
       "aiAgents": "AI Agents",
       "prioritySupport": "Priority support",
       "lifetimeAccess": "Lifetime access",
       "updatesIncluded": "Updates included",
-      "earlyAccess": "Early access to features"
+      "earlyAccess": "Early access to features",
+      "shuffleContent": "Shuffle content",
+      "everythingPro": "Everything in Pro"
     },
     "hasAccount": "Already have an account?",
-    "loginFirst": "Sign in first"
+    "loginFirst": "Sign in first",
+    "payStripe": "Pay {price}€ with Stripe",
+    "subscribeStripe": "Subscribe with Stripe ({price}€/month)",
+    "donateStripe": "Donate {price}€ with Stripe"
   },
   "Auth": {
     "login": "Sign In",

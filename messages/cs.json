@@ -98,7 +98,6 @@
     "preview": "Náhled",
     "shuffle": "Zamíchat obsah",
     "export": "Exportovat",
-    "autofix": "Auto-oprava",
     "delete": "Smazat",
     "newPassage": "+ Nová",
     "selectPassage": "Vyberte pasáž",
@@ -249,16 +248,21 @@
       "basicLinks": "Základní detekce odkazů",
       "unlimitedProjects": "Neomezené projekty",
       "unlimitedPassages": "Neomezené pasáže",
-      "allFormats": "Exportovat PDF, EPUB, ODT, DOC",
+      "allFormats": "Exportovat PDF, EPUB, ODT, DOC, DOCX",
       "advancedFix": "Pokročilá auto-oprava",
       "aiAgents": "AI agenti",
       "prioritySupport": "Prioritní podpora",
       "lifetimeAccess": "Doživotní přístup",
       "updatesIncluded": "Aktualizace zahrnuty",
-      "earlyAccess": "Předčasný přístup k funkcím"
+      "earlyAccess": "Předčasný přístup k funkcím",
+      "shuffleContent": "Zamíchat obsah",
+      "everythingPro": "Vše z Pro"
     },
     "hasAccount": "Už máte účet?",
-    "loginFirst": "Nejdříve se přihlaste"
+    "loginFirst": "Nejdříve se přihlaste",
+    "payStripe": "Zaplatit {price}€ přes Stripe",
+    "subscribeStripe": "Předplatné přes Stripe ({price}€/měsíc)",
+    "donateStripe": "Přispět {price}€ přes Stripe"
   },
   "Auth": {
     "login": "Přihlásit se",
