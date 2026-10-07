@@ -40,7 +40,7 @@ export function buildContentXml(project: OdtData, readingMode: boolean): string 
 
     for (const link of links) {
       result += escapeXml(line.slice(lastIdx, link.start));
-      result += `<text:a xlink:href="#passage${link.target}" text:style-name="Hyperlink">${escapeXml(link.text)}</text:a>`;
+      result += `<text:a xlink:type="simple" xlink:href="#passage${link.target}" text:style-name="Hyperlink">${escapeXml(link.text)}</text:a>`;
       lastIdx = link.end;
     }
     result += escapeXml(line.slice(lastIdx));
@@ -64,15 +64,13 @@ export function buildContentXml(project: OdtData, readingMode: boolean): string 
   contentXml += `      <text:p text:style-name="Standard"/>\n`;
 
   project.passages.forEach((passage) => {
-    contentXml += `      <text:bookmark text:name="passage${passage.number}"/>`;
-
     const markers = [];
     if (passage.number === 1) markers.push("[INICIO]");
     if (passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     if (readingMode) {
-      contentXml += `<text:p text:style-name="PassageNumberCenter">${passage.number}${markerStr}</text:p>\n`;
+      contentXml += `      <text:p text:style-name="PassageNumberCenter"><text:bookmark text:name="passage${passage.number}"/>${passage.number}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
       lines.forEach((line) => {
         contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line)}</text:p>\n`;
@@ -80,7 +78,7 @@ export function buildContentXml(project: OdtData, readingMode: boolean): string 
     } else {
       let header = `Pasaje ${passage.number}`;
       if (passage.title) header += ` — ${escapeXml(passage.title)}`;
-      contentXml += `<text:p text:style-name="PassageNumber">${header}${markerStr}</text:p>\n`;
+      contentXml += `      <text:p text:style-name="PassageNumber"><text:bookmark text:name="passage${passage.number}"/>${header}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
       lines.forEach((line) => {
         contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line)}</text:p>\n`;
@@ -90,7 +88,7 @@ export function buildContentXml(project: OdtData, readingMode: boolean): string 
         passage.outgoingLinks.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           contentXml += `      <text:p text:style-name="Standard">  → `;
-          contentXml += `<text:a xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">${escapeXml(text)}</text:a></text:p>\n`;
+          contentXml += `<text:a xlink:type="simple" xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">${escapeXml(text)}</text:a></text:p>\n`;
         });
       }
     }

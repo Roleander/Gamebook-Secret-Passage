@@ -109,6 +109,30 @@ describe("ODT export", () => {
     expect(content).toContain("[FIN]");
   });
 
+  it("el bookmark vive dentro del primer parrafo del pasaje y los enlaces declaran xlink:type", () => {
+    const sample = {
+      title: "Anclas ODT",
+      passages: [
+        samplePassage({ number: 1, content: "Ve al 2" }),
+        samplePassage({ number: 2, isEndpoint: true, content: "Fin" }),
+      ],
+    };
+    const normal = buildContentXml(sample, false);
+    expect(normal).toContain(
+      '<text:p text:style-name="PassageNumber"><text:bookmark text:name="passage1"/>'
+    );
+    expect(normal).not.toMatch(/<text:bookmark[^>]*\/><text:p/);
+    expect(normal).toContain('xlink:type="simple" xlink:href="#passage2"');
+
+    const reading = buildContentXml(sample, true);
+    expect(reading).toContain(
+      '<text:p text:style-name="PassageNumberCenter"><text:bookmark text:name="passage1"/>'
+    );
+    expect(reading).not.toMatch(/<text:bookmark[^>]*\/><text:p/);
+    expect(xmlErrors(normal)).toEqual([]);
+    expect(xmlErrors(reading)).toEqual([]);
+  });
+
   it("packOdtArchive pone mimetype primero y sin comprimir", async () => {
     const buf = await packOdtArchive({
       content: ODT_STYLES_XML,
