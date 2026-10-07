@@ -126,6 +126,7 @@
     "undo": "Vrátit",
     "readingMode": "Plynulé čtení",
     "readingModeHint": "Bez nadpisů u každé pasáže",
+    "exportLinksHint": "Pro zachování odkazů použijte Exportovat nebo Uložit jako PDF, ne Tisknout.",
     "exportPdf": "PDF (tisknutelné HTML)",
     "exportTxt": "TXT (prostý text)",
     "exportOdt": "ODT (OpenOffice)",

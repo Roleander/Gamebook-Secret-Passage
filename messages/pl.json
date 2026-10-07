@@ -126,6 +126,7 @@
     "undo": "Cofnij",
     "readingMode": "Płynna lektura",
     "readingModeHint": "Bez nagłówków w pasażach",
+    "exportLinksHint": "Aby zachować linki, użyj Eksportuj lub Zapisz jako PDF, nie Drukuj.",
     "exportPdf": "PDF (drukowalne HTML)",
     "exportTxt": "TXT (tekst zwykły)",
     "exportOdt": "ODT (OpenOffice)",

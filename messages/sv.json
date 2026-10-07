@@ -126,6 +126,7 @@
     "undo": "Ångra",
     "readingMode": "Flytande läsning",
     "readingModeHint": "Inga rubriker per pass",
+    "exportLinksHint": "För att behålla länkar, använd Exportera eller Spara som PDF, inte Skriv ut.",
     "exportPdf": "PDF (tryckbart HTML)",
     "exportTxt": "TXT (ren text)",
     "exportOdt": "ODT (OpenOffice)",

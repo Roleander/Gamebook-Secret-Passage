@@ -126,6 +126,7 @@
     "undo": "रद्द करें",
     "readingMode": "प्रवाहित पठन",
     "readingModeHint": "प्रति खंड कोई शीर्षक नहीं",
+    "exportLinksHint": "लिंक बनाए रखने के लिए निर्यात या PDF के रूप में सहेड़ें, मुद्रण नहीं।",
     "exportPdf": "PDF (मुद्रण योग्य HTML)",
     "exportTxt": "TXT (सादा पाठ)",
     "exportOdt": "ODT (OpenOffice)",

@@ -126,6 +126,7 @@
     "undo": "取り消す",
     "readingMode": "スムーズな読み方",
     "readingModeHint": "パッセージごとの見出しなし",
+    "exportLinksHint": "リンクを保持するには「エクスポート」または「PDF で保存」を使い、「印刷」は使わないでください。",
     "exportPdf": "PDF（印刷可能HTML）",
     "exportTxt": "TXT（プレーンテキスト）",
     "exportOdt": "ODT（OpenOffice）",

@@ -586,6 +586,7 @@ export default function EditorPage() {
                         <span>{t("Editor.readingMode")}</span>
                       </label>
                       <p className="text-xs text-muted-foreground mt-1">{t("Editor.readingModeHint")}</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">{t("Editor.exportLinksHint")}</p>
                     </div>
                     <button
                       onClick={() => { handleExport("pdf"); setShowExportMenu(false); }}

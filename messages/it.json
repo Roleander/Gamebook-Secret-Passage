@@ -126,6 +126,7 @@
     "undo": "Annulla",
     "readingMode": "Lettura scorrevole",
     "readingModeHint": "Senza titoli per passaggio",
+    "exportLinksHint": "Per mantenere i collegamenti, usa Esporta o Salva come PDF, non Stampa.",
     "exportPdf": "PDF (HTML stampabile)",
     "exportTxt": "TXT (testo semplice)",
     "exportOdt": "ODT (OpenOffice)",

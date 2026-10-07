@@ -126,6 +126,7 @@
     "undo": "Annuler",
     "readingMode": "Lecture fluide",
     "readingModeHint": "Sans titres par passage",
+    "exportLinksHint": "Pour conserver les liens, utilisez Exporter ou Enregistrer en PDF, pas Imprimer.",
     "exportPdf": "PDF (HTML imprimable)",
     "exportTxt": "TXT (texte brut)",
     "exportOdt": "ODT (OpenOffice)",
