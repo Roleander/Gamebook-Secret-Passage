@@ -18,23 +18,12 @@ interface Passage {
   }[];
 }
 
-export async function generateDOCX(projectId: string, readingMode = false): Promise<Buffer> {
-  const project = await db.project.findUnique({
-    where: { id: projectId },
-    include: {
-      passages: {
-        include: {
-          outgoingLinks: {
-            include: { target: { select: { number: true } } },
-          },
-        },
-        orderBy: { number: "asc" },
-      },
-    },
-  });
+export interface DocxProject {
+  title: string;
+  passages: Passage[];
+}
 
-  if (!project) throw new Error("Proyecto no encontrado");
-
+export async function buildDocxBuffer(project: DocxProject, readingMode = false): Promise<Buffer> {
   const passageNumbers = new Set(project.passages.map(p => p.number));
 
   function linkifyContent(content: string, passageNumber: number): (TextRun | InternalHyperlink)[] {
@@ -47,7 +36,7 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
         runs.push(new TextRun({ text: content.slice(lastIndex, link.start), font: "Times New Roman", size: 24 }));
       }
       runs.push(new InternalHyperlink({
-        anchor: `passage-${link.target}`,
+        anchor: `passage${link.target}`,
         children: [new TextRun({
           text: link.text,
           font: "Times New Roman",
@@ -105,7 +94,7 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
         alignment: AlignmentType.CENTER,
         spacing: { before: 300, after: 100 },
         children: [new Bookmark({
-          id: `passage-${passage.number}`,
+          id: `passage${passage.number}`,
           children: [new TextRun({
             text: `${passage.number}${markerStr}`,
             font: "Times New Roman",
@@ -126,11 +115,11 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
     } else {
       // Passage header as bookmark
       let header = `Pasaje ${passage.number}`;
-      if (passage.title) header += ` — ${passage.title}`;
+      if (passage.title) header += ` â€” ${passage.title}`;
       children.push(new Paragraph({
         spacing: { before: 300, after: 100 },
         children: [new Bookmark({
-          id: `passage-${passage.number}`,
+          id: `passage${passage.number}`,
           children: [new TextRun({
             text: `${header}${markerStr}`,
             font: "Times New Roman",
@@ -166,9 +155,9 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
             spacing: { after: 50 },
             indent: { left: convertInchesToTwip(0.3) },
             children: [
-              new TextRun({ text: "→ ", font: "Times New Roman", size: 22 }),
+              new TextRun({ text: "â†’ ", font: "Times New Roman", size: 22 }),
               new InternalHyperlink({
-                anchor: `passage-${link.target.number}`,
+                anchor: `passage${link.target.number}`,
                 children: [new TextRun({
                   text,
                   font: "Times New Roman",
@@ -214,4 +203,27 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
 
   const buffer = await Packer.toBuffer(doc);
   return Buffer.from(buffer);
+}
+
+export async function generateDOCX(projectId: string, readingMode = false): Promise<Buffer> {
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    include: {
+      passages: {
+        include: {
+          outgoingLinks: {
+            include: { target: { select: { number: true } } },
+          },
+        },
+        orderBy: { number: "asc" },
+      },
+    },
+  });
+
+  if (!project) throw new Error("Proyecto no encontrado");
+
+  return buildDocxBuffer(
+    { title: project.title, passages: project.passages },
+    readingMode
+  );
 }

@@ -29,7 +29,7 @@ export async function generatePDF(projectId: string, readingMode = false): Promi
   });
 
   if (!project) throw new Error("Proyecto no encontrado");
-  return generateHTML(project, readingMode);
+  return buildPrintHtml(project, readingMode);
 }
 
 function buildLinkMap(passages: Passage[]): Set<number> {
@@ -43,14 +43,14 @@ function linkifyContent(content: string, passageNumber: number, passageNumbers: 
 
   for (const link of links) {
     result += escapeHtml(content.slice(lastIndex, link.start));
-    result += `<a href="#passage-${link.target}" style="color:#8b4513;text-decoration:none;border-bottom:1px dotted #c9a96e">${escapeHtml(link.text)}</a>`;
+    result += `<a href="#passage${link.target}" style="color:#8b4513;text-decoration:none;border-bottom:1px dotted #c9a96e">${escapeHtml(link.text)}</a>`;
     lastIndex = link.end;
   }
   result += escapeHtml(content.slice(lastIndex));
   return result;
 }
 
-function generateHTML(project: { title: string; passages: Passage[] }, readingMode: boolean): string {
+export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean): string {
   const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -111,19 +111,19 @@ function generateHTML(project: { title: string; passages: Passage[] }, readingMo
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
 
     if (readingMode) {
-      html += `    <div class="passage" id="passage-${passage.number}">\n`;
+      html += `    <div class="passage" id="passage${passage.number}">\n`;
       html += `      <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
       html += `      <div class="passage-content">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml)}</div>\n`;
       html += `    </div>\n`;
     } else {
-      html += `    <div class="passage" id="passage-${passage.number}">\n`;
+      html += `    <div class="passage" id="passage${passage.number}">\n`;
       html += `      <div class="${numClass}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}${markerStr}</div>\n`;
       html += `      <div class="passage-content">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml)}</div>\n`;
       if (passage.outgoingLinks.length > 0) {
         html += `      <div class="passage-links"><strong>Opciones:</strong><br>\n`;
         passage.outgoingLinks.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          html += `        → <a href="#passage-${link.target.number}">${escapeHtml(text)}</a><br>\n`;
+          html += `        → <a href="#passage${link.target.number}">${escapeHtml(text)}</a><br>\n`;
         });
         html += `      </div>\n`;
       }

@@ -13,23 +13,12 @@ interface Passage {
   }[];
 }
 
-export async function generateDOC(projectId: string, readingMode = false): Promise<string> {
-  const project = await db.project.findUnique({
-    where: { id: projectId },
-    include: {
-      passages: {
-        include: {
-          outgoingLinks: {
-            include: { target: { select: { number: true } } },
-          },
-        },
-        orderBy: { number: "asc" },
-      },
-    },
-  });
+export interface DocProject {
+  title: string;
+  passages: Passage[];
+}
 
-  if (!project) throw new Error("Proyecto no encontrado");
-
+export function buildDocHtml(project: DocProject, readingMode = false): string {
   const passageNumbers = new Set(project.passages.map(p => p.number));
 
   function escapeHtml(text: string): string {
@@ -47,7 +36,7 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
 
     for (const link of links) {
       result += escapeHtml(content.slice(lastIndex, link.start));
-      result += `<a href="#passage-${link.target}" style="color:#8B4513;text-decoration:none;border-bottom:1px dotted #C9A96E">${escapeHtml(link.text)}</a><span style="color:#999;font-size:9pt"> [${link.target}]</span>`;
+      result += `<a href="#passage${link.target}" style="color:#8B4513;text-decoration:none;border-bottom:1px dotted #C9A96E">${escapeHtml(link.text)}</a><span style="color:#999;font-size:9pt"> [${link.target}]</span>`;
       lastIndex = link.end;
     }
     result += escapeHtml(content.slice(lastIndex));
@@ -144,7 +133,7 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
 
-    html += `<div class="passage"><a name="passage-${passage.number}" id="passage-${passage.number}"></a>\n`;
+    html += `<div class="passage"><a name="passage${passage.number}" id="passage${passage.number}"></a>\n`;
 
     if (readingMode) {
       html += `  <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
@@ -158,7 +147,7 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
         html += `  <div class="passage-links"><strong>Opciones:</strong><br>\n`;
         passage.outgoingLinks.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
-          html += `    → <a href="#passage-${link.target.number}">${escapeHtml(text)}</a><br>\n`;
+          html += `    → <a href="#passage${link.target.number}">${escapeHtml(text)}</a><br>\n`;
         });
         html += `  </div>\n`;
       }
@@ -168,4 +157,27 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
 
   html += `</body>\n</html>`;
   return html;
+}
+
+export async function generateDOC(projectId: string, readingMode = false): Promise<string> {
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    include: {
+      passages: {
+        include: {
+          outgoingLinks: {
+            include: { target: { select: { number: true } } },
+          },
+        },
+        orderBy: { number: "asc" },
+      },
+    },
+  });
+
+  if (!project) throw new Error("Proyecto no encontrado");
+
+  return buildDocHtml(
+    { title: project.title, passages: project.passages },
+    readingMode
+  );
 }
