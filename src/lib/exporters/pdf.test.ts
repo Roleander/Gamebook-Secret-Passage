@@ -31,11 +31,12 @@ const project = {
 };
 
 describe("PDF print export (buildPrintHtml)", () => {
-  it("cada pasaje tiene id passageN sin guion", () => {
+  it("cada pasaje tiene id passageN sin guion en el div de contenido (tras la cabecera)", () => {
     const html = buildPrintHtml(project, false);
-    expect(html).toContain('id="passage1"');
-    expect(html).toContain('id="passage2"');
+    expect(html).toContain('<div class="passage-content" id="passage1">');
+    expect(html).toContain('<div class="passage-content" id="passage2">');
     expect(html).not.toMatch(/id="passage-/);
+    expect(html).not.toMatch(/<div class="passage" id=/);
   });
 
   it("los enlaces internos usan #passageN sin guion", () => {
@@ -45,9 +46,9 @@ describe("PDF print export (buildPrintHtml)", () => {
     expect(html).not.toMatch(/#passage-/);
   });
 
-  it("en readingMode tambien ancla cada pasaje", () => {
+  it("en readingMode tambien ancla cada tras su cabecera", () => {
     const html = buildPrintHtml(project, true);
-    expect(html).toContain('id="passage1"');
+    expect(html).toContain('<div class="passage-content" id="passage1">');
     expect(html).toContain('href="#passage2"');
   });
 });

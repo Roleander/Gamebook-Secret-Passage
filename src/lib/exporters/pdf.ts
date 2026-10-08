@@ -111,14 +111,14 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
 
     if (readingMode) {
-      html += `    <div class="passage" id="passage${passage.number}">\n`;
+      html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
-      html += `      <div class="passage-content">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml)}</div>\n`;
+      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml)}</div>\n`;
       html += `    </div>\n`;
     } else {
-      html += `    <div class="passage" id="passage${passage.number}">\n`;
+      html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}${markerStr}</div>\n`;
-      html += `      <div class="passage-content">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml)}</div>\n`;
+      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml)}</div>\n`;
       if (passage.outgoingLinks.length > 0) {
         html += `      <div class="passage-links"><strong>Opciones:</strong><br>\n`;
         passage.outgoingLinks.forEach((link) => {
