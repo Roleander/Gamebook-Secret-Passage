@@ -88,13 +88,13 @@ export function extractPassagesFromText(text: string): ParseResult {
 
     const content = stripTrailingStandaloneNumbers(trimmedLines.join("\n").trim());
 
-    // Detect endings (FIN, FIN I VOLUMEN, etc.)
-    const isEndpoint = /\b[Ff][Ii][Nn]\b/.test(content);
-
-    const isStart = num === 1 || passageOrder.indexOf(num) === 0;
-
     // Extract options from the passage
     const options = extractOptionsFromContent(content);
+
+    // Detect endings strictly: last non-empty line is a FIN marker AND no options
+    const isEndpoint = options.length === 0 && isStrictEndingMarker(content);
+
+    const isStart = num === 1 || passageOrder.indexOf(num) === 0;
 
     passages.push({
       number: num,
@@ -345,6 +345,28 @@ function extractOptionsFromContent(content: string): PassageOption[] {
   }
 
   return options;
+}
+
+function isStrictEndingMarker(content: string): boolean {
+  const lines = content
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  const last = lines[lines.length - 1] ?? "";
+  const m = last.match(/^[\s\-—=*•·]*F[Ii][Nn]\b(.*)$/);
+  if (!m) return false;
+  const rest = m[1]
+    .trim()
+    .replace(/^[\s\-—=*•·]+/, "")
+    .replace(/[\s\-—=*•·]+$/, "");
+  if (rest === "" || /^[.!…]+$/.test(rest)) return true;
+  return (
+    /^(?:DEL?\s+)?(?:JUEGO|AVENTURA|LIBRO|VOLUMEN|CAP[IÍ]TULO|ACTO|PARTIDA|HISTORIA)(?:\s+(?:PRIMERO|SEGUNDO|TERCERO|[IVXLC]+|\d+))?\s*[.!…]*$/i.test(
+      rest
+    ) ||
+    /^(?:I{1,3}|IV|V)\s+VOLUMEN\s*[.!…]*$/i.test(rest) ||
+    /^DE\s+LA\s+(?:AVENTURA|HISTORIA|PARTIDA|VIDA)\s*[.!…]*$/i.test(rest)
+  );
 }
 
 function detectNamedReference(text: string): number | undefined {

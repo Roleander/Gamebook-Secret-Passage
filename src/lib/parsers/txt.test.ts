@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   autoDetectLinks,
   detectLinksInPassage,
+  extractPassagesFromText,
 } from "@/lib/parsers/txt";
 
 describe("detectLinksInPassage", () => {
@@ -68,5 +69,42 @@ describe("autoDetectLinks", () => {
     expect(links).toEqual([
       { sourceNumber: 1, targetNumber: 2, text: "Ve al pasaje 2" },
     ]);
+  });
+});
+
+describe("extractPassagesFromText — detección estricta de finales", () => {
+  it("no marca pasajes que solo contienen la palabra fin en medio del texto", () => {
+    const r = extractPassagesFromText("1\nAl fin del camino hay una cueva.\n");
+    expect(r.passages.find((p) => p.number === 1)?.isEndpoint).toBe(false);
+  });
+
+  it("marca como final si la última línea es un marcador FIN", () => {
+    const r = extractPassagesFromText("1\nEl héroe descansa.\nFIN.");
+    expect(r.passages.find((p) => p.number === 1)?.isEndpoint).toBe(true);
+  });
+
+  it("acepta FIN DEL JUEGO decorado y FIN I VOLUMEN", () => {
+    expect(
+      extractPassagesFromText("1\nDerrota total.\n— FIN DEL JUEGO —")
+        .passages[0].isEndpoint
+    ).toBe(true);
+    expect(
+      extractPassagesFromText("1\nVolumen cerrado.\nFIN I VOLUMEN")
+        .passages[0].isEndpoint
+    ).toBe(true);
+  });
+
+  it("no marca finales de acto que continúan en otro pasaje", () => {
+    const r = extractPassagesFromText(
+      "1\nCierre de escena.\nFIN DEL ACTO PRIMERO.\nSigue en el pasaje 178"
+    );
+    expect(r.passages.find((p) => p.number === 1)?.isEndpoint).toBe(false);
+  });
+
+  it("no marca como final si el pasaje tiene opciones", () => {
+    const r = extractPassagesFromText(
+      "1\nParece el final.\n\tSalvarme con la espada\nFIN"
+    );
+    expect(r.passages.find((p) => p.number === 1)?.isEndpoint).toBe(false);
   });
 });
