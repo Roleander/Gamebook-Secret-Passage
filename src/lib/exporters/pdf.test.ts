@@ -51,4 +51,10 @@ describe("PDF print export (buildPrintHtml)", () => {
     expect(html).toContain('<div class="passage-content" id="passage1">');
     expect(html).toContain('href="#passage2"');
   });
+
+  it("el div de contenido tiene scroll-margin-top solo en pantalla (no altera el PDF)", () => {
+    const html = buildPrintHtml(project, false);
+    expect(html).toContain("@media screen { .passage-content { scroll-margin-top: 36px; } }");
+    expect(html).not.toContain("pre-wrap; scroll-margin-top");
+  });
 });

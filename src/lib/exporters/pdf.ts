@@ -86,6 +86,7 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
       font-size: 13px; font-weight: bold; color: #8b4513; margin-bottom: 8px;
     }
     .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; }
+    @media screen { .passage-content { scroll-margin-top: 36px; } }
     .passage-links { margin-top: 15px; padding: 10px 15px; background: #faf8f5; border: 1px solid #e0d5c5; border-radius: 4px; }
     .passage-links strong { color: #8b4513; }
     .passage-links a { color: #8b4513; text-decoration: none; font-weight: bold; }
