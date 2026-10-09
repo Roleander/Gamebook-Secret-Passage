@@ -127,7 +127,7 @@
     "readingMode": "Lesefluss",
     "readingModeHint": "Keine Überschriften pro Passage",
     "exportLinksHint": "Um Links zu behalten, Exportieren oder Als PDF speichern verwenden, nicht Drucken.",
-    "exportPdf": "PDF (druckbares HTML)",
+    "exportPdf": "PDF",
     "exportTxt": "TXT (Reintext)",
     "exportOdt": "ODT (OpenOffice)",
     "autoFixing": "Wird repariert...",

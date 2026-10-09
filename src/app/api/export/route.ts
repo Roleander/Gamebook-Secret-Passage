@@ -8,10 +8,14 @@ import { generateTXT } from "@/lib/exporters/txt";
 import { generateODT } from "@/lib/exporters/odt";
 import { generateDOC } from "@/lib/exporters/doc";
 import { generateDOCX } from "@/lib/exporters/docx";
+import { htmlToPdf } from "@/lib/print-to-pdf";
+import { getPdfExportUsage, recordPdfExport } from "@/lib/pdf-quota";
 import JSZip from "jszip";
 import { z } from "zod";
 import { findPassageLinks } from "@/lib/reference-links";
 import { parseOr400 } from "@/lib/api-validate";
+
+export const maxDuration = 60;
 
 const exportSchema = z.object({
   projectId: z
@@ -78,6 +82,25 @@ export async function POST(req: Request) {
     switch (format) {
       case "pdf": {
         const html = await generatePDF(projectId, readingMode);
+        try {
+          const quota = await getPdfExportUsage();
+          if (quota.allowed) {
+            const pdf = await htmlToPdf(html);
+            await recordPdfExport();
+            return new NextResponse(new Uint8Array(pdf), {
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="${safeTitle}.pdf"`,
+              },
+            });
+          }
+          console.log(`[pdf-export] cuota alcanzada: ${quota.used}/${quota.limit} en 30 dias`);
+        } catch (error) {
+          console.error(
+            "[pdf-export] fallback a HTML:",
+            error instanceof Error ? error.message : error
+          );
+        }
         return new NextResponse(html, {
           headers: {
             "Content-Type": "text/html; charset=utf-8",

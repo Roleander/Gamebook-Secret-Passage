@@ -127,7 +127,7 @@
     "readingMode": "Leitura fluida",
     "readingModeHint": "Sem títulos por passagem",
     "exportLinksHint": "Para manter os links, use Exportar ou Guardar como PDF, não Imprimir.",
-    "exportPdf": "PDF (HTML imprimível)",
+    "exportPdf": "PDF",
     "exportTxt": "TXT (texto simples)",
     "exportOdt": "ODT (OpenOffice)",
     "autoFixing": "Concertando...",

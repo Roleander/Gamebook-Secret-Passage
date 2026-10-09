@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
+import { getPdfExportLimit } from "@/lib/pdf-quota";
 
 export async function GET() {
   try {
@@ -26,10 +27,12 @@ export async function GET() {
       );
     }
 
-    const [totalUsers, totalProjects, totalPassages] = await Promise.all([
+    const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const [totalUsers, totalProjects, totalPassages, pdfExports30d] = await Promise.all([
       db.user.count(),
       db.project.count(),
       db.passage.count(),
+      db.pdfExportLog.count({ where: { createdAt: { gte: since30d } } }),
     ]);
 
     const recentProjects = await db.project.findMany({
@@ -50,6 +53,8 @@ export async function GET() {
       totalProjects,
       totalPassages,
       recentProjects,
+      pdfExports30d,
+      pdfExportLimit: getPdfExportLimit(),
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);

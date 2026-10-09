@@ -127,7 +127,7 @@
     "readingMode": "スムーズな読み方",
     "readingModeHint": "パッセージごとの見出しなし",
     "exportLinksHint": "リンクを保持するには「エクスポート」または「PDF で保存」を使い、「印刷」は使わないでください。",
-    "exportPdf": "PDF（印刷可能HTML）",
+    "exportPdf": "PDF",
     "exportTxt": "TXT（プレーンテキスト）",
     "exportOdt": "ODT（OpenOffice）",
     "autoFixing": "修復中...",

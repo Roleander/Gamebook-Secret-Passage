@@ -12,6 +12,8 @@ interface Stats {
   totalUsers: number;
   totalProjects: number;
   totalPassages: number;
+  pdfExports30d?: number;
+  pdfExportLimit?: number;
   recentProjects: {
     id: string;
     title: string;
@@ -140,6 +142,13 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </div>
+
+        <p className="text-sm text-muted-foreground mb-8">
+          Exports PDF (30 días):{" "}
+          <span className="font-bold text-foreground">{stats?.pdfExports30d ?? 0}</span>
+          {" / "}
+          {stats?.pdfExportLimit ?? "—"}
+        </p>
 
         <Card>
           <CardHeader>

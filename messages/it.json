@@ -127,7 +127,7 @@
     "readingMode": "Lettura scorrevole",
     "readingModeHint": "Senza titoli per passaggio",
     "exportLinksHint": "Per mantenere i collegamenti, usa Esporta o Salva come PDF, non Stampa.",
-    "exportPdf": "PDF (HTML stampabile)",
+    "exportPdf": "PDF",
     "exportTxt": "TXT (testo semplice)",
     "exportOdt": "ODT (OpenOffice)",
     "autoFixing": "Riparazione...",

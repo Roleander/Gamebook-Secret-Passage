@@ -127,7 +127,7 @@
     "readingMode": "Reading flow",
     "readingModeHint": "No headings per passage",
     "exportLinksHint": "To keep links, use Export or Save as PDF, not Print.",
-    "exportPdf": "PDF (printable HTML)",
+    "exportPdf": "PDF",
     "exportTxt": "TXT (plain text)",
     "exportOdt": "ODT (OpenOffice)",
     "autoFixing": "Fixing...",

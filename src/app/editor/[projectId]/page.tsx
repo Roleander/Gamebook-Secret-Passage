@@ -409,8 +409,9 @@ export default function EditorPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
+      const contentType = response.headers.get("content-type") || "";
       const extensions: Record<string, string> = {
-        pdf: "html",
+        pdf: contentType.includes("text/html") ? "html" : "pdf",
         epub: "epub",
         txt: "txt",
         odt: "odt",
