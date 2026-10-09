@@ -31,6 +31,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: 'standalone',
   serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
+  outputFileTracingIncludes: {
+    '/api/export': ['./node_modules/@sparticuz/chromium/**'],
+  },
   async headers() {
     return [
       {

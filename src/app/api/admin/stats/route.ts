@@ -15,12 +15,7 @@ export async function GET() {
       );
     }
 
-    // Check if user is admin
-    const user = await db.user.findUnique({
-      where: { id: (session.user as any).id },
-    });
-
-    if (user?.role !== "ADMIN") {
+    if ((session.user as any).role !== "ADMIN") {
       return NextResponse.json(
         { error: "Acceso denegado" },
         { status: 403 }
