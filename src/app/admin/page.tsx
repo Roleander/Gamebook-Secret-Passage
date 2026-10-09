@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, BookOpen, FileText, BarChart3 } from "lucide-react";
+import { Users, BookOpen, FileText, BarChart3, CreditCard, LayoutDashboard } from "lucide-react";
+import { UsersPanel } from "@/components/admin/users-panel";
+import { PaymentsPanel } from "@/components/admin/payments-panel";
+
+type Tab = "resumen" | "usuarios" | "pagos";
 
 interface Stats {
   totalUsers: number;
@@ -28,6 +32,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>("resumen");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -85,10 +90,42 @@ export default function AdminPage() {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-primary font-pixel mb-8">
+        <h1 className="text-3xl font-bold text-primary font-pixel mb-4">
           Panel de Administración
         </h1>
 
+        <div className="flex gap-2 mb-8">
+          <Button
+            variant={tab === "resumen" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("resumen")}
+          >
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            Resumen
+          </Button>
+          <Button
+            variant={tab === "usuarios" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("usuarios")}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Usuarios
+          </Button>
+          <Button
+            variant={tab === "pagos" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("pagos")}
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            Pagos
+          </Button>
+        </div>
+
+        {tab === "usuarios" && <UsersPanel />}
+        {tab === "pagos" && <PaymentsPanel />}
+
+        {tab === "resumen" && (
+          <>
         <div className="grid md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-6">
@@ -186,6 +223,8 @@ export default function AdminPage() {
             )}
           </CardContent>
         </Card>
+          </>
+        )}
       </main>
     </div>
   );
