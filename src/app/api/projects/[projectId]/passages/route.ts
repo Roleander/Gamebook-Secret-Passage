@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/lib/db";
 import { getEntitlements, limitReached } from "@/lib/entitlements";
+import { syncProjectLinks } from "@/lib/link-sync";
 import { z } from "zod";
 import { parseOr400 } from "@/lib/api-validate";
 
@@ -89,6 +90,12 @@ export async function POST(
         isEndpoint: isEndpoint || false,
       },
     });
+
+    try {
+      await syncProjectLinks(projectId);
+    } catch (syncError) {
+      console.error("Error syncing links after passage create:", syncError);
+    }
 
     return NextResponse.json(passage);
   } catch (error) {

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { replaceNumberReferences } from "@/lib/number-references";
 import { rewriteProjectLinkTexts } from "@/lib/link-texts";
+import { syncProjectLinks } from "@/lib/link-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -124,6 +125,15 @@ export async function PATCH(
         await update;
       }
       await rewriteProjectLinkTexts(passage.projectId, numberMapping);
+    }
+
+    const contentChanged = updates.content !== undefined;
+    if (contentChanged || numberChanged) {
+      try {
+        await syncProjectLinks(passage.projectId);
+      } catch (syncError) {
+        console.error("Error syncing links after passage update:", syncError);
+      }
     }
 
     const updatedPassage = await db.passage.findUnique({
