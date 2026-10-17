@@ -38,6 +38,10 @@ function buildLinkMap(passages: Passage[]): Set<number> {
   return new Set(passages.map(p => p.number));
 }
 
+function trimContentEdges(content: string): string {
+  return content.replace(/^\n+/, "").replace(/\s+$/, "");
+}
+
 function linkifyContent(content: string, passageNumber: number, passageNumbers: Set<number>, escapeHtml: (t: string) => string, th: PdfTheme): string {
   const links = findPassageLinks(content, passageNumbers, passageNumber);
   let result = "";
@@ -94,25 +98,25 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
       padding: 20px;
     }
     .container { max-width: 800px; margin: 0 auto; background: ${th.containerBg}; padding: 40px; box-shadow: ${th.containerShadow}; }
-    .cover { text-align: center; padding: 80px 20px; border-bottom: 3px double ${th.accent}; margin-bottom: 40px; }
+    .cover { text-align: center; padding: 80px 20px; border-bottom: 3px double ${th.accent}; margin-bottom: 40px; break-after: page; }
     .cover h1 { font-size: 32px; color: ${th.accent}; margin-bottom: 10px; letter-spacing: ${th.h1LetterSpacing}; }
     .cover .subtitle { font-size: 14px; color: ${th.subtitle}; font-style: italic; }
-    .passage { margin-bottom: 30px; padding-bottom: 20px; page-break-inside: avoid; }
+    .passage { margin-bottom: 14px; }
     .passage-number-center {
       text-align: center; font-size: 13px; font-weight: bold;
-      color: ${th.accent}; margin-bottom: 8px;
+      color: ${th.accent}; margin-bottom: 8px; break-after: avoid;
     }
     .passage-number-left {
-      font-size: 13px; font-weight: bold; color: ${th.accent}; margin-bottom: 8px;
+      font-size: 13px; font-weight: bold; color: ${th.accent}; margin-bottom: 8px; break-after: avoid;
     }
-    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; }
+    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; }
     @media screen { .passage-content { scroll-margin-top: 36px; } }
-    .passage-links { margin-top: 15px; padding: 10px 15px; background: ${th.linksBg}; border: 1px solid ${th.linksBorder}; border-radius: 4px; }
+    .passage-links { margin-top: 15px; padding: 10px 15px; background: ${th.linksBg}; border: 1px solid ${th.linksBorder}; border-radius: 4px; break-inside: avoid; }
     .passage-links strong { color: ${th.accent}; }
     .passage-links a { color: ${th.accent}; text-decoration: none; font-weight: bold; }
     .start-marker { color: #22c55e; font-size: 11px; font-weight: bold; }
     .end-marker { color: #ef4444; font-size: 11px; font-weight: bold; }
-    @media print { body { background: ${th.printBg}; padding: 0; } .container { box-shadow: none; padding: 0; } .passage { page-break-inside: avoid; } }${extras}
+    @media print { body { background: ${th.printBg}; padding: 0; } .container { box-shadow: none; padding: 0; } }${extras}
   </style>
 </head>
 <body>
@@ -130,16 +134,17 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
+    const content = trimContentEdges(passage.content);
 
     if (readingMode) {
       html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
-      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml, th)}</div>\n`;
+      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th)}</div>\n`;
       html += `    </div>\n`;
     } else {
       html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}${markerStr}</div>\n`;
-      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(passage.content, passage.number, passageNumbers, escapeHtml, th)}</div>\n`;
+      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th)}</div>\n`;
       if (passage.outgoingLinks.length > 0) {
         html += `      <div class="passage-links"><strong>Opciones:</strong><br>\n`;
         passage.outgoingLinks.forEach((link) => {

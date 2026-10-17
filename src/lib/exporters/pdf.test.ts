@@ -107,4 +107,46 @@ describe("PDF print export (buildPrintHtml)", () => {
     expect(pergamino).toContain('<div class="passage-content" id="passage2">');
     expect(pergamino).toContain('href="#passage1"');
   });
+
+  it("el espaciado entre pasajes es fluido: margen corto y sin page-break-inside", () => {
+    const html = buildPrintHtml(project, false);
+    expect(html).toContain(".passage { margin-bottom: 14px; }");
+    expect(html).not.toContain("padding-bottom: 20px");
+    expect(html).not.toContain("page-break-inside");
+    expect(html).toContain(
+      "@media print { body { background: white; padding: 0; } .container { box-shadow: none; padding: 0; } }"
+    );
+  });
+
+  it("protege titulares, orfas y la caja de opciones de cortes en bordes de pagina", () => {
+    const html = buildPrintHtml(project, false);
+    expect(html).toContain("margin-bottom: 8px; break-after: avoid;");
+    expect(html).toContain("orphans: 2; widows: 2;");
+    expect(html).toContain("break-inside: avoid;");
+    expect(html).toContain(".cover { text-align: center; padding: 80px 20px; border-bottom: 3px double #8b4513; margin-bottom: 40px; break-after: page; }");
+
+    const reading = buildPrintHtml(project, true, "grimorio");
+    expect(reading).toContain("break-after: avoid;");
+    expect(reading).toContain("break-after: page;");
+    expect(reading).toContain("orphans: 2; widows: 2;");
+    expect(reading).not.toContain("page-break-inside");
+  });
+
+  it("el contenido se renderiza sin bordes en blanco pero conserva la indentacion interna", () => {
+    const trimProject = {
+      title: "Trim",
+      passages: [passage({ number: 1, content: "\n\nHola\n\n" })],
+    };
+    const html = buildPrintHtml(trimProject, false);
+    expect(html).toContain('<div class="passage-content" id="passage1">Hola</div>');
+    expect(html).not.toMatch(/id="passage1">\s/);
+    expect(html).not.toMatch(/Hola\s+<\/div>/);
+
+    const indentProject = {
+      title: "Indent",
+      passages: [passage({ number: 1, content: "\n  sangria\n  dos lineas\n" })],
+    };
+    const indented = buildPrintHtml(indentProject, true);
+    expect(indented).toContain('<div class="passage-content" id="passage1">  sangria\n  dos lineas</div>');
+  });
 });
