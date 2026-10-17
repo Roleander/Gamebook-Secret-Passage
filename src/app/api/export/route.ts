@@ -27,6 +27,7 @@ const exportSchema = z.object({
     .min(1, { error: "projectId y format son requeridos" })
     .max(16),
   readingMode: z.boolean().optional(),
+  theme: z.enum(["clasico", "grimorio", "papiro", "pergamino"]).optional(),
 });
 
 export async function POST(req: Request) {
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     const parsed = parseOr400(exportSchema, await req.json().catch(() => null));
     if (!parsed.ok) return parsed.response;
-    const { projectId, format, readingMode } = parsed.data;
+    const { projectId, format, readingMode, theme } = parsed.data;
 
     if (format !== "txt") {
       const ents = await getEntitlements(
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
 
     switch (format) {
       case "pdf": {
-        const html = await generatePDF(projectId, readingMode);
+        const html = await generatePDF(projectId, readingMode, theme ?? "clasico");
         try {
           const quota = await getPdfExportUsage();
           if (quota.allowed) {

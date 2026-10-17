@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import {
+  DEFAULT_THEME,
+  THEME_IDS,
+  THEME_SWATCH,
+  isThemeId,
+  type ThemeId,
+} from "@/lib/exporters/themes";
 import { cacheProject, getEditorProject, saveEditorProject } from "@/lib/offline-cache";
 import { toOfflineSnapshot } from "@/lib/offline-snapshot";
 import { queueableFetch } from "@/lib/offline-client";
@@ -67,6 +74,32 @@ interface PassageError {
   autoFixable: boolean;
 }
 
+const THEME_STORAGE_KEY = "gsp-export-theme";
+
+const THEME_LABEL_KEY: Record<ThemeId, string> = {
+  clasico: "Editor.themeClasico",
+  grimorio: "Editor.themeGrimorio",
+  papiro: "Editor.themePapiro",
+  pergamino: "Editor.themePergamino",
+};
+
+function readStoredTheme(): ThemeId | null {
+  try {
+    const value = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return isThemeId(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredTheme(value: ThemeId): void {
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, value);
+  } catch {
+    return;
+  }
+}
+
 export default function EditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -82,6 +115,9 @@ export default function EditorPage() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [readingMode, setReadingMode] = useState(true);
+  const [exportTheme, setExportTheme] = useState<ThemeId>(
+    () => readStoredTheme() ?? DEFAULT_THEME
+  );
   const [preserveStart, setPreserveStart] = useState(true);
   const [canUndo, setCanUndo] = useState(false);
   const [shuffling, setShuffling] = useState(false);
@@ -171,6 +207,10 @@ export default function EditorPage() {
     fetchEntitlements();
     fetchPendingSuggestions();
   }, [fetchProject, fetchSnapshots, fetchEntitlements, fetchPendingSuggestions]);
+
+  useEffect(() => {
+    writeStoredTheme(exportTheme);
+  }, [exportTheme]);
 
   // Sync selectedPassage when project data changes (e.g., after shuffle)
   useEffect(() => {
@@ -397,7 +437,7 @@ export default function EditorPage() {
       const response = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, format, readingMode }),
+        body: JSON.stringify({ projectId, format, readingMode, theme: exportTheme }),
       });
 
       if (!response.ok) {
@@ -587,6 +627,29 @@ export default function EditorPage() {
                         <span>{t("Editor.readingMode")}</span>
                       </label>
                       <p className="text-xs text-muted-foreground mt-1">{t("Editor.readingModeHint")}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{t("Editor.printStyle")}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {THEME_IDS.map((id) => (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setExportTheme(id)}
+                            title={t(THEME_LABEL_KEY[id])}
+                            className={`flex items-center gap-1 px-1.5 py-1 text-xs rounded border ${
+                              exportTheme === id
+                                ? "border-primary bg-primary/15 text-primary"
+                                : "border-border text-muted-foreground hover:bg-muted"
+                            }`}
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-border"
+                              style={{ backgroundColor: THEME_SWATCH[id] }}
+                            />
+                            {t(THEME_LABEL_KEY[id])}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{t("Editor.printStyleHint")}</p>
                       <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">{t("Editor.exportLinksHint")}</p>
                     </div>
                     <button
@@ -899,6 +962,7 @@ export default function EditorPage() {
         <PreviewMode
           project={project}
           onClose={() => setShowPreview(false)}
+          theme={exportTheme}
         />
       )}
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, Flag, Target, ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { pvThemeCss, type ThemeId } from "@/lib/exporters/themes";
 
 interface Passage {
   id: string;
@@ -34,10 +35,12 @@ interface Project {
 interface PreviewModeProps {
   project: Project;
   onClose: () => void;
+  theme?: ThemeId;
 }
 
-export function PreviewMode({ project, onClose }: PreviewModeProps) {
+export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewModeProps) {
   const { t } = useI18n();
+  const themeCss = pvThemeCss(theme);
   const [currentPassageNumber, setCurrentPassageNumber] = useState<number>(() => {
     // Start from the first passage marked as start, or passage 1
     const startPassage = project.passages.find(p => p.isStart);
@@ -49,7 +52,8 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
 
   if (!currentPassage) {
     return (
-      <div className="fixed inset-0 bg-background z-50 overflow-auto">
+      <div className="fixed inset-0 bg-background z-50 overflow-auto" data-pv-theme={theme}>
+        {themeCss && <style>{themeCss}</style>}
         <div className="container mx-auto px-4 py-8">
           <p>{t("Preview.notFound")}</p>
           <Button onClick={onClose}>{t("Preview.close")}</Button>
@@ -64,7 +68,8 @@ export function PreviewMode({ project, onClose }: PreviewModeProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-background z-50 overflow-auto">
+    <div className="fixed inset-0 bg-background z-50 overflow-auto" data-pv-theme={theme}>
+      {themeCss && <style>{themeCss}</style>}
       {/* Header */}
       <div className="sticky top-0 bg-background border-b border-border z-10">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
