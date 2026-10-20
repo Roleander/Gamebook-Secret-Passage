@@ -128,7 +128,7 @@
     "readingModeHint": "Keine Überschriften pro Passage",
     "exportLinksHint": "Um Links zu behalten, Exportieren oder Als PDF speichern verwenden, nicht Drucken.",
     "printStyle": "Druckstil",
-    "printStyleHint": "Gilt für PDF und Vorschau",
+    "printStyleHint": "Gilt für alle Exportformate und die Vorschau",
     "themeClasico": "Klassisch",
     "themeGrimorio": "Grimoire",
     "themePapiro": "Papyrus",

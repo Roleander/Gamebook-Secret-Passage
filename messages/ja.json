@@ -128,7 +128,7 @@
     "readingModeHint": "パッセージごとの見出しなし",
     "exportLinksHint": "リンクを保持するには「エクスポート」または「PDF で保存」を使い、「印刷」は使わないでください。",
     "printStyle": "印刷スタイル",
-    "printStyleHint": "PDF とプレビューに適用されます",
+    "printStyleHint": "すべてのエクスポート形式とプレビューに適用されます",
     "themeClasico": "クラシック",
     "themeGrimorio": "グリモワール",
     "themePapiro": "パピルス",

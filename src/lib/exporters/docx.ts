@@ -2,9 +2,11 @@ import { db } from "@/lib/db";
 import { findPassageLinks } from "@/lib/reference-links";
 import {
   Document, Packer, Paragraph, TextRun, Bookmark, InternalHyperlink,
-  HeadingLevel, AlignmentType, TabStopType, TabStopPosition,
-  BorderStyle, ShadingType, convertInchesToTwip,
+  AlignmentType, TabStopType, TabStopPosition,
+  BorderStyle, ShadingType, convertInchesToTwip, CharacterSet,
 } from "docx";
+import { PDF_THEMES, officeTheme, type OfficeTheme, type ThemeId } from "@/lib/exporters/themes";
+import { FONTS_TTF_DATA } from "@/lib/exporters/fonts-ttf-data";
 
 interface Passage {
   id: string;
@@ -23,8 +25,19 @@ export interface DocxProject {
   passages: Passage[];
 }
 
-export async function buildDocxBuffer(project: DocxProject, readingMode = false): Promise<Buffer> {
+export async function buildDocxBuffer(project: DocxProject, readingMode = false, theme: ThemeId = "clasico"): Promise<Buffer> {
   const passageNumbers = new Set(project.passages.map(p => p.number));
+  const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
+  const bodyFont = th.fontFamilies[0] || "Times New Roman";
+  const headingFont = th.fontFamilies[th.fontFamilies.length - 1] || "Times New Roman";
+  const toHex6 = (c: string) => {
+    const h = c.replace("#", "");
+    return (h.length === 3 ? h.split("").map((x) => x + x).join("") : h).toUpperCase();
+  };
+  const accentHex = toHex6(th.accent);
+  const linkHex = toHex6(th.linkInline);
+  const textHex = toHex6(th.text);
+  const subtitleHex = toHex6(th.subtitle);
 
   function linkifyContent(content: string, passageNumber: number): (TextRun | InternalHyperlink)[] {
     const links = findPassageLinks(content, passageNumbers, passageNumber);
@@ -33,24 +46,24 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
 
     for (const link of links) {
       if (link.start > lastIndex) {
-        runs.push(new TextRun({ text: content.slice(lastIndex, link.start), font: "Times New Roman", size: 24 }));
+        runs.push(new TextRun({ text: content.slice(lastIndex, link.start), font: bodyFont, size: 24, color: textHex }));
       }
       runs.push(new InternalHyperlink({
         anchor: `passage${link.target}`,
         children: [new TextRun({
           text: link.text,
-          font: "Times New Roman",
+          font: bodyFont,
           size: 24,
-          color: "8B4513",
+          color: linkHex,
           underline: { type: "dotted" as any },
         })],
       }));
       lastIndex = link.end;
     }
     if (lastIndex < content.length) {
-      runs.push(new TextRun({ text: content.slice(lastIndex), font: "Times New Roman", size: 24 }));
+      runs.push(new TextRun({ text: content.slice(lastIndex), font: bodyFont, size: 24, color: textHex }));
     }
-    return runs.length > 0 ? runs : [new TextRun({ text: content, font: "Times New Roman", size: 24 })];
+    return runs.length > 0 ? runs : [new TextRun({ text: content, font: bodyFont, size: 24, color: textHex })];
   }
 
   const children: Paragraph[] = [];
@@ -61,10 +74,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
     spacing: { after: 200 },
     children: [new TextRun({
       text: project.title,
-      font: "Times New Roman",
+      font: headingFont,
       size: 48,
       bold: true,
-      color: "8B4513",
+      color: accentHex,
     })],
   }));
 
@@ -74,10 +87,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
     spacing: { after: 400 },
     children: [new TextRun({
       text: "Librojuego generado por Secret Passage",
-      font: "Times New Roman",
+      font: bodyFont,
       size: 22,
       italics: true,
-      color: "666666",
+      color: subtitleHex,
     })],
   }));
 
@@ -97,10 +110,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
           id: `passage${passage.number}`,
           children: [new TextRun({
             text: `${passage.number}${markerStr}`,
-            font: "Times New Roman",
+            font: headingFont,
             size: 24,
             bold: true,
-            color: "8B4513",
+            color: accentHex,
           })],
         })],
       }));
@@ -122,10 +135,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
           id: `passage${passage.number}`,
           children: [new TextRun({
             text: `${header}${markerStr}`,
-            font: "Times New Roman",
+            font: headingFont,
             size: 28,
             bold: true,
-            color: "8B4513",
+            color: accentHex,
           })],
         })],
       }));
@@ -143,10 +156,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
           spacing: { before: 100 },
           children: [new TextRun({
             text: "Opciones:",
-            font: "Times New Roman",
+            font: headingFont,
             size: 22,
             bold: true,
-            color: "8B4513",
+            color: accentHex,
           })],
         }));
         passage.outgoingLinks.forEach((link) => {
@@ -155,15 +168,15 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
             spacing: { after: 50 },
             indent: { left: convertInchesToTwip(0.3) },
             children: [
-              new TextRun({ text: "â†’ ", font: "Times New Roman", size: 22 }),
+              new TextRun({ text: "â†’ ", font: bodyFont, size: 22, color: textHex }),
               new InternalHyperlink({
                 anchor: `passage${link.target.number}`,
                 children: [new TextRun({
                   text,
-                  font: "Times New Roman",
+                  font: bodyFont,
                   size: 22,
                   bold: true,
-                  color: "8B4513",
+                  color: linkHex,
                 })],
               }),
             ],
@@ -175,13 +188,25 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
     children.push(new Paragraph({ spacing: { after: 200 }, children: [] }));
   });
 
+  // Embed theme fonts if not clasico
+  const embeddedFonts =
+    th.id === "clasico"
+      ? undefined
+      : FONTS_TTF_DATA.filter((f) => th.fontFamilies.includes(f.family)).map((f) => ({
+          name: f.family,
+          data: Buffer.from(f.base64, "base64"),
+          characterSet: CharacterSet.ANSI,
+        }));
+
   const doc = new Document({
+    ...(embeddedFonts ? { fonts: embeddedFonts } : {}),
     styles: {
       default: {
         document: {
           run: {
-            font: "Times New Roman",
+            font: bodyFont,
             size: 24,
+            color: textHex,
           },
         },
       },
@@ -205,7 +230,7 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false)
   return Buffer.from(buffer);
 }
 
-export async function generateDOCX(projectId: string, readingMode = false): Promise<Buffer> {
+export async function generateDOCX(projectId: string, readingMode = false, theme: ThemeId = "clasico"): Promise<Buffer> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -224,6 +249,7 @@ export async function generateDOCX(projectId: string, readingMode = false): Prom
 
   return buildDocxBuffer(
     { title: project.title, passages: project.passages },
-    readingMode
+    readingMode,
+    theme
   );
 }

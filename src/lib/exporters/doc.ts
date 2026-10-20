@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { findPassageLinks } from "@/lib/reference-links";
+import { PDF_THEMES, officeTheme, type OfficeTheme, type ThemeId } from "@/lib/exporters/themes";
+import { FONTS_TTF_DATA } from "@/lib/exporters/fonts-ttf-data";
 
 interface Passage {
   id: string;
@@ -18,8 +20,18 @@ export interface DocProject {
   passages: Passage[];
 }
 
-export function buildDocHtml(project: DocProject, readingMode = false): string {
+function buildOfficeFontFaces(th: OfficeTheme): string {
+  return FONTS_TTF_DATA.filter((f) => th.fontFamilies.includes(f.family))
+    .map(
+      (f) =>
+        `@font-face { font-family: '${f.family}'; font-style: ${f.style}; font-weight: ${f.weight}; src: url("data:font/ttf;base64,${f.base64}") format('truetype'); }`
+    )
+    .join("\n    ");
+}
+
+export function buildDocHtml(project: DocProject, readingMode = false, theme: ThemeId = "clasico"): string {
   const passageNumbers = new Set(project.passages.map(p => p.number));
+  const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
 
   function escapeHtml(text: string): string {
     return text
@@ -36,12 +48,16 @@ export function buildDocHtml(project: DocProject, readingMode = false): string {
 
     for (const link of links) {
       result += escapeHtml(content.slice(lastIndex, link.start));
-      result += `<a href="#passage${link.target}" style="color:#8B4513;text-decoration:none;border-bottom:1px dotted #C9A96E">${escapeHtml(link.text)}</a><span style="color:#999;font-size:9pt"> [${link.target}]</span>`;
+      result += `<a href="#passage${link.target}" style="color:${th.linkInline};text-decoration:none;border-bottom:1px dotted ${th.linkDotted}">${escapeHtml(link.text)}</a><span style="color:#999;font-size:9pt"> [${link.target}]</span>`;
       lastIndex = link.end;
     }
     result += escapeHtml(content.slice(lastIndex));
     return result;
   }
+
+  const fontFaces = th.id === "clasico" ? "" : `\n    ${buildOfficeFontFaces(th)}`;
+  const headingRule = th.id === "clasico" ? "" : `\n    h1, .passage-number-center, .passage-number-left { font-family: ${th.fontHeading}; font-weight: ${th.headingWeight}; }`;
+  const upperRule = th.uppercaseHeadings ? `\n    h1, .passage-number-center, .passage-number-left { text-transform: uppercase; letter-spacing: 2px; }` : "";
 
   let html = `<!DOCTYPE html>
 <html>
@@ -49,24 +65,24 @@ export function buildDocHtml(project: DocProject, readingMode = false): string {
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>${escapeHtml(project.title)}</title>
-  <style>
+  <style>${fontFaces}${headingRule}${upperRule}
     body {
-      font-family: 'Times New Roman', Georgia, serif;
+      font-family: ${th.fontBody};
       font-size: 12pt;
       line-height: 1.5;
-      color: #1a1410;
+      color: ${th.text};
       margin: 2.54cm;
     }
     h1 {
       font-size: 24pt;
-      color: #8B4513;
+      color: ${th.accent};
       text-align: center;
       margin-bottom: 6pt;
       font-weight: bold;
     }
     .subtitle {
       font-size: 11pt;
-      color: #666666;
+      color: ${th.subtitle};
       font-style: italic;
       text-align: center;
       margin-bottom: 24pt;
@@ -79,13 +95,13 @@ export function buildDocHtml(project: DocProject, readingMode = false): string {
       text-align: center;
       font-size: 12pt;
       font-weight: bold;
-      color: #8B4513;
+      color: ${th.accent};
       margin-bottom: 6pt;
     }
     .passage-number-left {
       font-size: 12pt;
       font-weight: bold;
-      color: #8B4513;
+      color: ${th.accent};
       margin-bottom: 6pt;
     }
     .passage-content {
@@ -96,14 +112,14 @@ export function buildDocHtml(project: DocProject, readingMode = false): string {
     .passage-links {
       margin-top: 12pt;
       padding: 8pt 12pt;
-      background-color: #F5F0E8;
-      border: 1pt solid #E0D5C5;
+      background-color: ${th.linksBg};
+      border: 1pt solid ${th.linksBorder};
     }
     .passage-links strong {
-      color: #8B4513;
+      color: ${th.accent};
     }
     .passage-links a {
-      color: #8B4513;
+      color: ${th.accent};
       text-decoration: none;
       font-weight: bold;
     }
@@ -117,7 +133,7 @@ export function buildDocHtml(project: DocProject, readingMode = false): string {
       font-size: 10pt;
       font-weight: bold;
     }
-    a { color: #8B4513; }
+    a { color: ${th.accent}; }
   </style>
 </head>
 <body>
@@ -159,7 +175,7 @@ export function buildDocHtml(project: DocProject, readingMode = false): string {
   return html;
 }
 
-export async function generateDOC(projectId: string, readingMode = false): Promise<string> {
+export async function generateDOC(projectId: string, readingMode = false, theme: ThemeId = "clasico"): Promise<string> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -178,6 +194,7 @@ export async function generateDOC(projectId: string, readingMode = false): Promi
 
   return buildDocHtml(
     { title: project.title, passages: project.passages },
-    readingMode
+    readingMode,
+    theme
   );
 }

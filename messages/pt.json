@@ -128,7 +128,7 @@
     "readingModeHint": "Sem títulos por passagem",
     "exportLinksHint": "Para manter os links, use Exportar ou Guardar como PDF, não Imprimir.",
     "printStyle": "Estilo de impressão",
-    "printStyleHint": "Aplica-se ao PDF e à pré-visualização",
+    "printStyleHint": "Aplica-se a todos os formatos de exportação e à pré-visualização",
     "themeClasico": "Clássico",
     "themeGrimorio": "Grimório",
     "themePapiro": "Papiro",

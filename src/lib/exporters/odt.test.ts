@@ -3,11 +3,14 @@ import sax from "sax";
 import JSZip from "jszip";
 import {
   buildContentXml,
+  buildStylesXml,
+  buildManifestXml,
   packOdtArchive,
   ODT_STYLES_XML,
   ODT_META_XML,
   ODT_MANIFEST_XML,
 } from "@/lib/exporters/odt";
+import { PDF_THEMES, officeTheme } from "@/lib/exporters/themes";
 
 const ODF_NAMESPACES = [
   "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
@@ -174,5 +177,39 @@ describe("ODT export", () => {
     }
     const mimetype = await zip.files["mimetype"].async("string");
     expect(mimetype).toBe("application/vnd.oasis.opendocument.text");
+  });
+
+  it("el tema grimorio genera estilos con fuentes embebidas y colores parchment", () => {
+    const th = officeTheme(PDF_THEMES.grimorio);
+    const styles = buildStylesXml(th);
+    expect(styles).toContain("<office:font-face-decls>");
+    expect(styles).toContain('style:name="EB Garamond"');
+    expect(styles).toContain('style:name="UnifrakturMaguntia"');
+    expect(styles).toContain('svg:font-face-uri');
+    expect(styles).toContain('fo:color="#2a1f14"');
+    expect(styles).toContain('fo:color="#8b6914"');
+    expect(xmlErrors(styles)).toEqual([]);
+
+    const manifest = buildManifestXml(th);
+    expect(manifest).toContain("application/vnd.oasis.opendocument.font");
+    expect(manifest).toContain('full-path="fonts/ebgaramond-400.ttf"');
+    expect(manifest).toContain('full-path="fonts/unifrakturmaguntia-400.ttf"');
+  });
+
+  it("el tema clasico no declara fuentes embebidas", () => {
+    const th = officeTheme(PDF_THEMES.clasico);
+    const styles = buildStylesXml(th);
+    expect(styles).not.toContain("font-face-uri");
+    const manifest = buildManifestXml(th);
+    expect(manifest).not.toContain("opendocument.font");
+  });
+
+  it("el tema papiro aplica Cinzel en headings y text-transform uppercase", () => {
+    const th = officeTheme(PDF_THEMES.papiro);
+    const styles = buildStylesXml(th);
+    expect(styles).toContain('style:name="Cinzel"');
+    expect(styles).toContain('fo:text-transform="uppercase"');
+    expect(styles).toContain('fo:color="#6e5217"');
+    expect(xmlErrors(styles)).toEqual([]);
   });
 });

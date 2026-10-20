@@ -128,7 +128,7 @@
     "readingModeHint": "No headings per passage",
     "exportLinksHint": "To keep links, use Export or Save as PDF, not Print.",
     "printStyle": "Print style",
-    "printStyleHint": "Applies to the PDF and the preview",
+    "printStyleHint": "Applies to all export formats and the preview",
     "themeClasico": "Classic",
     "themeGrimorio": "Grimoire",
     "themePapiro": "Papyrus",

@@ -59,4 +59,31 @@ describe("DOCX export (buildDocxBuffer)", () => {
     expect(xml).toContain('w:name="passage1"');
     expect(xml).toContain('w:anchor="passage2"');
   });
+
+  it("el tema clasico no embebe fuentes extra", async () => {
+    const buf = await buildDocxBuffer(project, false, "clasico");
+    const zip = await JSZip.loadAsync(buf);
+    const names = Object.keys(zip.files);
+    expect(names.filter((n) => n.startsWith("word/fonts/"))).toEqual([]);
+  });
+
+  it("el tema grimorio embebe fuentes TTF en el paquete docx", async () => {
+    const buf = await buildDocxBuffer(project, false, "grimorio");
+    const zip = await JSZip.loadAsync(buf);
+    const names = Object.keys(zip.files);
+    const fontFiles = names.filter((n) => n.startsWith("word/fonts/") && n.endsWith(".odttf"));
+    expect(fontFiles.length).toBeGreaterThan(0);
+    const xml = await zip.files["word/document.xml"].async("string");
+    expect(xml).toContain("UnifrakturMaguntia");
+    expect(xml).toContain("EB Garamond");
+  });
+
+  it("el tema papiro embebe Cinzel y colores", async () => {
+    const buf = await buildDocxBuffer(project, false, "papiro");
+    const zip = await JSZip.loadAsync(buf);
+    const names = Object.keys(zip.files);
+    expect(names.filter((n) => n.startsWith("word/fonts/")).length).toBeGreaterThan(0);
+    const xml = await zip.files["word/document.xml"].async("string");
+    expect(xml).toContain("Cinzel");
+  });
 });

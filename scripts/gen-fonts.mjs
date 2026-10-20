@@ -2,6 +2,7 @@ import { mkdir, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
+import { decompress } from "wawoff2";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

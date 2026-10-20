@@ -146,6 +146,60 @@ export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
   },
 };
 
+export interface OfficeTheme {
+  id: ThemeId;
+  paperBg: string;
+  text: string;
+  subtitle: string;
+  accent: string;
+  linkInline: string;
+  linkDotted: string;
+  linksBg: string;
+  linksBorder: string;
+  fontBody: string;
+  fontHeading: string;
+  headingWeight: string;
+  uppercaseHeadings: boolean;
+  fontFamilies: string[];
+}
+
+export function officeTheme(th: PdfTheme): OfficeTheme {
+  if (th.id === "grimorio") {
+    return {
+      id: th.id,
+      paperBg: "#f5f0e8",
+      text: "#2a1f14",
+      subtitle: "#6b5b3e",
+      accent: "#8b6914",
+      linkInline: "#8b6914",
+      linkDotted: "#b08d5a",
+      linksBg: "#f0e6d0",
+      linksBorder: "#d4c49a",
+      fontBody: "'EB Garamond', Georgia, 'Times New Roman', serif",
+      fontHeading: "'UnifrakturMaguntia', Georgia, serif",
+      headingWeight: th.headingWeight,
+      uppercaseHeadings: false,
+      fontFamilies: th.fontFamilies,
+    };
+  }
+  return {
+    id: th.id,
+    paperBg: th.id === "clasico" ? "#ffffff" : th.bg,
+    text: th.text,
+    subtitle: th.subtitle,
+    accent: th.accent,
+    linkInline: th.linkInline,
+    linkDotted: th.linkDotted,
+    linksBg: th.linksBg,
+    linksBorder: th.linksBorder,
+    fontBody: th.fontBody,
+    fontHeading: th.fontHeading,
+    headingWeight: th.headingWeight,
+    uppercaseHeadings: th.uppercaseHeadings,
+    fontFamilies: th.fontFamilies,
+  };
+}
+
 export function pdfThemeRules(th: PdfTheme): string {
   if (th.id === "clasico") return "";
   const rules: string[] = [];

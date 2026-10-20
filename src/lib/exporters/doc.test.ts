@@ -59,4 +59,34 @@ describe("DOC export (buildDocHtml)", () => {
     expect(html).toContain("A &amp; &lt;t&gt; &quot;q&quot;");
     expect(html).toContain("x &amp; &lt;y&gt;");
   });
+
+  it("el tema clasico no embebe fuentes ni cambia colores", () => {
+    const html = buildDocHtml(project, false, "clasico");
+    expect(html).not.toContain("@font-face");
+    expect(html).toContain("#8b4513");
+    expect(html).toContain("Georgia, 'Times New Roman', serif");
+  });
+
+  it("el tema grimorio aplica colores oscuros de acento y embebe TTF", () => {
+    const html = buildDocHtml(project, false, "grimorio");
+    expect(html).toContain("@font-face");
+    expect(html).toContain("data:font/ttf;base64,");
+    expect(html).toContain("UnifrakturMaguntia");
+    expect(html).toContain("#8b6914");
+    expect(html).toContain("#2a1f14");
+    expect(html).toContain("EB Garamond");
+  });
+
+  it("el tema papiro aplica Cinzel y colores parchment", () => {
+    const html = buildDocHtml(project, false, "papiro");
+    expect(html).toContain("Cinzel");
+    expect(html).toContain("text-transform: uppercase");
+    expect(html).toContain("#6e5217");
+  });
+
+  it("el tema pergamino aplica IM Fell English", () => {
+    const html = buildDocHtml(project, false, "pergamino");
+    expect(html).toContain("IM Fell English");
+    expect(html).toContain("#7a4a21");
+  });
 });
