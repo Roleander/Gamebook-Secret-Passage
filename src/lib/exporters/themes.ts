@@ -149,14 +149,6 @@ export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
 export function pdfThemeRules(th: PdfTheme): string {
   if (th.id === "clasico") return "";
   const rules: string[] = [];
-  if (th.bodyTexture) {
-    rules.push(`body { background-image: ${th.bodyTexture}; }`);
-  }
-  if (th.containerTexture) {
-    rules.push(
-      `.container { background-image: ${th.containerTexture}; border: 1px solid ${th.linksBorder}; }`
-    );
-  }
   rules.push(
     `.cover h1 { font-family: ${th.fontHeading}; font-weight: ${th.headingWeight}; }`
   );

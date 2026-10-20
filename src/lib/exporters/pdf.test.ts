@@ -92,7 +92,7 @@ describe("PDF print export (buildPrintHtml)", () => {
       'style="color:#c9a96e;text-decoration:none;border-bottom:1px dotted #c9a96e"'
     );
     expect(html).toContain("background: #14100c;");
-    expect(html).toContain("background-image:");
+    expect(html).not.toContain("background-image:");
 
     const papiro = buildPrintHtml(project, true, "papiro");
     expect(papiro).toContain('<div class="passage-content" id="passage1">');
