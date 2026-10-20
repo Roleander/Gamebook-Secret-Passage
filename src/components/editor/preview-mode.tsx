@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, Flag, Target, ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { pvThemeCss, type ThemeId } from "@/lib/exporters/themes";
+import { findPassageLinks } from "@/lib/reference-links";
 
 interface Passage {
   id: string;
@@ -66,6 +67,47 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
     setCurrentPassageNumber(targetNumber);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const passageNumbers = new Set(passages.map((p) => p.number));
+  const forcedTargets = new Set<number>(currentPassage.outgoingLinks.map((l) => l.target.number));
+  const inlineLinks = findPassageLinks(
+    currentPassage.content || "",
+    passageNumbers,
+    currentPassage.number,
+    forcedTargets
+  );
+
+  const contentNodes: React.ReactNode[] = [];
+  {
+    let lastIndex = 0;
+    let key = 0;
+    for (const link of inlineLinks) {
+      if (link.start > lastIndex) {
+        contentNodes.push(
+          <span key={`t${key++}`}>{currentPassage.content.slice(lastIndex, link.start)}</span>
+        );
+      }
+      contentNodes.push(
+        <a
+          key={`a${key++}`}
+          href={`#passage${link.target}`}
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavigate(link.target);
+          }}
+          className="text-primary font-semibold underline decoration-dotted underline-offset-2 hover:underline"
+        >
+          {link.text}
+        </a>
+      );
+      lastIndex = link.end;
+    }
+    if (lastIndex < (currentPassage.content || "").length) {
+      contentNodes.push(
+        <span key={`t${key++}`}>{currentPassage.content.slice(lastIndex)}</span>
+      );
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-background z-50 overflow-auto" data-pv-theme={theme}>
@@ -139,11 +181,15 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="prose prose-lg max-w-none">
-              {currentPassage.content.split("\n").map((paragraph, i) => (
-                <p key={i} className="mb-4 text-foreground leading-relaxed">
-                  {paragraph || "\u00A0"}
+              {contentNodes.length > 0 ? (
+                <p className="mb-4 text-foreground leading-relaxed whitespace-pre-wrap">
+                  {contentNodes}
                 </p>
-              ))}
+              ) : (
+                <p className="mb-4 text-foreground leading-relaxed">
+                  {currentPassage.content || "\u00A0"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

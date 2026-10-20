@@ -27,17 +27,18 @@ export async function htmlToPdf(html: string): Promise<Buffer> {
     executablePath,
     args,
     headless: true,
-    protocolTimeout: 20000,
+    protocolTimeout: 55000,
   });
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "load", timeout: 10000 });
+    await page.setContent(html, { waitUntil: "load", timeout: 30000 });
+    await page.evaluate(() => document.fonts.ready);
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
       displayHeaderFooter: false,
       margin: { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
-      timeout: 10000,
+      timeout: 30000,
     });
     return Buffer.from(pdf);
   } finally {

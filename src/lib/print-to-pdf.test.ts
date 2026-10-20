@@ -4,6 +4,7 @@ const setContent = vi.fn();
 const pdf = vi.fn();
 const close = vi.fn();
 const launch = vi.fn();
+const evaluate = vi.fn();
 
 vi.mock("puppeteer-core", () => ({ default: { launch: (...args: unknown[]) => launch(...args) } }));
 
@@ -11,9 +12,10 @@ import { htmlToPdf } from "@/lib/print-to-pdf";
 
 beforeEach(() => {
   vi.stubEnv("CHROME_EXECUTABLE_PATH", "C:/fake/chrome.exe");
-  launch.mockResolvedValue({ newPage: () => Promise.resolve({ setContent, pdf }), close });
+  launch.mockResolvedValue({ newPage: () => Promise.resolve({ setContent, pdf, evaluate }), close });
   setContent.mockResolvedValue(undefined);
   pdf.mockResolvedValue(new Uint8Array([37, 80, 68, 70])); // %PDF
+  evaluate.mockResolvedValue(undefined);
   close.mockResolvedValue(undefined);
 });
 

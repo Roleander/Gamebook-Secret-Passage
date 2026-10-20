@@ -44,4 +44,24 @@ describe("findPassageLinks", () => {
   it("skips numbers outside the passage set", () => {
     expect(findPassageLinks("Pierdes 99 PV", numbers)).toEqual([]);
   });
+
+  it("force-links ambiguous numbers when they are in forcedTargets", () => {
+    expect(
+      findPassageLinks("Mira el 12 otra vez", numbers, undefined, new Set([12])).map(
+        (l) => l.target
+      )
+    ).toEqual([12]);
+  });
+
+  it("does not force-link not-reference numbers even in forcedTargets", () => {
+    expect(
+      findPassageLinks("Pierdes 12 PV", numbers, undefined, new Set([12]))
+    ).toEqual([]);
+  });
+
+  it("still respects excludeNumber when using forcedTargets", () => {
+    expect(
+      findPassageLinks("Mira el 3", numbers, 3, new Set([3]))
+    ).toEqual([]);
+  });
 });

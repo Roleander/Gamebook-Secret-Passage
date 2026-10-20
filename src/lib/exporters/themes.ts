@@ -87,9 +87,9 @@ export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
     dropCap: true,
     ornament: true,
     bodyTexture:
-      "radial-gradient(ellipse at top, rgba(201,169,110,0.06), transparent 65%), repeating-linear-gradient(45deg, rgba(0,0,0,0.14) 0px, transparent 2px, transparent 7px)",
+      "radial-gradient(ellipse at top, rgba(201,169,110,0.06), transparent 65%), repeating-linear-gradient(45deg, rgba(0,0,0,0.10) 0px, transparent 12px, transparent 28px)",
     containerTexture:
-      "radial-gradient(ellipse at center, rgba(201,169,110,0.05) 0, transparent 70%), repeating-linear-gradient(45deg, rgba(0,0,0,0.10) 0px, transparent 3px, transparent 8px)",
+      "radial-gradient(ellipse at center, rgba(201,169,110,0.05) 0, transparent 70%), repeating-linear-gradient(45deg, rgba(0,0,0,0.07) 0px, transparent 14px, transparent 32px)",
     fontFamilies: ["EB Garamond", "UnifrakturMaguntia"],
   },
   papiro: {
@@ -113,9 +113,9 @@ export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
     dropCap: false,
     ornament: true,
     bodyTexture:
-      "repeating-linear-gradient(90deg, rgba(120,90,40,0.06) 0px, rgba(120,90,40,0.06) 1px, transparent 1px, transparent 6px), repeating-linear-gradient(0deg, rgba(120,90,40,0.05) 0px, transparent 1px, transparent 4px)",
+      "repeating-linear-gradient(90deg, rgba(120,90,40,0.05) 0px, rgba(120,90,40,0.05) 1px, transparent 1px, transparent 18px)",
     containerTexture:
-      "repeating-linear-gradient(90deg, rgba(120,90,40,0.055) 0px, rgba(120,90,40,0.055) 1px, transparent 1px, transparent 5px), repeating-linear-gradient(0deg, rgba(120,90,40,0.045) 0px, transparent 1px, transparent 4px)",
+      "repeating-linear-gradient(90deg, rgba(120,90,40,0.045) 0px, rgba(120,90,40,0.045) 1px, transparent 1px, transparent 16px)",
     fontFamilies: ["EB Garamond", "Cinzel"],
   },
   pergamino: {

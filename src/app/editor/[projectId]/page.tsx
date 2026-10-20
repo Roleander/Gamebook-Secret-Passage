@@ -433,6 +433,7 @@ export default function EditorPage() {
       setUpgradeMsg("");
       return;
     }
+    let alerted = false;
     try {
       const response = await fetch("/api/export", {
         method: "POST",
@@ -442,7 +443,15 @@ export default function EditorPage() {
 
       if (!response.ok) {
         if (await handleUpgradeResponse(response)) return;
-        throw new Error("Error al exportar");
+        let serverMsg = "";
+        try {
+          const data = await response.json();
+          serverMsg = data?.error || "";
+        } catch {}
+        const msg = serverMsg || t("Editor.exportError");
+        alert(msg);
+        alerted = true;
+        throw new Error(msg);
       }
 
       const blob = await response.blob();
@@ -465,6 +474,7 @@ export default function EditorPage() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error exporting:", error);
+      if (!alerted) alert(t("Editor.exportError"));
     }
   };
 

@@ -83,31 +83,34 @@ export async function POST(req: Request) {
     switch (format) {
       case "pdf": {
         const html = await generatePDF(projectId, readingMode, theme ?? "clasico");
-        try {
-          const quota = await getPdfExportUsage();
-          if (quota.allowed) {
-            const pdf = await htmlToPdf(html);
-            await recordPdfExport();
-            return new NextResponse(new Uint8Array(pdf), {
-              headers: {
-                "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${safeTitle}.pdf"`,
-              },
-            });
-          }
-          console.log(`[pdf-export] cuota alcanzada: ${quota.used}/${quota.limit} en 30 dias`);
-        } catch (error) {
-          console.error(
-            "[pdf-export] fallback a HTML:",
-            error instanceof Error ? error.message : error
+        const quota = await getPdfExportUsage();
+        if (!quota.allowed) {
+          return NextResponse.json(
+            {
+              error: `Cuota de exportación PDF alcanzada (${quota.used}/${quota.limit} en 30 días).`,
+            },
+            { status: 429 }
           );
         }
-        return new NextResponse(html, {
-          headers: {
-            "Content-Type": "text/html; charset=utf-8",
-            "Content-Disposition": `attachment; filename="${safeTitle}.html"`,
-          },
-        });
+        try {
+          const pdf = await htmlToPdf(html);
+          await recordPdfExport();
+          return new NextResponse(new Uint8Array(pdf), {
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": `attachment; filename="${safeTitle}.pdf"`,
+            },
+          });
+        } catch (renderError) {
+          console.error(
+            "[pdf-export] fallo al generar PDF:",
+            renderError instanceof Error ? renderError.message : renderError
+          );
+          return NextResponse.json(
+            { error: "No se pudo generar el PDF. Inténtalo de nuevo." },
+            { status: 500 }
+          );
+        }
       }
       case "epub": {
         const epubBuffer = await generateEPUB(project, readingMode ?? false);

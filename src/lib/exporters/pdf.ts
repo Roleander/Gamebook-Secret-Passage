@@ -42,8 +42,8 @@ function trimContentEdges(content: string): string {
   return content.replace(/^\n+/, "").replace(/\s+$/, "");
 }
 
-function linkifyContent(content: string, passageNumber: number, passageNumbers: Set<number>, escapeHtml: (t: string) => string, th: PdfTheme): string {
-  const links = findPassageLinks(content, passageNumbers, passageNumber);
+function linkifyContent(content: string, passageNumber: number, passageNumbers: Set<number>, escapeHtml: (t: string) => string, th: PdfTheme, forcedTargets?: ReadonlySet<number>): string {
+  const links = findPassageLinks(content, passageNumbers, passageNumber, forcedTargets);
   let result = "";
   let lastIndex = 0;
 
@@ -135,16 +135,17 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
     const content = trimContentEdges(passage.content);
+    const forcedTargets = new Set<number>(passage.outgoingLinks.map((l) => l.target.number));
 
     if (readingMode) {
       html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
-      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th)}</div>\n`;
+      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th, forcedTargets)}</div>\n`;
       html += `    </div>\n`;
     } else {
       html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}${markerStr}</div>\n`;
-      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th)}</div>\n`;
+      html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th, forcedTargets)}</div>\n`;
       if (passage.outgoingLinks.length > 0) {
         html += `      <div class="passage-links"><strong>Opciones:</strong><br>\n`;
         passage.outgoingLinks.forEach((link) => {

@@ -149,4 +149,20 @@ describe("PDF print export (buildPrintHtml)", () => {
     const indented = buildPrintHtml(indentProject, true);
     expect(indented).toContain('<div class="passage-content" id="passage1">  sangria\n  dos lineas</div>');
   });
+
+  it("enlaza numeros ambiguos que el editor ya tiene como outgoingLink", () => {
+    const linkProject = {
+      title: "Ambiguous forced",
+      passages: [
+        passage({
+          number: 1,
+          content: "Ganas 12 y sigues.",
+          outgoingLinks: [{ target: { number: 12 }, linkText: "Seguir" }],
+        }),
+        passage({ number: 12, content: "Fin." }),
+      ],
+    };
+    const html = buildPrintHtml(linkProject, false);
+    expect(html).toContain('href="#passage12"');
+  });
 });
