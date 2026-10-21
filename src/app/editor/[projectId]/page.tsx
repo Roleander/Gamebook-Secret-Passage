@@ -81,6 +81,10 @@ const THEME_LABEL_KEY: Record<ThemeId, string> = {
   grimorio: "Editor.themeGrimorio",
   papiro: "Editor.themePapiro",
   pergamino: "Editor.themePergamino",
+  celta: "Editor.themeCelta",
+  cruzada: "Editor.themeCruzada",
+  renacentista: "Editor.themeRenacentista",
+  alquimia: "Editor.themeAlquimia",
 };
 
 function readStoredTheme(): ThemeId | null {
@@ -625,7 +629,7 @@ export default function EditorPage() {
                   className="absolute right-0 top-full mt-1 z-50"
                   onMouseLeave={() => setShowExportMenu(false)}
                 >
-                  <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[220px]">
+                  <div className="bg-card border border-border rounded-md shadow-lg py-1 min-w-[280px] max-h-[70vh] overflow-y-auto">
                     <div className="px-4 py-2 border-b border-border">
                       <label className="flex items-center gap-2 text-sm cursor-pointer">
                         <input

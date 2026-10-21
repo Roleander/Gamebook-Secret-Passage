@@ -31,8 +31,8 @@ const project = {
   ],
 };
 
-async function documentXml(readingMode: boolean): Promise<string> {
-  const buf = await buildDocxBuffer(project, readingMode);
+async function documentXml(readingMode: boolean, theme?: Parameters<typeof buildDocxBuffer>[2]): Promise<string> {
+  const buf = await buildDocxBuffer(project, readingMode, theme);
   const zip = await JSZip.loadAsync(buf);
   const entry = zip.file("word/document.xml");
   expect(entry).not.toBeNull();
@@ -85,5 +85,15 @@ describe("DOCX export (buildDocxBuffer)", () => {
     expect(names.filter((n) => n.startsWith("word/fonts/")).length).toBeGreaterThan(0);
     const xml = await zip.files["word/document.xml"].async("string");
     expect(xml).toContain("Cinzel");
+  });
+
+  it("los temas no clasicos añaden divisor textual entre pasajes", async () => {
+    const themed = await documentXml(false, "celta");
+    expect(themed).toContain("❧");
+    const dividerCount = (themed.match(/❧/g) || []).length;
+    expect(dividerCount).toBe(1);
+
+    const clasico = await documentXml(false, "clasico");
+    expect(clasico).not.toContain("❧");
   });
 });

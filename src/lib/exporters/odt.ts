@@ -34,6 +34,9 @@ function escapeXml(text: string): string {
 
 export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico"): string {
   const passageNumbers = new Set(project.passages.map((p) => p.number));
+  const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
+  const th = officeTheme(pdfTh);
+  const themed = th.id !== "clasico";
 
   function convertInlineLinks(line: string): string {
     const links = findPassageLinks(line, passageNumbers);
@@ -49,6 +52,19 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
     return result;
   }
 
+  const autoStyles = themed
+    ? `  <office:automatic-styles>
+    <style:style style:name="PassageDivider" style:family="paragraph" style:next-style-name="Standard">
+      <style:paragraph-properties fo:text-align="center"/>
+      <style:text-properties fo:color="${th.accent}" fo:font-size="12pt"/>
+    </style:style>
+${pdfTh.rubrication ? `    <style:style style:name="StartMarker" style:family="text">
+      <style:text-properties fo:color="${th.accent}" fo:font-weight="bold"/>
+    </style:style>
+` : ""}  </office:automatic-styles>
+`
+    : "";
+
   let contentXml = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
   xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
@@ -57,7 +73,7 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
   xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
   office:version="1.2">
-  <office:body>
+${autoStyles}  <office:body>
     <office:text>
 `;
 
@@ -65,9 +81,14 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
   contentXml += `      <text:p text:style-name="Heading2">Librojuego generado por Secret Passage</text:p>\n`;
   contentXml += `      <text:p text:style-name="Standard"/>\n`;
 
-  project.passages.forEach((passage) => {
+  project.passages.forEach((passage, idx) => {
     const markers = [];
-    if (passage.number === 1) markers.push("[INICIO]");
+    if (passage.number === 1)
+      markers.push(
+        themed && pdfTh.rubrication
+          ? '<text:span text:style-name="StartMarker">[INICIO]</text:span>'
+          : "[INICIO]"
+      );
     if (passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
@@ -95,6 +116,9 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
       }
     }
     contentXml += `      <text:p text:style-name="Standard"/>\n`;
+    if (themed && idx < project.passages.length - 1) {
+      contentXml += `      <text:p text:style-name="PassageDivider">❧</text:p>\n`;
+    }
   });
 
   contentXml += `    </office:text>
@@ -104,13 +128,18 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
   return contentXml;
 }
 
+function ttfFileName(family: string, weight: string, style: string): string {
+  const w = weight.replace(/\s+/g, "-");
+  return `fonts/${family.toLowerCase().replace(/[^a-z0-9]/g, "")}-${w}${style === "italic" ? "i" : ""}.ttf`;
+}
+
 export function buildStylesXml(th: OfficeTheme): string {
   const fontFaces = th.fontFamilies
     .map((family) => {
       const entries = FONTS_TTF_DATA.filter((f) => f.family === family);
       if (entries.length === 0) return "";
       const uris = entries
-        .map((f) => `<svg:font-face-uri xlink:href="fonts/${family.toLowerCase().replace(/[^a-z0-9]/g, "")}-${f.weight}${f.style === "italic" ? "i" : ""}.ttf" xlink:type="simple"/>`)
+        .map((f) => `<svg:font-face-uri xlink:href="${ttfFileName(family, f.weight, f.style)}" xlink:type="simple"/>`)
         .join("");
       return `    <style:font-face style:name="${family}" svg:font-family="'${family}'">\n      <svg:font-face-src>\n        ${uris}\n      </svg:font-face-src>\n    </style:font-face>\n`;
     })
@@ -185,7 +214,7 @@ export function buildManifestXml(th: OfficeTheme): string {
   const fontEntries = th.fontFamilies
     .flatMap((family) =>
       FONTS_TTF_DATA.filter((f) => f.family === family).map(
-        (f) => `  <manifest:file-entry manifest:media-type="application/vnd.oasis.opendocument.font" manifest:full-path="fonts/${family.toLowerCase().replace(/[^a-z0-9]/g, "")}-${f.weight}${f.style === "italic" ? "i" : ""}.ttf"/>\n`
+        (f) => `  <manifest:file-entry manifest:media-type="application/vnd.oasis.opendocument.font" manifest:full-path="${ttfFileName(family, f.weight, f.style)}"/>\n`
       )
     )
     .join("");
@@ -271,7 +300,7 @@ export async function generateODT(projectId: string, readingMode = false, theme:
   const fonts = th.fontFamilies
     .flatMap((family) =>
       FONTS_TTF_DATA.filter((f) => f.family === family).map((f) => ({
-        name: `fonts/${family.toLowerCase().replace(/[^a-z0-9]/g, "")}-${f.weight}${f.style === "italic" ? "i" : ""}.ttf`,
+        name: ttfFileName(family, f.weight, f.style),
         data: Buffer.from(f.base64, "base64"),
       }))
     );

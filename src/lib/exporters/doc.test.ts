@@ -89,4 +89,28 @@ describe("DOC export (buildDocHtml)", () => {
     expect(html).toContain("IM Fell English");
     expect(html).toContain("#7a4a21");
   });
+
+  it("los temas no clasicos añaden divisor textual entre pasajes", () => {
+    const themed = buildDocHtml(project, false, "celta");
+    expect(themed).toContain('<div class="passage-divider" aria-hidden="true">❧</div>');
+    const dividerCount = (themed.match(/passage-divider/g) || []).length;
+    expect(dividerCount).toBe(2);
+    expect(themed).toContain(".passage-divider { text-align: center;");
+
+    const clasico = buildDocHtml(project, false, "clasico");
+    expect(clasico).not.toContain("passage-divider");
+    expect(clasico).not.toContain("❧");
+  });
+
+  it("los temas con rubricacion tiñen el marcador de inicio con el acento", () => {
+    const cruzada = buildDocHtml(project, false, "cruzada");
+    expect(cruzada).toContain("color: #a01c1c");
+    expect(cruzada).not.toContain("#22C55E");
+
+    const celta = buildDocHtml(project, false, "celta");
+    expect(celta).toContain("#22C55E");
+
+    const clasico = buildDocHtml(project, false, "clasico");
+    expect(clasico).toContain("#22C55E");
+  });
 });

@@ -79,6 +79,13 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
       : `\n    ${[buildFontFaces(th), themedRules].filter(Boolean).join("\n    ")}`;
   const ornament =
     th.ornament ? `\n      <p class="cover-ornament"><span></span></p>` : "";
+  const emblem = th.emblemSvg ? `\n      <div class="cover-emblem">${th.emblemSvg}</div>` : "";
+  const watermark = th.watermarkSvg
+    ? `\n    <div class="page-watermark" aria-hidden="true">${th.watermarkSvg}</div>`
+    : "";
+  const divider = th.dividerSvg
+    ? `<div class="passage-divider" aria-hidden="true">${th.dividerSvg}</div>\n    `
+    : "";
 
   let html = `<!DOCTYPE html>
 <html lang="es">
@@ -109,7 +116,7 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
     .passage-number-left {
       font-size: 13px; font-weight: bold; color: ${th.accent}; margin-bottom: 8px; break-after: avoid;
     }
-    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; }
+    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; hyphens: auto; -webkit-hyphens: auto; }
     @media screen { .passage-content { scroll-margin-top: 36px; } }
     .passage-links { margin-top: 15px; padding: 10px 15px; background: ${th.linksBg}; border: 1px solid ${th.linksBorder}; border-radius: 4px; break-inside: avoid; }
     .passage-links strong { color: ${th.accent}; }
@@ -120,14 +127,14 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="cover">
+  <div class="container">${watermark}
+    <div class="cover">${emblem}
       <h1>${escapeHtml(project.title)}</h1>
       <p class="subtitle">Librojuego generado por Secret Passage</p>${ornament}
     </div>
 `;
 
-  project.passages.forEach((passage) => {
+  project.passages.forEach((passage, idx) => {
     const markers = [];
     if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
     if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
@@ -155,6 +162,9 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
         html += `      </div>\n`;
       }
       html += `    </div>\n`;
+    }
+    if (divider && idx < project.passages.length - 1) {
+      html += `    ${divider}\n`;
     }
   });
 

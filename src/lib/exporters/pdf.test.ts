@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildPrintHtml } from "@/lib/exporters/pdf";
+import { THEME_IDS } from "@/lib/exporters/themes";
 
 interface TestPassage {
   id: string;
@@ -164,5 +165,73 @@ describe("PDF print export (buildPrintHtml)", () => {
     };
     const html = buildPrintHtml(linkProject, false);
     expect(html).toContain('href="#passage12"');
+  });
+
+  it("el tema clasico no lleva watermark, filete ni divisores", () => {
+    const html = buildPrintHtml(project, false, "clasico");
+    expect(html).not.toContain("page-watermark");
+    expect(html).not.toContain("passage-divider");
+    expect(html).not.toContain("outline-offset");
+    expect(html).not.toContain("cover-emblem");
+  });
+
+  it("grimorio lleva watermark fixed, filete doble, divisor y capitular rubricada", () => {
+    const html = buildPrintHtml(project, false, "grimorio");
+    expect(html).toContain('<div class="page-watermark" aria-hidden="true">');
+    expect(html).toContain("position: fixed");
+    expect(html).toContain("pointer-events: none");
+    expect(html).toContain("outline-offset: 3px");
+    expect(html).toContain('<div class="passage-divider" aria-hidden="true">');
+    expect(html).toContain("hyphens: auto");
+    expect(html).toContain("::first-letter");
+    const dividerCount = (html.match(/passage-divider/g) || []).length;
+    expect(dividerCount).toBe(3);
+  });
+
+  it("papiro lleva small-caps y watermark, pergamino capitular y rubricacion", () => {
+    const papiro = buildPrintHtml(project, false, "papiro");
+    expect(papiro).toContain("font-variant: small-caps");
+    expect(papiro).toContain('<div class="page-watermark" aria-hidden="true">');
+    expect(papiro).not.toContain("::first-letter");
+
+    const pergamino = buildPrintHtml(project, false, "pergamino");
+    expect(pergamino).toContain("::first-letter");
+    expect(pergamino).toContain('<div class="page-watermark" aria-hidden="true">');
+    expect(pergamino).toContain("outline-offset: 3px");
+  });
+
+  it("el watermark usa SVG inline sin feTurbulence ni data:image", () => {
+    for (const theme of THEME_IDS.filter((t) => t !== "clasico")) {
+      const html = buildPrintHtml(project, false, theme);
+      expect(html, theme).not.toContain("feTurbulence");
+      expect(html, theme).not.toContain("data:image");
+      expect(html, theme).toContain("<svg");
+      expect(html, theme).toContain('<div class="page-watermark" aria-hidden="true">');
+      expect(html, theme).toContain('<div class="passage-divider"');
+      expect(html, theme).toContain("outline-offset: 3px");
+      const wmIdx = html.indexOf('<div class="page-watermark"');
+      const containerIdx = html.indexOf('<div class="container">');
+      const closeIdx = html.indexOf("</div>\n</body>");
+      expect(wmIdx, `${theme} watermark dentro del container`).toBeGreaterThan(containerIdx);
+      expect(wmIdx, `${theme} watermark antes del cierre`).toBeLessThan(closeIdx);
+    }
+  });
+
+  it("los temas nuevos renderizan capitulares, rubricacion y versalitas segun corresponde", () => {
+    const celta = buildPrintHtml(project, false, "celta");
+    expect(celta).toContain("::first-letter");
+    expect(celta).not.toContain(".start-marker { color: #4a6741; }");
+
+    const cruzada = buildPrintHtml(project, false, "cruzada");
+    expect(cruzada).toContain("::first-letter");
+    expect(cruzada).toContain(".start-marker { color: #a01c1c; }");
+
+    const renacentista = buildPrintHtml(project, false, "renacentista");
+    expect(renacentista).toContain("font-variant: small-caps");
+    expect(renacentista).not.toContain("::first-letter");
+
+    const alquimia = buildPrintHtml(project, false, "alquimia");
+    expect(alquimia).toContain("::first-letter");
+    expect(alquimia).toContain("#12141a");
   });
 });

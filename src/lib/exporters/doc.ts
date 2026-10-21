@@ -31,7 +31,9 @@ function buildOfficeFontFaces(th: OfficeTheme): string {
 
 export function buildDocHtml(project: DocProject, readingMode = false, theme: ThemeId = "clasico"): string {
   const passageNumbers = new Set(project.passages.map(p => p.number));
-  const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
+  const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
+  const th = officeTheme(pdfTh);
+  const markerColor = th.id !== "clasico" && pdfTh.rubrication ? th.accent : "#22C55E";
 
   function escapeHtml(text: string): string {
     return text
@@ -58,6 +60,7 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
   const fontFaces = th.id === "clasico" ? "" : `\n    ${buildOfficeFontFaces(th)}`;
   const headingRule = th.id === "clasico" ? "" : `\n    h1, .passage-number-center, .passage-number-left { font-family: ${th.fontHeading}; font-weight: ${th.headingWeight}; }`;
   const upperRule = th.uppercaseHeadings ? `\n    h1, .passage-number-center, .passage-number-left { text-transform: uppercase; letter-spacing: 2px; }` : "";
+  const dividerRule = th.id === "clasico" ? "" : `\n    .passage-divider { text-align: center; color: ${th.accent}; font-size: 12pt; margin: 6pt 0; opacity: 0.6; }`;
 
   let html = `<!DOCTYPE html>
 <html>
@@ -65,7 +68,7 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>${escapeHtml(project.title)}</title>
-  <style>${fontFaces}${headingRule}${upperRule}
+  <style>${fontFaces}${headingRule}${upperRule}${dividerRule}
     body {
       font-family: ${th.fontBody};
       font-size: 12pt;
@@ -124,7 +127,7 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
       font-weight: bold;
     }
     .start-marker {
-      color: #22C55E;
+      color: ${markerColor};
       font-size: 10pt;
       font-weight: bold;
     }
@@ -141,7 +144,7 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
   <p class="subtitle">Librojuego generado por Secret Passage</p>
 `;
 
-  project.passages.forEach((passage) => {
+  project.passages.forEach((passage, idx) => {
     const markers = [];
     if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
     if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
@@ -169,6 +172,9 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
       }
     }
     html += `</div>\n`;
+    if (th.id !== "clasico" && idx < project.passages.length - 1) {
+      html += `<div class="passage-divider" aria-hidden="true">❧</div>\n`;
+    }
   });
 
   html += `</body>\n</html>`;

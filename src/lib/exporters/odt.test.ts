@@ -192,7 +192,7 @@ describe("ODT export", () => {
 
     const manifest = buildManifestXml(th);
     expect(manifest).toContain("application/vnd.oasis.opendocument.font");
-    expect(manifest).toContain('full-path="fonts/ebgaramond-400.ttf"');
+    expect(manifest).toContain('full-path="fonts/ebgaramond-400-600.ttf"');
     expect(manifest).toContain('full-path="fonts/unifrakturmaguntia-400.ttf"');
   });
 
@@ -211,5 +211,44 @@ describe("ODT export", () => {
     expect(styles).toContain('fo:text-transform="uppercase"');
     expect(styles).toContain('fo:color="#6e5217"');
     expect(xmlErrors(styles)).toEqual([]);
+  });
+
+  it("los temas no clasicos añaden divisor textual entre pasajes en content.xml", () => {
+    const sample = {
+      title: "Divisores",
+      passages: [
+        samplePassage({ number: 1, content: "Ve al 2" }),
+        samplePassage({ number: 2, isEndpoint: true, content: "Fin" }),
+      ],
+    };
+    const themed = buildContentXml(sample, false, "celta");
+    expect(themed).toContain('<text:p text:style-name="PassageDivider">❧</text:p>');
+    expect(themed).toContain('style:name="PassageDivider"');
+    expect(themed).toContain('fo:color="#4a6741"');
+    expect(xmlErrors(themed)).toEqual([]);
+
+    const clasico = buildContentXml(sample, false, "clasico");
+    expect(clasico).not.toContain("PassageDivider");
+    expect(clasico).not.toContain("❧");
+    expect(clasico).not.toContain("automatic-styles");
+  });
+
+  it("los temas con rubricacion envuelven [INICIO] en un span de acento", () => {
+    const sample = {
+      title: "Rubrica",
+      passages: [samplePassage({ number: 1, content: "Inicio" })],
+    };
+    const cruzada = buildContentXml(sample, false, "cruzada");
+    expect(cruzada).toContain('<text:span text:style-name="StartMarker">[INICIO]</text:span>');
+    expect(cruzada).toContain('style:name="StartMarker"');
+    expect(cruzada).toContain('fo:color="#a01c1c"');
+    expect(xmlErrors(cruzada)).toEqual([]);
+
+    const celta = buildContentXml(sample, false, "celta");
+    expect(celta).toContain("[INICIO]");
+    expect(celta).not.toContain("StartMarker");
+
+    const clasico = buildContentXml(sample, false, "clasico");
+    expect(clasico).not.toContain("StartMarker");
   });
 });

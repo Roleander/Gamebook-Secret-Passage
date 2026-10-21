@@ -85,6 +85,14 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
 
   const headingRule = th.id === "clasico" ? "" : `h1, .passage-number, .passage-number-center { font-family: ${th.fontHeading}; font-weight: ${th.headingWeight}; }\n`;
   const upperRule = th.uppercaseHeadings ? `h1, .passage-number, .passage-number-center { text-transform: uppercase; letter-spacing: 2px; }\n` : "";
+  const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
+  const watermarkRule = pdfTh.watermarkSvg
+    ? `.page-watermark { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); width: 220px; height: 220px; pointer-events: none; color: ${th.accent}; opacity: ${pdfTh.watermarkOpacity ?? 0.06}; }\nbody { position: relative; }\n`
+    : "";
+  const dividerRule = pdfTh.dividerSvg
+    ? `.passage-divider { display: flex; justify-content: center; margin: 8px 0; color: ${th.accent}; opacity: 0.4; }\n.passage-divider svg { width: 70px; height: 8px; }\n`
+    : "";
+  const smallCapsRule = pdfTh.smallCaps ? `.passage-number, .passage-number-center { font-variant: small-caps; letter-spacing: 1px; }\n` : "";
 
   const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0">
@@ -106,7 +114,7 @@ ${fontManifestItems.length ? fontManifestItems.join("\n") + "\n" : ""}${project.
 </package>`;
   zip.file("OEBPS/content.opf", contentOpf);
 
-  zip.file("OEBPS/style.css", `${fontFaceCss}${headingRule}${upperRule}body {
+  zip.file("OEBPS/style.css", `${fontFaceCss}${headingRule}${upperRule}${watermarkRule}${dividerRule}${smallCapsRule}body {
   font-family: ${th.fontBody};
   line-height: 1.8;
   padding: 20px;
@@ -182,17 +190,25 @@ a { color: ${th.linkInline}; text-decoration: none; }
       titleLine = `<p class="passage-number">Pasaje ${passage.number}${passage.title ? ` — ${escapeXml(passage.title)}` : ""}${markerStr}</p>`;
     }
 
+    const watermarkDiv = pdfTh.watermarkSvg
+      ? `<div class="page-watermark" aria-hidden="true">${pdfTh.watermarkSvg}</div>`
+      : "";
+    const dividerHtml = pdfTh.dividerSvg
+      ? `<div class="passage-divider" aria-hidden="true">${pdfTh.dividerSvg}</div>`
+      : "";
+
     const chapterXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
 <head>
   <title>Pasaje ${passage.number}</title>
   <link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
-<body>
+<body>${watermarkDiv}
   ${titleLine}
   <div class="content">${linkifyContent(passage.content, passage.number)}</div>
   ${linksHtml}
+  ${dividerHtml}
 </body>
 </html>`;
 

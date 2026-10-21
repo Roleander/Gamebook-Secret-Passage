@@ -95,7 +95,7 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
   }));
 
   // Passages
-  project.passages.forEach((passage) => {
+  project.passages.forEach((passage, idx) => {
     const markers: string[] = [];
     if (passage.number === 1) markers.push("[INICIO]");
     if (passage.isEndpoint) markers.push("[FIN]");
@@ -186,6 +186,13 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
     }
     // Spacer
     children.push(new Paragraph({ spacing: { after: 200 }, children: [] }));
+    if (th.id !== "clasico" && idx < project.passages.length - 1) {
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 100, after: 100 },
+        children: [new TextRun({ text: "❧", font: bodyFont, size: 24, color: accentHex })],
+      }));
+    }
   });
 
   // Embed theme fonts if not clasico

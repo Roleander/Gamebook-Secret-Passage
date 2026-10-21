@@ -13,6 +13,7 @@ import { htmlToPdf } from "@/lib/print-to-pdf";
 import { getPdfExportUsage, recordPdfExport } from "@/lib/pdf-quota";
 import { z } from "zod";
 import { parseOr400 } from "@/lib/api-validate";
+import { THEME_IDS, type ThemeId } from "@/lib/exporters/themes";
 
 export const maxDuration = 60;
 
@@ -26,7 +27,7 @@ const exportSchema = z.object({
     .min(1, { error: "projectId y format son requeridos" })
     .max(16),
   readingMode: z.boolean().optional(),
-  theme: z.enum(["clasico", "grimorio", "papiro", "pergamino"]).optional(),
+  theme: z.enum(THEME_IDS as [ThemeId, ...ThemeId[]]).optional(),
 });
 
 export async function POST(req: Request) {
