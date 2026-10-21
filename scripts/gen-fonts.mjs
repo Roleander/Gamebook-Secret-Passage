@@ -10,14 +10,19 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 const CSS_URL =
-  "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English&family=UnifrakturMaguntia&display=swap";
+  "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Goudy+Bookletter+1911&family=IM+Fell+English&family=MedievalSharp&family=Pirata+One&family=UnifrakturCook:wght@700&family=UnifrakturMaguntia&display=swap";
 
 const SUBSETS = new Set(["latin", "latin-ext"]);
 
 const OFL_DIRS = {
   "EB Garamond": "ebgaramond",
   Cinzel: "cinzel",
+  "Cinzel Decorative": "cinzeldecorative",
+  "Goudy Bookletter 1911": "goudybookletter1911",
   "IM Fell English": "imfellenglish",
+  MedievalSharp: "medievalsharp",
+  "Pirata One": "pirataone",
+  UnifrakturCook: "unifrakturcook",
   UnifrakturMaguntia: "unifrakturmaguntia",
 };
 
@@ -135,6 +140,44 @@ export const FONTS_DATA: FontData[] = ${JSON.stringify(
 `;
   await writeFile(path.join(root, "src", "lib", "exporters", "fonts-data.ts"), dataTs);
 
+  const ttfEntries = [];
+  for (const e of entries) {
+    if (e.subset !== "latin") continue;
+    const woff2Buf = Buffer.from(e.base64, "base64");
+    let ttfRaw;
+    try {
+      ttfRaw = await decompress(woff2Buf);
+    } catch (err) {
+      console.warn(`TTF ${e.filename} fallo: ${err instanceof Error ? err.message : err}`);
+      continue;
+    }
+    const ttfBuf = Buffer.from(ttfRaw);
+    if (ttfBuf.length < 4 || ttfBuf.readUInt32BE(0) !== 0x00010000) {
+      console.warn(`TTF ${e.filename} no tiene magic 00010000, omitido`);
+      continue;
+    }
+    ttfEntries.push({
+      family: e.family,
+      style: e.style,
+      weight: weightOf(e),
+      base64: ttfBuf.toString("base64"),
+    });
+    console.log(`TTF ${e.filename} -> ${ttfBuf.length} bytes`);
+  }
+
+  const ttfTs = `// Generado por scripts/gen-fonts.mjs — no editar a mano.
+// Base64 TTF (solo subset latin) embebido en DOC/DOCX/ODT como fuente instalable.
+export interface FontTtfData {
+  family: string;
+  style: string;
+  weight: string;
+  base64: string;
+}
+
+export const FONTS_TTF_DATA: FontTtfData[] = ${JSON.stringify(ttfEntries, null, 2)};
+`;
+  await writeFile(path.join(root, "src", "lib", "exporters", "fonts-ttf-data.ts"), ttfTs);
+
   for (const [family, dir] of Object.entries(OFL_DIRS)) {
     try {
       const res = await fetch(
@@ -150,7 +193,10 @@ export const FONTS_DATA: FontData[] = ${JSON.stringify(
   }
 
   const total = entries.reduce((n, e) => n + e.base64.length, 0);
-  console.log(`Listo: ${entries.length} woff2, base64 total ~${Math.round(total / 1024)}KB`);
+  const ttfTotal = ttfEntries.reduce((n, e) => n + e.base64.length, 0);
+  console.log(
+    `Listo: ${entries.length} woff2 (base64 ~${Math.round(total / 1024)}KB), ${ttfEntries.length} TTF (base64 ~${Math.round(ttfTotal / 1024)}KB)`
+  );
 }
 
 main().catch((e) => {
