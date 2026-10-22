@@ -33,25 +33,36 @@ export function extractPassagesFromText(text: string): ParseResult {
   const normalizedText = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const lines = normalizedText.split("\n");
 
-  const passageMap = new Map<number, { startLine: number; lines: string[] }>();
+  const passageMap = new Map<
+    number,
+    { startLine: number; lines: string[]; duplicateOf?: number }
+  >();
   const passageOrder: number[] = [];
+  const warnings: string[] = [];
 
   // Pattern: number alone on a line (supports decimals "7,5" or "7.5")
   const passageStartRegex = /^\s*(\d+(?:[.,]\d+)?)\s*$/;
 
+  const headers: { num: number; startLine: number }[] = [];
+  let globalMaxNumber = 0;
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(passageStartRegex);
     if (match) {
       const numStr = match[1].replace(",", ".");
       const num = parseFloat(numStr);
-      if (!isNaN(num)) {
-        passageMap.set(num, { startLine: i + 1, lines: [] });
-        passageOrder.push(num);
+      if (isNaN(num)) continue;
+      if (!Number.isInteger(num)) {
+        warnings.push(
+          `Pasaje "${match[1]}": número no entero; no se usó como inicio de pasaje.`
+        );
+        continue;
       }
+      headers.push({ num, startLine: i + 1 });
+      if (num > globalMaxNumber) globalMaxNumber = num;
     }
   }
 
-  if (passageMap.size === 0) {
+  if (headers.length === 0) {
     return {
       passages: [{
         number: 1,
@@ -60,9 +71,51 @@ export function extractPassagesFromText(text: string): ParseResult {
         isEndpoint: true,
       }],
       links: [],
-      warnings: [],
+      warnings,
     };
   }
+
+  const occurrences = new Map<number, number[]>();
+  headers.forEach((h, idx) => {
+    const list = occurrences.get(h.num);
+    if (list) list.push(idx);
+    else occurrences.set(h.num, [idx]);
+  });
+
+  const keptIdx = new Set<number>();
+  const duplicatedNums = new Set<number>();
+  for (const [num, idxs] of occurrences) {
+    if (idxs.length === 1) continue;
+    duplicatedNums.add(num);
+    const natural = idxs.filter((idx) => {
+      const prev = idx > 0 ? headers[idx - 1].num : Number.NEGATIVE_INFINITY;
+      const next =
+        idx < headers.length - 1
+          ? headers[idx + 1].num
+          : Number.POSITIVE_INFINITY;
+      return prev < num && num < next;
+    });
+    keptIdx.add(natural.length === 1 ? natural[0] : idxs[0]);
+  }
+
+  let renumCounter = globalMaxNumber;
+  headers.forEach((h, idx) => {
+    if (!duplicatedNums.has(h.num) || keptIdx.has(idx)) {
+      passageMap.set(h.num, { startLine: h.startLine, lines: [] });
+      passageOrder.push(h.num);
+      return;
+    }
+    renumCounter++;
+    passageMap.set(renumCounter, {
+      startLine: h.startLine,
+      lines: [],
+      duplicateOf: h.num,
+    });
+    passageOrder.push(renumCounter);
+    warnings.push(
+      `Pasaje ${h.num} duplicado (línea ${h.startLine}) → importado como ${renumCounter}. Las referencias al ${h.num} siguen apuntando al pasaje ${h.num} conservado.`
+    );
+  });
 
   // Fill passage content
   for (let idx = 0; idx < passageOrder.length; idx++) {
@@ -75,7 +128,6 @@ export function extractPassagesFromText(text: string): ParseResult {
   }
 
   const passages: ParsedPassage[] = [];
-  const warnings: string[] = [];
 
   for (const num of passageOrder) {
     const entry = passageMap.get(num)!;
@@ -98,6 +150,9 @@ export function extractPassagesFromText(text: string): ParseResult {
 
     passages.push({
       number: num,
+      ...(entry.duplicateOf !== undefined
+        ? { title: `${entry.duplicateOf} (duplicado)` }
+        : {}),
       content,
       isStart,
       isEndpoint,
@@ -142,6 +197,40 @@ export function extractPassagesFromText(text: string): ParseResult {
     }
   }
 
+  for (const passage of expanded.passages) {
+    if (/\(?\s*Escribe aqu[íi]/i.test(passage.content)) {
+      warnings.push(
+        `Pasaje ${passage.number}: contenido pendiente (placeholder "Escribe aquí…").`
+      );
+    }
+
+    const missingTargets = new Set<number>();
+    for (const cand of collectReferenceCandidates(passage.content)) {
+      if (allNumbers.includes(cand.target) || missingTargets.has(cand.target)) {
+        continue;
+      }
+      missingTargets.add(cand.target);
+      warnings.push(
+        `Pasaje ${passage.number}: la referencia "${cand.text.trim()}" apunta al ${cand.target}, que no existe en el archivo.`
+      );
+    }
+    for (const opt of passage.options ?? []) {
+      if (
+        opt.targetNumber !== undefined &&
+        !allNumbers.includes(opt.targetNumber) &&
+        !missingTargets.has(opt.targetNumber)
+      ) {
+        missingTargets.add(opt.targetNumber);
+        warnings.push(
+          `Pasaje ${passage.number}: la opción "${opt.text}" apunta al ${opt.targetNumber}, que no existe en el archivo.`
+        );
+      }
+    }
+    for (const w of detectThresholdWarnings(passage.number, passage.content)) {
+      warnings.push(w);
+    }
+  }
+
   expanded.passages.sort((a, b) => a.number - b.number);
 
   return {
@@ -156,16 +245,6 @@ function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passa
   const existingNumbers = new Set(passages.map(p => p.number));
   let nextNumber = Math.floor(Math.max(...Array.from(existingNumbers), 0)) + 1;
   let newCount = 0;
-
-  // Named references that map to existing passages
-  const namedTargets: { pattern: RegExp; findPassage: (passages: ParsedPassage[]) => ParsedPassage | undefined }[] = [
-    { pattern: /Continuar\s+abajo/i, findPassage: (ps) => ps.find(p => p.number === 14.5 || (p.number > 14 && !ps.some(q => q.number === p.number && q.number < p.number))) },
-    { pattern: /^Continuar$/i, findPassage: () => undefined }, // Will be resolved to next passage
-    { pattern: /Proseguir\s+aventura/i, findPassage: () => undefined }, // Will be resolved to next passage
-    { pattern: /Continuar\s+epopeya/i, findPassage: () => undefined }, // Will be resolved to next passage
-    { pattern: /Desde\s+la\s+muerte/i, findPassage: (ps) => ps.find(p => p.number === 21) },
-    { pattern: /Hacia\s+"?Raízcrecida"?/i, findPassage: (ps) => ps.find(p => p.number === 12) },
-  ];
 
   for (const passage of passages) {
     if (!passage.options || passage.options.length === 0) continue;
@@ -183,22 +262,10 @@ function createPassagesFromUnnumberedOptions(passages: ParsedPassage[]): { passa
     if (unnumberedOptions.length === 0) continue;
 
     for (const option of unnumberedOptions) {
-      // Check for named references first
       let resolved = false;
-      for (const named of namedTargets) {
-        if (named.pattern.test(option.text)) {
-          const target = named.findPassage(allPassages);
-          if (target) {
-            option.targetNumber = target.number;
-            option.type = "link";
-            resolved = true;
-            break;
-          }
-        }
-      }
 
       // "Continuar" variants → link to next passage
-      if (!resolved && /^Continuar|Proseguir|Seguir$/i.test(option.text.trim())) {
+      if (/^(?:Continuar|Proseguir|Seguir)\b/i.test(option.text.trim())) {
         if (nextPassage) {
           option.targetNumber = nextPassage.number;
           option.type = "link";
@@ -247,16 +314,6 @@ function extractOptionsFromContent(content: string): PassageOption[] {
   const options: PassageOption[] = [];
   const lines = content.split("\n");
 
-  // Find where options start (usually after "Decide:", "Elige:", etc.)
-  let optionsStartIdx = -1;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const trimmed = lines[i].trim();
-    if (/^(Decide|Elige|Opci[oó]n|Choose|Decision)/i.test(trimmed)) {
-      optionsStartIdx = i + 1;
-      break;
-    }
-  }
-
   // Scan lines for options
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -302,23 +359,11 @@ function extractOptionsFromContent(content: string): PassageOption[] {
       let type: "link" | "action" | "dice" = "action";
       let targetNumber: number | undefined;
 
-      // Check for explicit passage number reference
-      const numRef = optionText.match(/(\d+(?:[.,]\d+)?)/);
-      if (numRef) {
-        const num = parseFloat(numRef[1].replace(",", "."));
-        if (!isNaN(num) && num > 0) {
-          targetNumber = num;
-          type = "link";
-        }
-      }
-
-      // Check for named passage references
-      if (!targetNumber) {
-        const namedRef = detectNamedReference(optionText);
-        if (namedRef) {
-          targetNumber = namedRef;
-          type = "link";
-        }
+      // Check for explicit passage number reference (classified, not first digit)
+      const refTarget = findReferenceTarget(optionText);
+      if (refTarget !== undefined) {
+        targetNumber = refTarget;
+        type = "link";
       }
 
       // Check for dice roll
@@ -369,21 +414,6 @@ function isStrictEndingMarker(content: string): boolean {
   );
 }
 
-function detectNamedReference(text: string): number | undefined {
-  const namedRefs: { pattern: RegExp; target: number }[] = [
-    { pattern: /Hacia\s+"?Raízcrecida"?/i, target: 12 },
-    { pattern: /Desde\s+la\s+muerte/i, target: 21 },
-  ];
-
-  for (const ref of namedRefs) {
-    if (ref.pattern.test(text)) {
-      return ref.target;
-    }
-  }
-
-  return undefined;
-}
-
 // Remove trailing standalone numbers from passage content (e.g., "846" alone on last line)
 function stripTrailingStandaloneNumbers(content: string): string {
   const lines = content.split("\n");
@@ -394,11 +424,15 @@ function stripTrailingStandaloneNumbers(content: string): string {
   return lines.slice(0, endIdx).join("\n").trim();
 }
 
-function detectInlineLinks(
-  content: string,
-  allPassageNumbers: number[]
-): { targetNumber: number; text: string }[] {
-  const links: { targetNumber: number; text: string }[] = [];
+interface ReferenceCandidate {
+  offset: number;
+  length: number;
+  target: number;
+  text: string;
+}
+
+function collectReferenceCandidates(content: string): ReferenceCandidate[] {
+  const candidates: ReferenceCandidate[] = [];
   const isReference = (index: number, length: number) =>
     classifyNumber(content, index, length) === "reference";
 
@@ -413,12 +447,13 @@ function detectInlineLinks(
         gotoMatch.index +
         gotoMatch[0].indexOf(gotoMatch[1]) +
         (numMatch.index ?? 0);
-      if (
-        !isNaN(target) &&
-        allPassageNumbers.includes(target) &&
-        isReference(offset, numMatch[1].length)
-      ) {
-        links.push({ targetNumber: target, text: gotoMatch[0] });
+      if (!isNaN(target) && isReference(offset, numMatch[1].length)) {
+        candidates.push({
+          offset,
+          length: numMatch[1].length,
+          target,
+          text: gotoMatch[0],
+        });
       }
     }
   }
@@ -429,12 +464,13 @@ function detectInlineLinks(
   while ((arrowMatch = arrowRegex.exec(content)) !== null) {
     const target = parseFloat(arrowMatch[1].replace(",", "."));
     const offset = arrowMatch.index + arrowMatch[0].indexOf(arrowMatch[1]);
-    if (
-      !isNaN(target) &&
-      allPassageNumbers.includes(target) &&
-      isReference(offset, arrowMatch[1].length)
-    ) {
-      links.push({ targetNumber: target, text: arrowMatch[0].trim() });
+    if (!isNaN(target) && isReference(offset, arrowMatch[1].length)) {
+      candidates.push({
+        offset,
+        length: arrowMatch[1].length,
+        target,
+        text: arrowMatch[0].trim(),
+      });
     }
   }
 
@@ -445,12 +481,13 @@ function detectInlineLinks(
     const target = parseFloat(bracketMatch[1].replace(",", "."));
     const offset =
       bracketMatch.index + bracketMatch[0].indexOf(bracketMatch[1]);
-    if (
-      !isNaN(target) &&
-      allPassageNumbers.includes(target) &&
-      isReference(offset, bracketMatch[1].length)
-    ) {
-      links.push({ targetNumber: target, text: bracketMatch[0] });
+    if (!isNaN(target) && isReference(offset, bracketMatch[1].length)) {
+      candidates.push({
+        offset,
+        length: bracketMatch[1].length,
+        target,
+        text: bracketMatch[0],
+      });
     }
   }
 
@@ -463,22 +500,84 @@ function detectInlineLinks(
       directRefMatch.index +
       directRefMatch[0].length -
       directRefMatch[1].length;
-    if (
-      !isNaN(target) &&
-      allPassageNumbers.includes(target) &&
-      isReference(offset, directRefMatch[1].length)
-    ) {
-      links.push({ targetNumber: target, text: directRefMatch[0] });
+    if (!isNaN(target) && isReference(offset, directRefMatch[1].length)) {
+      candidates.push({
+        offset,
+        length: directRefMatch[1].length,
+        target,
+        text: directRefMatch[0],
+      });
     }
   }
 
-  // Remove duplicates
+  // CLASIFICADOR: números que classifyNumber considera referencia aunque
+  // no coincidan con ninguna familia anterior (p. ej. "ve al 3 y 5",
+  // <<goto sin comillas> o comillas tipográficas)
+  const tokenRegex = /\b\d+\b/g;
+  let tokenMatch;
+  while ((tokenMatch = tokenRegex.exec(content)) !== null) {
+    const offset = tokenMatch.index;
+    const length = tokenMatch[0].length;
+    const covered = candidates.some(
+      (c) => offset >= c.offset && offset < c.offset + c.length
+    );
+    if (covered) continue;
+    if (!isReference(offset, length)) continue;
+    candidates.push({
+      offset,
+      length,
+      target: Number(tokenMatch[0]),
+      text: tokenMatch[0],
+    });
+  }
+
+  return candidates;
+}
+
+function detectInlineLinks(
+  content: string,
+  allPassageNumbers: number[]
+): { targetNumber: number; text: string }[] {
   const seen = new Set<number>();
-  return links.filter(link => {
-    if (seen.has(link.targetNumber)) return false;
-    seen.add(link.targetNumber);
-    return true;
-  });
+  const links: { targetNumber: number; text: string }[] = [];
+  for (const candidate of collectReferenceCandidates(content)) {
+    if (!allPassageNumbers.includes(candidate.target)) continue;
+    if (seen.has(candidate.target)) continue;
+    seen.add(candidate.target);
+    links.push({ targetNumber: candidate.target, text: candidate.text });
+  }
+  return links;
+}
+
+function findReferenceTarget(text: string): number | undefined {
+  const candidates = collectReferenceCandidates(text);
+  if (candidates.length === 0) {
+    const bare = text.trim().match(/^(\d+(?:[.,]\d+)?)$/);
+    if (bare) {
+      const num = parseFloat(bare[1].replace(",", "."));
+      if (!isNaN(num) && num > 0) return num;
+    }
+    return undefined;
+  }
+  candidates.sort((a, b) => a.offset - b.offset);
+  return candidates[0].target;
+}
+
+function detectThresholdWarnings(passageNumber: number, content: string): string[] {
+  const out: string[] = [];
+  for (const line of content.split("\n")) {
+    if (!/\b(resultado|tirada|total)\b/i.test(line)) continue;
+    const match =
+      /\b(?:mayor|menor|igual|inferior|superior)\b\s+(?:o\s+(?:mayor|menor|igual)\s+)?(?:a|de|que)\s+(\d{3,})\b/i.exec(
+        line
+      ) ?? /\b(\d{3,})\s+o\s+(?:más|menos)\b/i.exec(line);
+    if (match) {
+      out.push(
+        `Pasaje ${passageNumber}: "${match[0].trim()}" parece un umbral sospechoso (número de 3 o más cifras). Revisa si es correcto.`
+      );
+    }
+  }
+  return out;
 }
 
 // Keep backward-compatible function signature

@@ -74,10 +74,8 @@ export async function POST(
     // === SNAPSHOT: save current state before shuffle (for undo) ===
     await createProjectSnapshot(projectId, "Barajar Contenido");
 
-    const { passageUpdates, newLinks } = computeShuffleMutations(
-      project.passages,
-      plan
-    );
+    const { passageUpdates, newLinks, droppedLinkCount, skippedSlotCount } =
+      computeShuffleMutations(project.passages, plan);
 
     await db.$transaction(
       async (tx) => {
@@ -127,6 +125,8 @@ export async function POST(
       passageCount: project.passages.length,
       linksCreated: newLinks.length,
       startPreserved: plan.startStory !== null,
+      droppedLinks: droppedLinkCount,
+      skippedSlots: skippedSlotCount,
     });
   } catch (error) {
     console.error("Error in content shuffle:", error);

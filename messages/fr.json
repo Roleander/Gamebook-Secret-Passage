@@ -90,6 +90,21 @@
     "titleRequired": "Le titre est requis",
     "createError": "Erreur lors de la création du projet"
   },
+  "DeleteDialog": {
+    "title": "Supprimer le passage {n} ?",
+    "mentions": "{n} passages mentionnent le passage {target}. Que faire de ces références ?",
+    "noMentions": "Aucun autre passage ne fait référence à ce passage.",
+    "optionRedirect": "Rediriger les références vers un autre passage",
+    "optionRemoveSentences": "Supprimer les phrases qui le mentionnent",
+    "optionLeave": "Laisser les références telles quelles (elles seront signalées comme erreurs)",
+    "targetPlaceholder": "Numéro cible",
+    "invalidTarget": "Ce numéro ne correspond à aucun passage disponible",
+    "closeGap": "Renuméroter les passages suivants pour combler le trou",
+    "closeGapHintLeave": "Choisissez rediriger ou supprimer les phrases pour activer le renumérotage",
+    "cancel": "Annuler",
+    "confirm": "Supprimer le passage {n}",
+    "error": "Impossible de supprimer le passage"
+  },
   "Editor": {
     "editor": "Éditeur",
     "upload": "Importer",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Voulez-vous vraiment supprimer ce projet ? Cette action est irréversible.",
     "autoFixDone": "Auto-fix terminé :\n- Liens créés : {a}\n- Orphelins réparés : {b}\n- Passages marqués comme finaux : {c}\n- Passages marqués comme début : {d}",
     "brokenLink": "Lien romu vers le passage {n} qui n'existe pas",
+    "ghostRef": "Le passage {from} fait référence au passage {to}, qui n'existe pas",
     "orphan": "Passage {n} : aucun lien entrant (orphelin)",
     "noExit": "Passage {n} : aucun lien sortant"
   },
@@ -627,6 +643,8 @@
     "node": "Passage {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} liens n'ont pas pu être reconstruits après le mélange",
+    "skippedSlots": "{n} passages n'ont pas été mélangés en raison d'incohérences de données",
     "confirm": "Mélanger le contenu entre les passages ? Les numéros restent, mais le texte et les liens sont réorganisés aléatoirement.",
     "done": "Contenu mélangé : {p} passages, {l} liens recréés",
     "startPreserved": " (passage de début préservé)",

@@ -90,6 +90,21 @@
     "titleRequired": "Il titolo è obbligatorio",
     "createError": "Errore nella creazione del progetto"
   },
+  "DeleteDialog": {
+    "title": "Eliminare il passaggio {n}?",
+    "mentions": "{n} passaggi menzionano il passaggio {target}. Cosa fare di questi riferimenti?",
+    "noMentions": "Nessun altro passaggio fa riferimento a questo passaggio.",
+    "optionRedirect": "Reindirizza i riferimenti a un altro passaggio",
+    "optionRemoveSentences": "Elimina le frasi che lo menzionano",
+    "optionLeave": "Lascia i riferimenti come sono (segnalati come errori)",
+    "targetPlaceholder": "Numero di destinazione",
+    "invalidTarget": "Quel numero non corrisponde a nessun passaggio disponibile",
+    "closeGap": "Rinumera i passaggi successivi per colmare il buco",
+    "closeGapHintLeave": "Scegli reindirizzare o eliminare le frasi per abilitare la rinumerazione",
+    "cancel": "Annulla",
+    "confirm": "Elimina passaggio {n}",
+    "error": "Impossibile eliminare il passaggio"
+  },
   "Editor": {
     "editor": "Editor",
     "upload": "Importa",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Sei sicuro di voler eliminare questo progetto? L'azione non è reversibile.",
     "autoFixDone": "Auto-fix completato:\n- Collegamenti creati: {a}\n- Orfani riparati: {b}\n- Passaggi marcati come finali: {c}\n- Passaggi marcati come inizio: {d}",
     "brokenLink": "Collegamento rotto verso il passaggio {n} che non esiste",
+    "ghostRef": "Il passaggio {from} fa riferimento al passaggio {to}, che non esiste",
     "orphan": "Passaggio {n}: nessun collegamento in entrata (orfano)",
     "noExit": "Passaggio {n}: nessun collegamento in uscita"
   },
@@ -627,6 +643,8 @@
     "node": "Passaggio {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} collegamenti non sono stati ricostruiti dopo il mescolamento",
+    "skippedSlots": "{n} passaggi non sono stati mescolati a causa di incoerenze nei dati",
     "confirm": "Mescolare il contenuto tra i passaggi? I numeri restano, ma testo e collegamenti vengono riorganizzati a caso.",
     "done": "Contenuto mescolato: {p} passaggi, {l} collegamenti ricreati",
     "startPreserved": " (passaggio di inizio preservato)",

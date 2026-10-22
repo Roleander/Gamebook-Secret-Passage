@@ -7,6 +7,12 @@ import { Prisma } from "@prisma/client";
 import { replaceNumberReferences } from "@/lib/number-references";
 import { rewriteProjectLinkTexts } from "@/lib/link-texts";
 import { syncProjectLinks } from "@/lib/link-sync";
+import { getEntitlements } from "@/lib/entitlements";
+import { createProjectSnapshot } from "@/lib/snapshots";
+import {
+  referencesTo,
+  removeSentencesContainingReference,
+} from "@/lib/reference-mentions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +22,16 @@ const passagePatchSchema = z.object({
   number: z.number().int().min(1).optional(),
   isStart: z.boolean().optional(),
   isEndpoint: z.boolean().optional(),
+});
+
+const passageDeleteSchema = z.object({
+  onReferences: z
+    .object({
+      action: z.enum(["redirect", "remove_sentences", "leave"]),
+      targetNumber: z.number().int().min(1).optional(),
+    })
+    .optional(),
+  closeGap: z.boolean().optional(),
 });
 
 export async function PATCH(
@@ -182,6 +198,106 @@ export async function DELETE(
       );
     }
 
+    const rawBody = await req.json().catch(() => null);
+    const parsedDelete = passageDeleteSchema.safeParse(rawBody ?? {});
+    if (!parsedDelete.success) {
+      return NextResponse.json(
+        { error: "Datos inválidos" },
+        { status: 400 }
+      );
+    }
+    const action = parsedDelete.data.onReferences?.action ?? "leave";
+    const targetNumber = parsedDelete.data.onReferences?.targetNumber;
+    const closeGap = parsedDelete.data.closeGap === true && action !== "leave";
+
+    const others = await db.passage.findMany({
+      where: { projectId: passage.projectId, id: { not: passageId } },
+      select: { id: true, number: true, content: true },
+    });
+    const affected = others.filter((p) =>
+      referencesTo(p.content, passage.number)
+    );
+    const affectedCount = affected.length;
+
+    if (action === "redirect") {
+      if (
+        targetNumber === undefined ||
+        targetNumber === passage.number ||
+        !others.some((p) => p.number === targetNumber)
+      ) {
+        return NextResponse.json(
+          { error: "Destino de redirección inválido" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Respaldo previo (historial Pro) para poder deshacer el borrado
+    let snapshotCreated = false;
+    try {
+      const ents = await getEntitlements(session.user.id, session.user.role);
+      if (ents.features.shuffle) {
+        await createProjectSnapshot(
+          passage.projectId,
+          `Antes de borrar pasaje ${passage.number}`
+        );
+        snapshotCreated = true;
+      }
+    } catch (snapshotError) {
+      console.error("Error creating snapshot before delete:", snapshotError);
+    }
+
+    const contents = new Map(others.map((p) => [p.id, p.content]));
+    const updateContent = async (id: string, content: string) => {
+      contents.set(id, content);
+      await db.passage.update({ where: { id }, data: { content } });
+    };
+
+    if (action === "redirect" && affectedCount > 0 && targetNumber !== undefined) {
+      const redirectMapping = new Map<number, number>([
+        [passage.number, targetNumber],
+      ]);
+      for (const p of affected) {
+        const newContent = replaceNumberReferences(p.content, redirectMapping);
+        if (newContent !== p.content) {
+          await updateContent(p.id, newContent);
+        }
+      }
+      await rewriteProjectLinkTexts(passage.projectId, redirectMapping);
+    } else if (action === "remove_sentences") {
+      for (const p of affected) {
+        const newContent = removeSentencesContainingReference(
+          p.content,
+          passage.number
+        );
+        if (newContent !== p.content) {
+          await updateContent(p.id, newContent);
+        }
+      }
+    }
+
+    // Renumerar pasajes posteriores para cerrar el hueco del borrado
+    let gapClosed = false;
+    if (closeGap) {
+      const shiftMapping = new Map<number, number>();
+      for (const p of others) {
+        if (p.number > passage.number) {
+          shiftMapping.set(p.number, p.number - 1);
+        }
+      }
+      if (shiftMapping.size > 0) {
+        for (const p of others) {
+          const current = contents.get(p.id) ?? p.content;
+          const newContent = replaceNumberReferences(current, shiftMapping);
+          if (newContent !== current) {
+            await updateContent(p.id, newContent);
+          }
+        }
+        await rewriteProjectLinkTexts(passage.projectId, shiftMapping);
+        gapClosed = true;
+      }
+    }
+
     // Delete related links first
     await db.passageLink.deleteMany({
       where: {
@@ -194,7 +310,19 @@ export async function DELETE(
       where: { id: passageId },
     });
 
-    return NextResponse.json({ message: "Pasaje eliminado" });
+    try {
+      await syncProjectLinks(passage.projectId);
+    } catch (syncError) {
+      console.error("Error syncing links after passage delete:", syncError);
+    }
+
+    return NextResponse.json({
+      message: "Pasaje eliminado",
+      action,
+      affectedCount,
+      gapClosed,
+      snapshot: snapshotCreated,
+    });
   } catch (error) {
     console.error("Error deleting passage:", error);
     return NextResponse.json(

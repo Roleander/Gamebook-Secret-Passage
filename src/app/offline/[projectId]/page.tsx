@@ -18,10 +18,11 @@ function linkifyContent(
   content: string,
   passageNumbers: Set<number>,
   currentNumber: number,
-  onNavigate: (n: number) => void
+  onNavigate: (n: number) => void,
+  forcedTargets?: ReadonlySet<number>
 ): ReactNode[] {
   const parts: ReactNode[] = [];
-  const links = findPassageLinks(content, passageNumbers, currentNumber);
+  const links = findPassageLinks(content, passageNumbers, currentNumber, forcedTargets);
   let lastIndex = 0;
   let key = 0;
 
@@ -158,7 +159,13 @@ export default function OfflineReaderPage() {
             </div>
 
             <div className="whitespace-pre-wrap leading-relaxed mb-6">
-              {linkifyContent(passage.content, passageNumbers, passage.number, goTo)}
+              {linkifyContent(
+                passage.content,
+                passageNumbers,
+                passage.number,
+                goTo,
+                new Set(passage.links.map((l) => l.targetNumber))
+              )}
             </div>
 
             {passage.links.length > 0 && (

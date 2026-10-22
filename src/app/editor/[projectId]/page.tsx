@@ -33,6 +33,10 @@ import { queueableFetch } from "@/lib/offline-client";
 import { replayQueue } from "@/lib/offline-queue";
 import { OfflineSyncIndicator } from "@/components/editor/offline-sync-indicator";
   import { HistoryPanel } from "@/components/editor/history-panel";
+import { DeletePassageDialog, type DeleteReferenceAction } from "@/components/editor/delete-passage-dialog";
+import { referencesTo, removeSentencesContainingReference } from "@/lib/reference-mentions";
+import { replaceNumberReferences } from "@/lib/number-references";
+import { validatePassages } from "@/lib/editor-validation";
 
 interface Entitlements {
   plan: string;
@@ -65,13 +69,6 @@ interface Project {
   title: string;
   description: string | null;
   passages: Passage[];
-}
-
-interface PassageError {
-  type: "orphan" | "no_exit" | "broken_link" | "cycle";
-  passageNumber: number;
-  message: string;
-  autoFixable: boolean;
 }
 
 const THEME_STORAGE_KEY = "gsp-export-theme";
@@ -112,6 +109,12 @@ export default function EditorPage() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [selectedPassage, setSelectedPassage] = useState<Passage | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    number: number;
+    affectedNumbers: number[];
+    availableTargets: number[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "graph" | "review" | "errors">("editor");
   const [pendingSuggestions, setPendingSuggestions] = useState(0);
@@ -271,20 +274,91 @@ export default function EditorPage() {
     }
   };
 
-  const handlePassageDelete = async (passageId: string) => {
-    const result = await queueableFetch(`/api/passages/${passageId}`, {
-      method: "DELETE",
+  const handlePassageDelete = (passageId: string) => {
+    if (!project) return;
+    const passage = project.passages.find((p) => p.id === passageId);
+    if (!passage) return;
+    const others = project.passages.filter((p) => p.id !== passageId);
+    const affectedNumbers = others
+      .filter((p) => referencesTo(p.content, passage.number))
+      .map((p) => p.number);
+    setPendingDelete({
+      id: passageId,
+      number: passage.number,
+      affectedNumbers,
+      availableTargets: others.map((p) => p.number),
     });
+  };
+
+  const confirmPassageDelete = async (
+    action: DeleteReferenceAction,
+    targetNumber?: number,
+    closeGap?: boolean
+  ) => {
+    if (!pendingDelete) return;
+    const { id, number, affectedNumbers } = pendingDelete;
+    setPendingDelete(null);
+
+    const result = await queueableFetch(`/api/passages/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        onReferences: {
+          action,
+          ...(action === "redirect" ? { targetNumber } : {}),
+        },
+        ...(closeGap && action !== "leave" ? { closeGap: true } : {}),
+      }),
+    });
+
     if (result.queued) {
       setSelectedPassage(null);
-      setProject((prev) =>
-        prev
-          ? { ...prev, passages: prev.passages.filter((p) => p.id !== passageId) }
-          : prev
-      );
+      setProject((prev) => {
+        if (!prev) return prev;
+        let passages = prev.passages;
+        if (action === "redirect" && targetNumber !== undefined) {
+          const mapping = new Map<number, number>([[number, targetNumber]]);
+          passages = passages.map((p) => {
+            if (!affectedNumbers.includes(p.number)) return p;
+            const content = replaceNumberReferences(p.content, mapping);
+            return content !== p.content ? { ...p, content } : p;
+          });
+        } else if (action === "remove_sentences") {
+          passages = passages.map((p) => {
+            if (!affectedNumbers.includes(p.number)) return p;
+            const content = removeSentencesContainingReference(p.content, number);
+            return content !== p.content ? { ...p, content } : p;
+          });
+        }
+        passages = passages.filter((p) => p.id !== id);
+        if (closeGap && action !== "leave") {
+          const shiftMapping = new Map<number, number>();
+          for (const p of passages) {
+            if (p.number > number) shiftMapping.set(p.number, p.number - 1);
+          }
+          if (shiftMapping.size > 0) {
+            passages = passages.map((p) => {
+              if (p.number <= number) return p;
+              const content = replaceNumberReferences(p.content, shiftMapping);
+              return { ...p, number: p.number - 1, content };
+            });
+          }
+        }
+        return { ...prev, passages };
+      });
     } else if (result.ok) {
       setSelectedPassage(null);
       fetchProject();
+      fetchSnapshots();
+    } else {
+      let message = "";
+      try {
+        const data = await result.response?.json();
+        message = typeof data?.error === "string" ? data.error : "";
+      } catch {
+        // respuesta sin cuerpo legible
+      }
+      alert(message || t("DeleteDialog.error"));
     }
   };
 
@@ -383,7 +457,13 @@ export default function EditorPage() {
       if (response.ok) {
         alert(
           t("Shuffle.done", { p: result.passageCount, l: result.linksCreated }) +
-            (result.startPreserved ? t("Shuffle.startPreserved") : "")
+            (result.startPreserved ? t("Shuffle.startPreserved") : "") +
+            (result.droppedLinks > 0
+              ? "\n" + t("Shuffle.droppedLinks", { n: result.droppedLinks })
+              : "") +
+            (result.skippedSlots > 0
+              ? "\n" + t("Shuffle.skippedSlots", { n: result.skippedSlots })
+              : "")
         );
         await fetchProject();
         fetchSnapshots();
@@ -980,6 +1060,15 @@ export default function EditorPage() {
         />
       )}
 
+      {pendingDelete && (
+        <DeletePassageDialog
+          passageNumber={pendingDelete.number}
+          affectedNumbers={pendingDelete.affectedNumbers}
+          availableTargets={pendingDelete.availableTargets}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={confirmPassageDelete}
+        />
+      )}
       {upgradeMsg !== null && (
         <UpgradeModal
           message={upgradeMsg}
@@ -988,47 +1077,4 @@ export default function EditorPage() {
       )}
     </div>
   );
-}
-
-type TFunction = (key: string, params?: Record<string, string | number>) => string;
-
-function validatePassages(passages: Passage[], t: TFunction): PassageError[] {
-  const errors: PassageError[] = [];
-  const numbers = passages.map(p => p.number);
-
-  passages.forEach(passage => {
-    // Check for broken links
-    passage.outgoingLinks.forEach(link => {
-      if (!numbers.includes(link.target.number)) {
-        errors.push({
-          type: "broken_link",
-          passageNumber: passage.number,
-          message: t("Editor.brokenLink", { n: link.target.number }),
-          autoFixable: false,
-        });
-      }
-    });
-
-    // Check for orphan passages (no incoming links, not start)
-    if (passage.incomingLinks.length === 0 && !passage.isStart && passages.length > 1) {
-      errors.push({
-        type: "orphan",
-        passageNumber: passage.number,
-        message: t("Editor.orphan", { n: passage.number }),
-        autoFixable: true,
-      });
-    }
-
-    // Check for passages without outgoing links (endpoints)
-    if (passage.outgoingLinks.length === 0 && !passage.isEndpoint) {
-      errors.push({
-        type: "no_exit",
-        passageNumber: passage.number,
-        message: t("Editor.noExit", { n: passage.number }),
-        autoFixable: true,
-      });
-    }
-  });
-
-  return errors;
 }

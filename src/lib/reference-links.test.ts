@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findPassageLinks } from "@/lib/reference-links";
+import { findPassageLinks, findPassageLinksPerLine } from "@/lib/reference-links";
 
 describe("findPassageLinks", () => {
   const numbers = new Set([1, 3, 12, 20]);
@@ -63,5 +63,40 @@ describe("findPassageLinks", () => {
     expect(
       findPassageLinks("Mira el 3", numbers, 3, new Set([3]))
     ).toEqual([]);
+  });
+});
+
+describe("findPassageLinksPerLine", () => {
+  it("recorta los enlaces que cruzan saltos de linea", () => {
+    const numbers = new Set([121]);
+    const perLine = findPassageLinksPerLine("Ve al\n121.", numbers);
+    expect(perLine).toHaveLength(2);
+    expect(perLine[0]).toEqual([]);
+    expect(perLine[1]).toHaveLength(1);
+    expect(perLine[1][0]).toMatchObject({
+      target: 121,
+      text: "121",
+      start: 0,
+      end: 3,
+    });
+  });
+
+  it("devuelve los mismos objetivos que la deteccion completa", () => {
+    const numbers = new Set([5, 7]);
+    const content = "Ve al 5.\n\nLuego ve al 7.";
+    const flat = findPassageLinks(content, numbers);
+    const perLine = findPassageLinksPerLine(content, numbers);
+    expect(perLine.flat().map((l) => l.target)).toEqual(
+      flat.map((l) => l.target)
+    );
+    expect(perLine.flat()).toHaveLength(2);
+  });
+
+  it("aplica exclude y forced igual que findPassageLinks", () => {
+    const numbers = new Set([5, 7]);
+    expect(findPassageLinksPerLine("Mira el 5", numbers, 5)).toEqual([[]]);
+    expect(
+      findPassageLinksPerLine("Mira el 5", numbers, undefined, new Set([5]))[0]
+    ).toHaveLength(1);
   });
 });

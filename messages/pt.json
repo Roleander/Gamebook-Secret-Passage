@@ -90,6 +90,21 @@
     "titleRequired": "O título é obrigatório",
     "createError": "Erro ao criar o projeto"
   },
+  "DeleteDialog": {
+    "title": "Excluir a passagem {n}?",
+    "mentions": "{n} passagens mencionam a passagem {target}. O que fazer com essas referências?",
+    "noMentions": "Nenhuma outra passagem referencia esta passagem.",
+    "optionRedirect": "Redirecionar as referências para outra passagem",
+    "optionRemoveSentences": "Excluir as frases que o mencionam",
+    "optionLeave": "Manter as referências como estão (serão sinalizadas como erros)",
+    "targetPlaceholder": "Número de destino",
+    "invalidTarget": "Esse número não corresponde a nenhuma passagem disponível",
+    "closeGap": "Renumerar as passagens seguintes para fechar a lacuna",
+    "closeGapHintLeave": "Escolha redirecionar ou excluir frases para ativar a renumeração",
+    "cancel": "Cancelar",
+    "confirm": "Excluir passagem {n}",
+    "error": "Não foi possível excluir a passagem"
+  },
   "Editor": {
     "editor": "Editor",
     "upload": "Importar",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Tem certeza de que deseja excluir este projeto? Esta ação não pode ser desfeita.",
     "autoFixDone": "Auto-fix concluído:\n- Links criados: {a}\n- Órfãos corrigidos: {b}\n- Passagens marcadas como finais: {c}\n- Passagens marcadas como início: {d}",
     "brokenLink": "Link quebrado para a passagem {n} que não existe",
+    "ghostRef": "A passagem {from} referencia a passagem {to}, que não existe",
     "orphan": "Passagem {n}: sem links de entrada (órfã)",
     "noExit": "Passagem {n}: sem links de saída"
   },
@@ -627,6 +643,8 @@
     "node": "Passagem {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} links não puderam ser reconstruídos após a embaralhamento",
+    "skippedSlots": "{n} passagens não foram embaralhadas devido a inconsistências nos dados",
     "confirm": "Embaralhar o conteúdo entre as passagens? Os números permanecem, mas o texto e os links são reorganizados aleatoriamente.",
     "done": "Conteúdo embaralhado: {p} passagens, {l} links recriados",
     "startPreserved": " (passagem de início preservada)",

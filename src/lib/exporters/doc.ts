@@ -43,8 +43,12 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
       .replace(/"/g, "&quot;");
   }
 
-  function linkifyContent(content: string, passageNumber: number): string {
-    const links = findPassageLinks(content, passageNumbers, passageNumber);
+  function linkifyContent(
+    content: string,
+    passageNumber: number,
+    forcedTargets?: ReadonlySet<number>
+  ): string {
+    const links = findPassageLinks(content, passageNumbers, passageNumber, forcedTargets);
     let result = "";
     let lastIndex = 0;
 
@@ -156,12 +160,12 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
 
     if (readingMode) {
       html += `  <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
-      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number)}</div>\n`;
+      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number, new Set(passage.outgoingLinks.map((l) => l.target.number)))}</div>\n`;
     } else {
       let header = `Pasaje ${passage.number}`;
       if (passage.title) header += ` — ${escapeHtml(passage.title)}`;
       html += `  <div class="${numClass}">${header}${markerStr}</div>\n`;
-      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number)}</div>\n`;
+      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number, new Set(passage.outgoingLinks.map((l) => l.target.number)))}</div>\n`;
       if (passage.outgoingLinks.length > 0) {
         html += `  <div class="passage-links"><strong>Opciones:</strong><br>\n`;
         passage.outgoingLinks.forEach((link) => {

@@ -90,6 +90,21 @@
     "titleRequired": "El título es requerido",
     "createError": "Error al crear el proyecto"
   },
+  "DeleteDialog": {
+    "title": "¿Borrar el pasaje {n}?",
+    "mentions": "{n} pasajes mencionan el pasaje {target}. ¿Qué hacemos con esas referencias?",
+    "noMentions": "Ningún otro pasaje referencia este pasaje.",
+    "optionRedirect": "Redirigir las referencias a otro pasaje",
+    "optionRemoveSentences": "Eliminar las frases que lo mencionan",
+    "optionLeave": "Dejar las referencias como están (se marcarán como errores)",
+    "targetPlaceholder": "Número destino",
+    "invalidTarget": "Ese número no existe entre los pasajes disponibles",
+    "closeGap": "Renumerar los pasajes posteriores para cerrar el hueco",
+    "closeGapHintLeave": "Elige redirigir o eliminar frases para poder renumerar",
+    "cancel": "Cancelar",
+    "confirm": "Borrar pasaje {n}",
+    "error": "No se pudo eliminar el pasaje"
+  },
   "Editor": {
     "editor": "Editor",
     "upload": "Importar",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "¿Seguro que quieres eliminar este proyecto? Esta acción no se puede deshacer.",
     "autoFixDone": "Auto-fix completado:\n- Enlaces creados: {a}\n- Huérfanos arreglados: {b}\n- Pasajes marcados como finales: {c}\n- Pasajes marcados como inicio: {d}",
     "brokenLink": "Enlace roto hacia pasaje {n} que no existe",
+    "ghostRef": "El pasaje {from} referencia el pasaje {to}, que no existe",
     "orphan": "Pasaje {n}: no tiene enlaces entrantes (huérfano)",
     "noExit": "Pasaje {n}: no tiene enlaces salientes"
   },
@@ -627,6 +643,8 @@
     "node": "Pasaje {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} enlaces no se pudieron reconstruir tras el barajado",
+    "skippedSlots": "{n} pasajes no se barajaron por inconsistencias en los datos",
     "confirm": "¿Barajar el contenido entre pasajes? Los números se mantienen, pero el texto y enlaces se reorganizan aleatoriamente.",
     "done": "Contenido barajado: {p} pasajes, {l} enlaces recreados",
     "startPreserved": " (pasaje de inicio preservado)",

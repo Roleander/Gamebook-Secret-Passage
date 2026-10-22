@@ -90,6 +90,21 @@
     "titleRequired": "Title is required",
     "createError": "Error creating the project"
   },
+  "DeleteDialog": {
+    "title": "Delete passage {n}?",
+    "mentions": "{n} passages mention passage {target}. What should happen to those references?",
+    "noMentions": "No other passage references this passage.",
+    "optionRedirect": "Redirect the references to another passage",
+    "optionRemoveSentences": "Delete the sentences that mention it",
+    "optionLeave": "Leave the references as they are (they will be flagged as errors)",
+    "targetPlaceholder": "Target number",
+    "invalidTarget": "That number does not match any available passage",
+    "closeGap": "Renumber later passages to close the gap",
+    "closeGapHintLeave": "Choose redirect or delete sentences to enable renumbering",
+    "cancel": "Cancel",
+    "confirm": "Delete passage {n}",
+    "error": "Could not delete the passage"
+  },
   "Editor": {
     "editor": "Editor",
     "upload": "Import",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Are you sure you want to delete this project? This action cannot be undone.",
     "autoFixDone": "Auto-fix completed:\n- Links created: {a}\n- Orphans fixed: {b}\n- Passages marked as endpoints: {c}\n- Passages marked as start: {d}",
     "brokenLink": "Broken link to passage {n} that does not exist",
+    "ghostRef": "Passage {from} references passage {to}, which does not exist",
     "orphan": "Passage {n}: no incoming links (orphan)",
     "noExit": "Passage {n}: no outgoing links"
   },
@@ -627,6 +643,8 @@
     "node": "Passage {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} links could not be rebuilt after shuffling",
+    "skippedSlots": "{n} passages were not shuffled due to data inconsistencies",
     "confirm": "Shuffle content between passages? Numbers stay the same, but text and links are rearranged randomly.",
     "done": "Content shuffled: {p} passages, {l} links recreated",
     "startPreserved": " (start passage preserved)",

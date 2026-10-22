@@ -1,0 +1,24 @@
+33
+Pruebas de formato del Acto I:
+
+ve al 
+121.
+
+121
+Llegas al destino.
+
+139
+Realiza una tirada de resistencia al Abandono y añade el modificador de la habilidad al resultado. Si es igual o menor a 245, pasa al enlace 158.
+
+158
+Enlace detectado.
+
+217
+(Escribe aquí el contenido de este pasaje)
+
+277
+ACTO I [→ 73]
+FIN DEL JUEGO
+
+601
+Desenlace del acto.

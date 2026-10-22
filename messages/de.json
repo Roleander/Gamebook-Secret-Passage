@@ -90,6 +90,21 @@
     "titleRequired": "Der Titel ist erforderlich",
     "createError": "Fehler beim Erstellen des Projekts"
   },
+  "DeleteDialog": {
+    "title": "Passage {n} löschen?",
+    "mentions": "{n} Passagen erwähnen Passage {target}. Was soll mit diesen Verweisen passieren?",
+    "noMentions": "Keine andere Passage verweist auf diese Passage.",
+    "optionRedirect": "Verweise auf eine andere Passage umleiten",
+    "optionRemoveSentences": "Sätze löschen, die ihn erwähnen",
+    "optionLeave": "Verweise unverändert lassen (werden als Fehler markiert)",
+    "targetPlaceholder": "Zielnummer",
+    "invalidTarget": "Diese Nummer gehört zu keiner verfügbaren Passage",
+    "closeGap": "Folgepassagen neu nummerieren, um die Lücke zu schließen",
+    "closeGapHintLeave": "Umleiten oder Sätze löschen wählen, um die Neunummerierung zu aktivieren",
+    "cancel": "Abbrechen",
+    "confirm": "Passage {n} löschen",
+    "error": "Passage konnte nicht gelöscht werden"
+  },
   "Editor": {
     "editor": "Editor",
     "upload": "Importieren",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Möchtest du dieses Projekt wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "autoFixDone": "Auto-Fix abgeschlossen:\n- Erstellte Links: {a}\n- Waisen repariert: {b}\n- Als Ende markierte Passagen: {c}\n- Als Start markierte Passagen: {d}",
     "brokenLink": "Defekter Link auf Passage {n}, die nicht existiert",
+    "ghostRef": "Passage {from} verweist auf nicht existierende Passage {to}",
     "orphan": "Passage {n}: keine eingehenden Links (Waise)",
     "noExit": "Passage {n}: keine ausgehenden Links"
   },
@@ -627,6 +643,8 @@
     "node": "Passage {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} Verweise konnten nach dem Mischen nicht neu aufgebaut werden",
+    "skippedSlots": "{n} Passagen wurden wegen Dateninkonsistenzen nicht gemischt",
     "confirm": "Inhalt zwischen den Passagen mischen? Die Nummern bleiben, aber Text und Links werden zufällig neu angeordnet.",
     "done": "Inhalt gemischt: {p} Passagen, {l} Links neu erstellt",
     "startPreserved": " (Startpassage bewahrt)",

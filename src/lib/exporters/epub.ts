@@ -38,8 +38,12 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
     project.passages.map((p) => p.number)
   );
 
-  function linkifyContent(content: string, passageNumber: number): string {
-    const links = findPassageLinks(content, passageNumbers, passageNumber);
+  function linkifyContent(
+    content: string,
+    passageNumber: number,
+    forcedTargets?: ReadonlySet<number>
+  ): string {
+    const links = findPassageLinks(content, passageNumbers, passageNumber, forcedTargets);
     let result = "";
     let lastIndex = 0;
 
@@ -206,7 +210,7 @@ a { color: ${th.linkInline}; text-decoration: none; }
 </head>
 <body>${watermarkDiv}
   ${titleLine}
-  <div class="content">${linkifyContent(passage.content, passage.number)}</div>
+  <div class="content">${linkifyContent(passage.content, passage.number, new Set(passage.outgoingLinks.map((l) => l.target.number)))}</div>
   ${linksHtml}
   ${dividerHtml}
 </body>

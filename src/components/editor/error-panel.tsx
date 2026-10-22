@@ -4,18 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, AlertCircle, CheckCircle2, Wand2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import type { PassageError } from "@/lib/editor-validation";
 
 interface Passage {
   id: string;
   number: number;
   title: string | null;
-}
-
-interface PassageError {
-  type: "orphan" | "no_exit" | "broken_link" | "cycle";
-  passageNumber: number;
-  message: string;
-  autoFixable: boolean;
 }
 
 interface ErrorPanelProps {

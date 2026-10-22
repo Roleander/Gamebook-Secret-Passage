@@ -47,7 +47,7 @@ const BRACKET_BEFORE = /[[({«“"]\s*$/u;
 const BRACKET_AFTER = /^[\])}»”"]\s*/u;
 
 const KEYWORD_A = new RegExp(
-  `(?:^|[^\\p{L}])(?:${KEYWORD_SOURCE})(?![\\p{L}])[^0-9\\n]{0,40}$`,
+  `(?:^|[^\\p{L}])(?:${KEYWORD_SOURCE})(?![\\p{L}])[^0-9\\n]{0,40}(?:\\n[^0-9\\n]{0,40})?$`,
   "iu"
 );
 

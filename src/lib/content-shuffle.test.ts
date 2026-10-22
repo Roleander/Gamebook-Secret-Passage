@@ -318,9 +318,31 @@ describe("computeShuffleMutations", () => {
     ];
     const plan = buildContentShufflePlan(passages, { rng: seededRng(8) });
 
-    const { newLinks } = computeShuffleMutations(passages, plan);
+    const { newLinks, droppedLinkCount, skippedSlotCount } =
+      computeShuffleMutations(passages, plan);
 
     expect(newLinks).toEqual([]);
+    expect(droppedLinkCount).toBe(2);
+    expect(skippedSlotCount).toBe(0);
+  });
+
+  it("counts slots that are missing from the plan", () => {
+    const passages = [
+      { id: "p1", number: 1, title: null, content: "Uno.", isEndpoint: false, outgoingLinks: [] },
+      { id: "p2", number: 2, title: null, content: "Dos.", isEndpoint: false, outgoingLinks: [] },
+      { id: "p3", number: 3, title: null, content: "Tres.", isEndpoint: false, outgoingLinks: [] },
+    ];
+    const plan = buildContentShufflePlan(
+      passages.slice(0, 2).map((p) => ({ number: p.number, isStart: p.number === 1 })),
+      { rng: () => 0 }
+    );
+
+    const { skippedSlotCount, droppedLinkCount, passageUpdates } =
+      computeShuffleMutations(passages, plan);
+
+    expect(skippedSlotCount).toBe(1);
+    expect(droppedLinkCount).toBe(0);
+    expect(passageUpdates).toHaveLength(0);
   });
 
   it("recreates links unchanged for an identity shuffle", () => {

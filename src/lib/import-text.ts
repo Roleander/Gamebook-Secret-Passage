@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { Entitlements } from "@/lib/entitlements";
 import type { FileParseResult } from "@/lib/parsers";
+import { replaceNumberReferences } from "@/lib/number-references";
 
 export interface ImportOutcome {
   createdCount: number;
@@ -15,13 +16,6 @@ export async function importParsedResult(
   result: FileParseResult,
   ents: Entitlements
 ): Promise<ImportOutcome> {
-  const seenNumbers = new Set<number>();
-  const uniquePassages = result.passages.filter((p) => {
-    if (seenNumbers.has(p.number)) return false;
-    seenNumbers.add(p.number);
-    return true;
-  });
-
   const existingPassages = await db.passage.findMany({
     where: { projectId },
     select: { number: true },
@@ -44,26 +38,49 @@ export async function importParsedResult(
   }> = [];
   const skippedNumbers: number[] = [];
   const warnings: string[] = [];
+  const numberMapping = new Map<number, number>();
+  const assignedFinals = new Set<number>();
+  let maxFinalNumber = startNumber - 1;
 
-  for (let index = 0; index < uniquePassages.length; index++) {
-    const passage = uniquePassages[index];
-    const finalNumber = startNumber + passage.number;
+  for (let index = 0; index < result.passages.length; index++) {
+    const passage = result.passages[index];
+
+    if (!Number.isInteger(passage.number)) {
+      warnings.push(`Pasaje ${passage.number}: número no entero; omitido.`);
+      continue;
+    }
+
+    let finalNumber = startNumber + passage.number;
 
     if (existingNumbers.has(finalNumber)) {
       skippedNumbers.push(finalNumber);
       continue;
     }
 
+    if (assignedFinals.has(finalNumber)) {
+      finalNumber = maxFinalNumber + 1;
+      warnings.push(
+        `Pasaje ${passage.number} duplicado → importado como ${finalNumber}.`
+      );
+    }
+
+    assignedFinals.add(finalNumber);
+    maxFinalNumber = Math.max(maxFinalNumber, finalNumber);
+    numberMapping.set(passage.number, finalNumber);
+
     passageData.push({
       projectId,
-      number: Math.round(finalNumber),
+      number: finalNumber,
       title: passage.title,
       content: passage.content,
       sortOrder: index,
       isStart: passage.isStart && index === 0,
       isEndpoint: passage.isEndpoint,
     });
-    existingNumbers.add(Math.round(finalNumber));
+  }
+
+  for (const data of passageData) {
+    data.content = replaceNumberReferences(data.content, numberMapping);
   }
 
   if (passageData.length === 0) {
@@ -96,12 +113,12 @@ export async function importParsedResult(
   let linksCreated = 0;
 
   for (const link of result.links) {
-    const sourcePassage = allPassages.find(
-      (p) => p.number === Math.round(startNumber + link.sourceNumber)
-    );
-    const targetPassage = allPassages.find(
-      (p) => p.number === Math.round(startNumber + link.targetNumber)
-    );
+    const sourceFinal = numberMapping.get(link.sourceNumber);
+    const targetFinal = numberMapping.get(link.targetNumber);
+    if (sourceFinal === undefined || targetFinal === undefined) continue;
+
+    const sourcePassage = allPassages.find((p) => p.number === sourceFinal);
+    const targetPassage = allPassages.find((p) => p.number === targetFinal);
 
     if (!sourcePassage || !targetPassage) continue;
 
@@ -123,40 +140,6 @@ export async function importParsedResult(
         },
       });
       linksCreated++;
-    }
-  }
-
-  for (let i = 0; i < allPassages.length; i++) {
-    const passage = allPassages[i];
-    if (passage.isEndpoint) continue;
-
-    const originalNumber = passage.number - startNumber;
-    const hasOptions = result.passages.find(
-      (p) => Math.round(p.number) === Math.round(originalNumber)
-    )?.options?.some((o) => o.type !== "dice");
-
-    if (hasOptions && i + 1 < allPassages.length) {
-      const nextPassage = allPassages[i + 1];
-
-      const existingImplicitLink = await db.passageLink.findUnique({
-        where: {
-          sourceId_targetId: {
-            sourceId: passage.id,
-            targetId: nextPassage.id,
-          },
-        },
-      });
-
-      if (!existingImplicitLink) {
-        await db.passageLink.create({
-          data: {
-            sourceId: passage.id,
-            targetId: nextPassage.id,
-            linkText: "Continuar",
-          },
-        });
-        linksCreated++;
-      }
     }
   }
 

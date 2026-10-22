@@ -90,6 +90,21 @@
     "titleRequired": "Tytuł jest wymagany",
     "createError": "Błąd podczas tworzenia projektu"
   },
+  "DeleteDialog": {
+    "title": "Usunąć przejście {n}?",
+    "mentions": "{n} przejść wspomina przejście {target}. Co zrobić z tymi odwołaniami?",
+    "noMentions": "Żadne inne przejście nie odwołuje się do tego przejścia.",
+    "optionRedirect": "Przekieruj odwołania do innego przejścia",
+    "optionRemoveSentences": "Usuń zdania, które go wspominają",
+    "optionLeave": "Zostaw odwołania bez zmian (zostaną oznaczone jako błędy)",
+    "targetPlaceholder": "Numer docelowy",
+    "invalidTarget": "Ten numer nie pasuje do żadnego dostępnego przejścia",
+    "closeGap": "Ponumeruj kolejne przejścia, aby zamknąć lukę",
+    "closeGapHintLeave": "Wybierz przekierowanie lub usuń zdania, aby włączyć ponumerowanie",
+    "cancel": "Anuluj",
+    "confirm": "Usuń przejście {n}",
+    "error": "Nie udało się usunąć przejścia"
+  },
   "Editor": {
     "editor": "Edytor",
     "upload": "Importuj",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Czy na pewno chcesz usunąć ten projekt? Tej akcji nie można cofnąć.",
     "autoFixDone": "Auto-fix zakończony:\n- Utworzone linki: {a}\n- Naprawione sieroty: {b}\n- Pasaże oznaczone jako końcowe: {c}\n- Pasaże oznaczone jako start: {d}",
     "brokenLink": "Zerwany link do pasażu {n}, który nie istnieje",
+    "ghostRef": "Przejście {from} odwołuje się do przejścia {to}, które nie istnieje",
     "orphan": "Pasaż {n}: brak linków wchodzących (sierota)",
     "noExit": "Pasaż {n}: brak linków wychodzących"
   },
@@ -627,6 +643,8 @@
     "node": "Pasaż {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} odwołań nie udało się odbudować po przetasowaniu",
+    "skippedSlots": "{n} przejść nie zostało przetasowanych z powodu niespójności danych",
     "confirm": "Tasować treść między pasażami? Numery pozostają, ale tekst i linki są losowo przestawiane.",
     "done": "Treść utasowana: {p} pasażów, {l} linków odtworzonych",
     "startPreserved": " (pasaż startowy zachowany)",

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { findPassageLinks } from "@/lib/reference-links";
+import { findPassageLinksPerLine, type PassageLink } from "@/lib/reference-links";
 import { ZipArchive } from "archiver";
 import { Writable } from "stream";
 import { PDF_THEMES, officeTheme, type OfficeTheme, type ThemeId } from "@/lib/exporters/themes";
@@ -38,8 +38,7 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
   const th = officeTheme(pdfTh);
   const themed = th.id !== "clasico";
 
-  function convertInlineLinks(line: string): string {
-    const links = findPassageLinks(line, passageNumbers);
+  function convertInlineLinks(line: string, links: PassageLink[]): string {
     let result = "";
     let lastIdx = 0;
 
@@ -92,19 +91,29 @@ ${autoStyles}  <office:body>
     if (passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
+    const forcedTargets = new Set<number>(
+      passage.outgoingLinks.map((l) => l.target.number)
+    );
+    const lineLinks = findPassageLinksPerLine(
+      passage.content,
+      passageNumbers,
+      passage.number,
+      forcedTargets
+    );
+
     if (readingMode) {
       contentXml += `      <text:p text:style-name="PassageNumberCenter"><text:bookmark text:name="passage${passage.number}"/>${passage.number}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
-      lines.forEach((line) => {
-        contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line)}</text:p>\n`;
+      lines.forEach((line, i) => {
+        contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line, lineLinks[i])}</text:p>\n`;
       });
     } else {
       let header = `Pasaje ${passage.number}`;
       if (passage.title) header += ` — ${escapeXml(passage.title)}`;
       contentXml += `      <text:p text:style-name="PassageNumber"><text:bookmark text:name="passage${passage.number}"/>${header}${markerStr}</text:p>\n`;
       const lines = passage.content.split("\n");
-      lines.forEach((line) => {
-        contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line)}</text:p>\n`;
+      lines.forEach((line, i) => {
+        contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line, lineLinks[i])}</text:p>\n`;
       });
       if (passage.outgoingLinks.length > 0) {
         contentXml += `      <text:p text:style-name="PassageNumber">Opciones:</text:p>\n`;

@@ -90,6 +90,21 @@
     "titleRequired": "Název je povinný",
     "createError": "Chyba při vytváření projektu"
   },
+  "DeleteDialog": {
+    "title": "Smazat průchod {n}?",
+    "mentions": "{n} průchodů zmiňuje průchod {target}. Co s těmito odkazy?",
+    "noMentions": "Na tento průchod neodkazuje žádný jiný průchod.",
+    "optionRedirect": "Přesměrovat odkazy na jiný průchod",
+    "optionRemoveSentences": "Smazat věty, které jej zmiňují",
+    "optionLeave": "Nechat odkazy tak, jak jsou (budou označeny jako chyby)",
+    "targetPlaceholder": "Cílové číslo",
+    "invalidTarget": "Toto číslo neodpovídá žádnému dostupnému průchodu",
+    "closeGap": "Přečíslovat následující průchody a zaplnit mezeru",
+    "closeGapHintLeave": "Zvolte přesměrování nebo mazání vět pro zapnutí přečíslování",
+    "cancel": "Zrušit",
+    "confirm": "Smazat průchod {n}",
+    "error": "Průchod se nepodařilo smazat"
+  },
   "Editor": {
     "editor": "Editor",
     "upload": "Importovat",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Opravdu chcete smazat tento projekt? Tuto akci nelze vrátit zpět.",
     "autoFixDone": "Auto-fix dokončen:\n- Vytvořené odkazy: {a}\n- Opravené sirotky: {b}\n- Pasáže označené jako koncové: {c}\n- Pasáže označené jako začátek: {d}",
     "brokenLink": "Rozbitý odkaz na pasáž {n}, která neexistuje",
+    "ghostRef": "Průchod {from} odkazuje na průchod {to}, který neexistuje",
     "orphan": "Pasáž {n}: nemá vstupní odkazy (sirotek)",
     "noExit": "Pasáž {n}: nemá výstupní odkazy"
   },
@@ -627,6 +643,8 @@
     "node": "Pasáž {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} odkazů se po zamíchání nepodařilo obnovit",
+    "skippedSlots": "{n} průchodů nebylo zamícháno kvůli nesrovnalostem v datech",
     "confirm": "Zamíchat obsah mezi pasážemi? Čísla zůstanou, ale text a odkazy se náhodně přehodí.",
     "done": "Obsah zamíchán: {p} pasáží, {l} odkazů vytvořeno",
     "startPreserved": " (počáteční pasáž zachována)",

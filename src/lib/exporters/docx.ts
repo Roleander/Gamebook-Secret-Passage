@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { findPassageLinks } from "@/lib/reference-links";
+import { findPassageLinksPerLine, type PassageLink } from "@/lib/reference-links";
 import {
   Document, Packer, Paragraph, TextRun, Bookmark, InternalHyperlink,
   AlignmentType, TabStopType, TabStopPosition,
@@ -39,8 +39,7 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
   const textHex = toHex6(th.text);
   const subtitleHex = toHex6(th.subtitle);
 
-  function linkifyContent(content: string, passageNumber: number): (TextRun | InternalHyperlink)[] {
-    const links = findPassageLinks(content, passageNumbers, passageNumber);
+  function linkifyContent(content: string, links: PassageLink[]): (TextRun | InternalHyperlink)[] {
     const runs: (TextRun | InternalHyperlink)[] = [];
     let lastIndex = 0;
 
@@ -101,6 +100,16 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
     if (passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
+    const forcedTargets = new Set<number>(
+      passage.outgoingLinks.map((l) => l.target.number)
+    );
+    const lineLinks = findPassageLinksPerLine(
+      passage.content,
+      passageNumbers,
+      passage.number,
+      forcedTargets
+    );
+
     if (readingMode) {
       // Passage number centered as bookmark
       children.push(new Paragraph({
@@ -119,10 +128,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
       }));
       // Content
       const lines = passage.content.split("\n");
-      lines.forEach((line) => {
+      lines.forEach((line, i) => {
         children.push(new Paragraph({
           spacing: { after: 100 },
-          children: linkifyContent(line, passage.number),
+          children: linkifyContent(line, lineLinks[i]),
         }));
       });
     } else {
@@ -144,10 +153,10 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
       }));
       // Content
       const lines = passage.content.split("\n");
-      lines.forEach((line) => {
+      lines.forEach((line, i) => {
         children.push(new Paragraph({
           spacing: { after: 100 },
-          children: linkifyContent(line, passage.number),
+          children: linkifyContent(line, lineLinks[i]),
         }));
       });
       // Options

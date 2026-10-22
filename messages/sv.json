@@ -90,6 +90,21 @@
     "titleRequired": "Titel krävs",
     "createError": "Fel vid skapande av projektet"
   },
+  "DeleteDialog": {
+    "title": "Ta bort passaget {n}?",
+    "mentions": "{n} passager nämner passaget {target}. Vad ska hända med dessa hänvisningar?",
+    "noMentions": "Inget annat passag hänvisar till det här passaget.",
+    "optionRedirect": "Rikta om hänvisningarna till ett annat passag",
+    "optionRemoveSentences": "Ta bort meningarna som nämner det",
+    "optionLeave": "Lämna hänvisningarna som de är (flaggas som fel)",
+    "targetPlaceholder": "Målnummer",
+    "invalidTarget": "Det numret motsvarar inget tillgängligt passag",
+    "closeGap": "Numrera om senare passag för att stänga luckan",
+    "closeGapHintLeave": "Välj omdirigering eller ta bort meningar för att aktivera omnumrering",
+    "cancel": "Avbryt",
+    "confirm": "Ta bort passaget {n}",
+    "error": "Det gick inte att ta bort passaget"
+  },
   "Editor": {
     "editor": "Redigerare",
     "upload": "Importera",
@@ -154,6 +169,7 @@
     "deleteProjectConfirm": "Vill du verkligen ta bort det här projektet? Åtgärden kan inte ångras.",
     "autoFixDone": "Auto-fix klar:\n- Länkar skapade: {a}\n- Fördärvade reparerade: {b}\n- Pass markerade som slut: {c}\n- Pass markerade som start: {d}",
     "brokenLink": "Bruten länk till pass {n} som inte finns",
+    "ghostRef": "Passaget {from} hänvisar till passaget {to}, som inte finns",
     "orphan": "Pass {n}: inga inkommande länkar (föräldelöst)",
     "noExit": "Pass {n}: inga utgående länkar"
   },
@@ -627,6 +643,8 @@
     "node": "Pass {n}"
   },
   "Shuffle": {
+    "droppedLinks": "{n} länkar kunde inte byggas om efter blandningen",
+    "skippedSlots": "{n} passager blandades inte på grund av inkonsekvenser i data",
     "confirm": "Blanda innehållet mellan passen? Numren behålls men text och länkar arrangeras slumpmässigt om.",
     "done": "Innehåll blandat: {p} pass, {l} länkar återskapade",
     "startPreserved": " (startpass bevarad)",

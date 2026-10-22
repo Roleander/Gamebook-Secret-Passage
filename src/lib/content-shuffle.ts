@@ -82,16 +82,28 @@ export interface LinkMutation {
 export function computeShuffleMutations(
   passages: ShuffleMutationInput[],
   plan: ContentShufflePlan
-): { passageUpdates: PassageMutation[]; newLinks: LinkMutation[] } {
+): {
+  passageUpdates: PassageMutation[];
+  newLinks: LinkMutation[];
+  droppedLinkCount: number;
+  skippedSlotCount: number;
+} {
   const byNumber = new Map(passages.map((p) => [p.number, p]));
   const byId = new Map(passages.map((p) => [p.id, p]));
 
   const passageUpdates: PassageMutation[] = [];
+  let skippedSlotCount = 0;
   for (const slot of passages) {
     const storyNumber = plan.slotToStory.get(slot.number);
-    if (storyNumber === undefined) continue;
+    if (storyNumber === undefined) {
+      skippedSlotCount++;
+      continue;
+    }
     const story = byNumber.get(storyNumber);
-    if (!story) continue;
+    if (!story) {
+      skippedSlotCount++;
+      continue;
+    }
 
     const newContent = rewriteShuffledContent(story.content, plan);
 
@@ -110,20 +122,32 @@ export function computeShuffleMutations(
   }
 
   const newLinks: LinkMutation[] = [];
+  let droppedLinkCount = 0;
   for (const story of passages) {
     const sourceSlotNumber = plan.storyToSlot.get(story.number);
-    if (sourceSlotNumber === undefined) continue;
+    if (sourceSlotNumber === undefined) {
+      droppedLinkCount += story.outgoingLinks.length;
+      continue;
+    }
     const sourceSlot = byNumber.get(sourceSlotNumber);
-    if (!sourceSlot) continue;
+    if (!sourceSlot) {
+      droppedLinkCount += story.outgoingLinks.length;
+      continue;
+    }
 
     for (const link of story.outgoingLinks) {
       const targetStory = byId.get(link.targetId);
-      if (!targetStory) continue;
-      const targetSlotNumber = plan.storyToSlot.get(targetStory.number);
-      if (targetSlotNumber === undefined) continue;
-      const targetSlot = byNumber.get(targetSlotNumber);
-      if (!targetSlot) continue;
-      if (sourceSlot.id === targetSlot.id) continue;
+      const targetSlotNumber = targetStory
+        ? plan.storyToSlot.get(targetStory.number)
+        : undefined;
+      const targetSlot =
+        targetSlotNumber !== undefined
+          ? byNumber.get(targetSlotNumber)
+          : undefined;
+      if (!targetStory || !targetSlot || sourceSlot.id === targetSlot.id) {
+        droppedLinkCount++;
+        continue;
+      }
 
       newLinks.push({
         sourceId: sourceSlot.id,
@@ -136,5 +160,5 @@ export function computeShuffleMutations(
     }
   }
 
-  return { passageUpdates, newLinks };
+  return { passageUpdates, newLinks, droppedLinkCount, skippedSlotCount };
 }
