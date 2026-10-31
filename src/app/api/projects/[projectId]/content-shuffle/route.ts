@@ -8,6 +8,7 @@ import {
   buildContentShufflePlan,
   computeShuffleMutations,
 } from "@/lib/content-shuffle";
+import { syncProjectLinks } from "@/lib/link-sync";
 import { z } from "zod";
 import { parseOr400 } from "@/lib/api-validate";
 
@@ -111,19 +112,24 @@ export async function POST(
       { maxWait: 10_000, timeout: 45_000 }
     );
 
+    const recoveredLinks = await syncProjectLinks(projectId);
+
     console.log(
       "Content shuffle OK:",
       projectId,
       project.passages.length,
       "passages,",
       newLinks.length,
-      "links"
+      "links,",
+      recoveredLinks,
+      "recovered"
     );
 
     return NextResponse.json({
       message: "Contenido barajado entre pasajes (números mantenidos)",
       passageCount: project.passages.length,
       linksCreated: newLinks.length,
+      recoveredLinks,
       startPreserved: plan.startStory !== null,
       droppedLinks: droppedLinkCount,
       skippedSlots: skippedSlotCount,

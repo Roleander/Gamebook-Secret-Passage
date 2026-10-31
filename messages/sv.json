@@ -171,7 +171,8 @@
     "brokenLink": "Bruten länk till pass {n} som inte finns",
     "ghostRef": "Passaget {from} hänvisar till passaget {to}, som inte finns",
     "orphan": "Pass {n}: inga inkommande länkar (föräldelöst)",
-    "noExit": "Pass {n}: inga utgående länkar"
+    "noExit": "Pass {n}: inga utgående länkar",
+    "showEndMarkers": "Visa slutmarkörer"
   },
   "Upload": {
     "title": "Importera dokument",
@@ -488,7 +489,8 @@
     "aiConnections": "AI: kopplingar",
     "aiSegment": "AI: segmentera",
     "aiFallback": "AI otillgänglig — lokal analys användes",
-    "aiRateLimit": "AI-förfrågningsgräns nådd. Försök igen om några minuter."
+    "aiRateLimit": "AI-förfrågningsgräns nådd. Försök igen om några minuter.",
+    "reanalyze": "Analysera länkar igen"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Ångra den senaste innehållsblandningen?",
     "undoDone": "Ångrat: {p} pass återställda, {l} länkar återställda",
     "undoError": "Fel vid ångran",
-    "undoConnError": "Anslutningsfel vid ångran"
+    "undoConnError": "Anslutningsfel vid ångran",
+    "recoveredLinks": "Återställda länkar: {n}"
   },
   "Passage": {
     "targetNotFound": "Mållpass hittades inte",
@@ -689,7 +692,10 @@
     "drag": "Dra för att ordna om",
     "ok": "OK",
     "editNumber": "Klicka för att ändra nummer",
-    "empty": "Inga pass ännu. Importera en fil för att komma igång."
+    "empty": "Inga pass ännu. Importera en fil för att komma igång.",
+    "searchPlaceholder": "Sök passager",
+    "searchClear": "Rensa",
+    "searchNoResults": "Inga matchande passager"
   },
   "Errors": {
     "title": "Passkontroll",
@@ -704,7 +710,8 @@
     "total": "Pass totalt: {n}",
     "starts": "Startpass: {n}",
     "fixableCount": "Auto-fixbara fel: {n}",
-    "manualCount": "Manuella fel: {n}"
+    "manualCount": "Manuella fel: {n}",
+    "dismiss": "Avfärda"
   },
   "Review": {
     "tab": "Granskning",

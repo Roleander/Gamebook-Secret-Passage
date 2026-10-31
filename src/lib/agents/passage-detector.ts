@@ -11,6 +11,7 @@ export interface DetectedPassage {
   content: string;
   confidence: number;
   markers: string[];
+  number?: number;
 }
 
 export class PassageDetectorAgent {
@@ -51,6 +52,9 @@ export class PassageDetectorAgent {
    * Detect passages in a text
    */
   detect(text: string): DetectedPassage[] {
+    const structured = this.detectByNumberedHeaders(text);
+    if (structured) return structured;
+
     const lines = text.split("\n");
     const passageScores: number[] = new Array(lines.length).fill(0);
 
@@ -116,10 +120,53 @@ export class PassageDetectorAgent {
     return passages;
   }
 
+  /**
+   * Structured mode: a bare number alone on a line is a passage header
+   * (same rule as the txt parser). Returns null when the text does not
+   * follow that format so the heuristic fallback runs.
+   */
+  private detectByNumberedHeaders(text: string): DetectedPassage[] | null {
+    const lines = text.split("\n");
+    const headerRegex = /^\s*(\d+)\s*(?:\[[^\]]*\])?\s*$/;
+    const headers: { num: number; lineIdx: number }[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const match = lines[i].match(headerRegex);
+      if (match) headers.push({ num: parseInt(match[1], 10), lineIdx: i });
+    }
+    if (headers.length < 2) return null;
+
+    const passages: DetectedPassage[] = [];
+    for (let h = 0; h < headers.length; h++) {
+      const start = headers[h].lineIdx + 1;
+      const end = h + 1 < headers.length ? headers[h + 1].lineIdx : lines.length;
+      const slice = lines.slice(start, end);
+      while (slice.length > 0 && slice[slice.length - 1].trim() === "") {
+        slice.pop();
+      }
+      const content = slice.join("\n").trim();
+      if (!content) continue;
+      passages.push({
+        startLine: start,
+        endLine: end - 1,
+        content,
+        confidence: 1,
+        markers: ["bare_number"],
+        number: headers[h].num,
+      });
+    }
+
+    return passages.length > 0 ? passages : null;
+  }
+
   private getLineMarkers(line: string): string[] {
     const markers: string[] = [];
     for (const pattern of this.patterns) {
-      if (pattern.regex.test(line)) {
+      const regex = new RegExp(
+        pattern.regex.source,
+        pattern.regex.flags.replace("g", "")
+      );
+      if (regex.test(line)) {
         markers.push(pattern.name);
       }
     }

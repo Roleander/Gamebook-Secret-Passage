@@ -5,6 +5,7 @@ export interface PassageError {
   passageNumber: number;
   message: string;
   autoFixable: boolean;
+  snippet?: string;
 }
 
 interface ValidatablePassage {
@@ -20,6 +21,18 @@ type Translate = (
   key: string,
   params?: Record<string, string | number>
 ) => string;
+
+function passageSnippet(content: string, target: number): string | undefined {
+  const match = content.match(new RegExp(`\\b${target}\\b`));
+  if (!match || match.index === undefined) {
+    const trimmed = content.slice(0, 120).trim();
+    return trimmed || undefined;
+  }
+  const start = Math.max(0, match.index - 60);
+  const end = Math.min(content.length, match.index + String(target).length + 60);
+  const snippet = content.slice(start, end).replace(/\s+/g, " ").trim();
+  return snippet || undefined;
+}
 
 export function validatePassages(
   passages: ValidatablePassage[],
@@ -38,6 +51,7 @@ export function validatePassages(
           passageNumber: passage.number,
           message: t("Editor.brokenLink", { n: link.target.number }),
           autoFixable: false,
+          snippet: passageSnippet(passage.content, link.target.number),
         });
       }
     });
@@ -67,9 +81,10 @@ export function validatePassages(
       errors.push({
         type: "ghost_ref",
         passageNumber: passage.number,
-        message: t("Editor.ghostRef", { from: passage.number, to: missing }),
-        autoFixable: false,
-      });
+          message: t("Editor.ghostRef", { from: passage.number, to: missing }),
+          autoFixable: false,
+          snippet: passageSnippet(passage.content, missing),
+        });
     }
   });
 

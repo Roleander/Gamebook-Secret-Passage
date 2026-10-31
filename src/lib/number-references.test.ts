@@ -88,3 +88,22 @@ describe("replaceNumberReferences", () => {
     ).toBe("[Ve al pasaje 7]");
   });
 });
+
+describe("replaceNumberReferences — sin cruce de frases ni palabras clave ausentes", () => {
+  it("reescribe prosigue en pero no umbrales tras un punto", () => {
+    expect(
+      replaceNumberReferences("Prosigue en el 235.", new Map([[235, 99]]))
+    ).toBe("Prosigue en el 99.");
+    expect(
+      replaceNumberReferences(
+        "añade el modificador de la habilidad al resultado. Si es igual o menor a 245, pasa al enlace 158.",
+        new Map([
+          [245, 300],
+          [158, 7],
+        ])
+      )
+    ).toBe(
+      "añade el modificador de la habilidad al resultado. Si es igual o menor a 245, pasa al enlace 7."
+    );
+  });
+});

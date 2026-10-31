@@ -171,7 +171,8 @@
     "brokenLink": "Rozbitý odkaz na pasáž {n}, která neexistuje",
     "ghostRef": "Průchod {from} odkazuje na průchod {to}, který neexistuje",
     "orphan": "Pasáž {n}: nemá vstupní odkazy (sirotek)",
-    "noExit": "Pasáž {n}: nemá výstupní odkazy"
+    "noExit": "Pasáž {n}: nemá výstupní odkazy",
+    "showEndMarkers": "Zobrazit značky konce"
   },
   "Upload": {
     "title": "Importovat dokument",
@@ -488,7 +489,8 @@
     "aiConnections": "AI: spojení",
     "aiSegment": "AI: segmentovat",
     "aiFallback": "AI není k dispozici — použita místní analýza",
-    "aiRateLimit": "Dosažen limit AI požadavků. Zkuste to za chvíli znovu."
+    "aiRateLimit": "Dosažen limit AI požadavků. Zkuste to za chvíli znovu.",
+    "reanalyze": "Znovu analyzovat odkazy"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Vrátit poslední zamíchání obsahu?",
     "undoDone": "Vráceno: {p} pasáží obnoveno, {l} odkazů obnoveno",
     "undoError": "Chyba při vracení",
-    "undoConnError": "Chyba připojení při vracení"
+    "undoConnError": "Chyba připojení při vracení",
+    "recoveredLinks": "Obnovené odkazy: {n}"
   },
   "Passage": {
     "targetNotFound": "Cílová pasáž nenalezena",
@@ -689,7 +692,10 @@
     "drag": "Přetáhněte pro změnu pořadí",
     "ok": "OK",
     "editNumber": "Klikněte pro změnu čísla",
-    "empty": "Zatím žádné pasáže. Importujte soubor a začněte."
+    "empty": "Zatím žádné pasáže. Importujte soubor a začněte.",
+    "searchPlaceholder": "Hledat pasáže",
+    "searchClear": "Vymazat",
+    "searchNoResults": "Žádné odpovídající pasáže"
   },
   "Errors": {
     "title": "Kontrola pasáží",
@@ -704,7 +710,8 @@
     "total": "Pasáží celkem: {n}",
     "starts": "Počáteční pasáže: {n}",
     "fixableCount": "Auto-opravitelné chyby: {n}",
-    "manualCount": "Ruční chyby: {n}"
+    "manualCount": "Ruční chyby: {n}",
+    "dismiss": "Zavřít"
   },
   "Review": {
     "tab": "Kontrola",

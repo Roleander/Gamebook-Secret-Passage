@@ -171,7 +171,8 @@
     "brokenLink": "Lien romu vers le passage {n} qui n'existe pas",
     "ghostRef": "Le passage {from} fait référence au passage {to}, qui n'existe pas",
     "orphan": "Passage {n} : aucun lien entrant (orphelin)",
-    "noExit": "Passage {n} : aucun lien sortant"
+    "noExit": "Passage {n} : aucun lien sortant",
+    "showEndMarkers": "Afficher les marqueurs de fin"
   },
   "Upload": {
     "title": "Importer un Document",
@@ -488,7 +489,8 @@
     "aiConnections": "IA : connexions",
     "aiSegment": "IA : segmenter",
     "aiFallback": "IA indisponible — analyse locale utilisée",
-    "aiRateLimit": "Limite de requêtes IA atteinte. Réessayez dans quelques minutes."
+    "aiRateLimit": "Limite de requêtes IA atteinte. Réessayez dans quelques minutes.",
+    "reanalyze": "Analyser à nouveau les liens"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Annuler le dernier mélange de contenu ?",
     "undoDone": "Annulation terminée : {p} passages restaurés, {l} liens restaurés",
     "undoError": "Erreur lors de l'annulation",
-    "undoConnError": "Erreur de connexion pendant l'annulation"
+    "undoConnError": "Erreur de connexion pendant l'annulation",
+    "recoveredLinks": "Liens récupérés : {n}"
   },
   "Passage": {
     "targetNotFound": "Passage cible introuvable",
@@ -689,7 +692,10 @@
     "drag": "Glissez pour réordonner",
     "ok": "OK",
     "editNumber": "Cliquez pour changer le numéro",
-    "empty": "Aucun passage pour l'instant. Importez un fichier pour commencer."
+    "empty": "Aucun passage pour l'instant. Importez un fichier pour commencer.",
+    "searchPlaceholder": "Chercher des passages",
+    "searchClear": "Effacer",
+    "searchNoResults": "Aucun passage correspondant"
   },
   "Errors": {
     "title": "Vérification des passages",
@@ -704,7 +710,8 @@
     "total": "Total des passages : {n}",
     "starts": "Passages de début : {n}",
     "fixableCount": "Erreurs auto-réparables : {n}",
-    "manualCount": "Erreurs manuelles : {n}"
+    "manualCount": "Erreurs manuelles : {n}",
+    "dismiss": "Ignorer"
   },
   "Review": {
     "tab": "Révision",

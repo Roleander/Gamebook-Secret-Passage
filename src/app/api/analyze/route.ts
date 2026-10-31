@@ -30,6 +30,7 @@ const applyDetectionSchema = z.object({
       z.object({
         title: z.string().max(300).nullish(),
         content: z.string().min(1).max(50_000),
+        number: z.number().int().positive().max(9_999_999).nullish(),
       })
     )
     .min(1)
@@ -151,11 +152,19 @@ export async function POST(req: Request) {
         orderBy: { importedAt: "desc" },
       });
 
-      let segments: { title: string | null; content: string }[];
+      let segments: {
+        title: string | null;
+        content: string;
+        number?: number | null;
+      }[];
 
       if (parsed.data.segments) {
         segments = parsed.data.segments
-          .map((s) => ({ title: s.title ?? null, content: s.content.trim() }))
+          .map((s) => ({
+            title: s.title ?? null,
+            content: s.content.trim(),
+            number: s.number ?? null,
+          }))
           .filter((s) => s.content.length > 0);
       } else {
         if (!importHistory?.rawContent) {
@@ -169,7 +178,11 @@ export async function POST(req: Request) {
         const detected = detector.detect(importHistory.rawContent);
         segments = detected
           .filter((d) => d.content.trim().length > 0)
-          .map((d) => ({ title: null, content: d.content.trim() }));
+          .map((d) => ({
+            title: null,
+            content: d.content.trim(),
+            number: d.number ?? null,
+          }));
       }
 
       if (segments.length === 0) {

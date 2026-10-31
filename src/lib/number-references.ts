@@ -34,3 +34,8 @@ export function replaceNumberReferences(
     }
   );
 }
+
+export function forceReplaceNumber(content: string, from: number, to: number): string {
+  if (!Number.isInteger(from) || !Number.isInteger(to) || from === to) return content;
+  return content.replace(new RegExp(`\\b${from}\\b`, "g"), String(to));
+}

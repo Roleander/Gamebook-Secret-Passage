@@ -87,4 +87,30 @@ describe("classifyNumber", () => {
     expect(classifyAt('<<goto "La cueva 25">>', "25")).toBe("reference");
     expect(classifyAt('<<goto "25 PV">>', "25")).toBe("not-reference");
   });
+
+  it("does not reach a number across a sentence boundary", () => {
+    expect(
+      classifyAt(
+        "Haz una tira de tu habilidad, añadiendo al resultado el valor de esta.\nSi obtienes 10 o más, pasa al apartado 251.",
+        "10"
+      )
+    ).not.toBe("reference");
+    expect(
+      classifyAt(
+        "añade el modificador de la habilidad al resultado. Si es igual o menor a 245, pasa al enlace 158.",
+        "245"
+      )
+    ).not.toBe("reference");
+    expect(
+      classifyAt(
+        "añade el modificador de la habilidad al resultado. Si es igual o menor a 245, pasa al enlace 158.",
+        "158"
+      )
+    ).toBe("reference");
+  });
+
+  it("recognizes prosigue references", () => {
+    expect(classifyAt("Prosigue en el 235.", "235")).toBe("reference");
+    expect(classifyAt("prosiguen en el 12", "12")).toBe("reference");
+  });
 });

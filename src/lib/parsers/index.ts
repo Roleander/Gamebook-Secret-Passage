@@ -62,10 +62,17 @@ export async function parseFile(
       case "html":
       case "htm":
         rawText = buffer.toString("utf-8")
+          .replace(/\r\n?/g, "\n")
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(
+            /<\/(?:p|div|h[1-6]|li|tr|section|article|blockquote|td|th)>/gi,
+            "\n"
+          )
           .replace(/<[^>]+>/g, " ")
           .replace(/&nbsp;/g, " ")
           .replace(/&[a-z]+;/g, "")
-          .replace(/\s+/g, " ")
+          .replace(/[^\S\n]+/g, " ")
+          .replace(/\n{3,}/g, "\n\n")
           .trim();
         break;
       default:

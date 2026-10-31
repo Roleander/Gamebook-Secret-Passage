@@ -171,7 +171,8 @@
     "brokenLink": "Broken link to passage {n} that does not exist",
     "ghostRef": "Passage {from} references passage {to}, which does not exist",
     "orphan": "Passage {n}: no incoming links (orphan)",
-    "noExit": "Passage {n}: no outgoing links"
+    "noExit": "Passage {n}: no outgoing links",
+    "showEndMarkers": "Show ending markers"
   },
   "Upload": {
     "title": "Import Document",
@@ -488,7 +489,8 @@
     "aiConnections": "AI: connections",
     "aiSegment": "AI: segment",
     "aiFallback": "AI unavailable — used local analysis",
-    "aiRateLimit": "AI request limit reached. Try again in a few minutes."
+    "aiRateLimit": "AI request limit reached. Try again in a few minutes.",
+    "reanalyze": "Re-analyze links"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Undo the last content shuffle?",
     "undoDone": "Undo complete: {p} passages restored, {l} links restored",
     "undoError": "Error while undoing",
-    "undoConnError": "Connection error while undoing"
+    "undoConnError": "Connection error while undoing",
+    "recoveredLinks": "Recovered links: {n}"
   },
   "Passage": {
     "targetNotFound": "Target passage not found",
@@ -689,7 +692,10 @@
     "drag": "Drag to reorder",
     "ok": "OK",
     "editNumber": "Click to change number",
-    "empty": "No passages yet. Import a file to get started."
+    "empty": "No passages yet. Import a file to get started.",
+    "searchPlaceholder": "Search passages",
+    "searchClear": "Clear",
+    "searchNoResults": "No matching passages"
   },
   "Errors": {
     "title": "Passage Check",
@@ -704,7 +710,8 @@
     "total": "Total passages: {n}",
     "starts": "Start passages: {n}",
     "fixableCount": "Auto-fixable errors: {n}",
-    "manualCount": "Manual errors: {n}"
+    "manualCount": "Manual errors: {n}",
+    "dismiss": "Dismiss"
   },
   "Review": {
     "tab": "Review",

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { BookOpen, Flag, Target, ChevronUp, ChevronDown, Hash, GripVertical } from "lucide-react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useI18n } from "@/lib/i18n";
 import { queueableFetch } from "@/lib/offline-client";
+import { searchPassages } from "@/lib/passage-search";
 
 interface Passage {
   id: string;
@@ -195,6 +196,7 @@ export function PassageList({
 }: PassageListProps) {
   const { t } = useI18n();
   const sortedPassages = [...passages].sort((a, b) => a.number - b.number);
+  const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
 
@@ -241,18 +243,47 @@ export function PassageList({
     }
   };
 
-  if (sortedPassages.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-muted-foreground">
-          {t("PassageList.empty")}
-        </p>
-      </div>
-    );
-  }
+  const trimmedQuery = query.trim();
+  const searchResults = useMemo(
+    () => trimmedQuery ? searchPassages(sortedPassages, trimmedQuery) : null,
+    [sortedPassages, trimmedQuery]
+  );
+  const visiblePassages = searchResults ? searchResults.map((r) => r.passage as Passage) : sortedPassages;
+  const snippetById = useMemo(() => {
+    const map = new Map<string, string>();
+    searchResults?.forEach((result) => map.set(result.passage.id, result.snippet));
+    return map;
+  }, [searchResults]);
+  const selectedStillVisible =
+    !searchResults || searchResults.some((r) => r.passage.id === selectedPassageId);
 
   return (
+    <>
+      <div className="relative mb-2">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("PassageList.searchPlaceholder")}
+          className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-2 top-2 text-xs text-muted-foreground"
+            aria-label={t("PassageList.searchClear")}
+          >
+            X
+          </button>
+        )}
+      </div>
+      {visiblePassages.length === 0 ? (
+        <p className="text-center text-sm text-muted-foreground py-6">
+          {query ? t("PassageList.searchNoResults") : t("PassageList.empty")}
+        </p>
+      ) : (
+
     <DragDropProvider
       onDragEnd={(event) => {
         if (event.canceled) return;
@@ -262,12 +293,12 @@ export function PassageList({
       }}
     >
       <div className="space-y-1 max-h-[600px] overflow-y-auto">
-        {sortedPassages.map((passage, index) => (
+        {visiblePassages.map((passage, index) => (
           <SortableRow
             key={passage.id}
             passage={passage}
             index={index}
-            count={sortedPassages.length}
+            count={visiblePassages.length}
             isSelected={selectedPassageId === passage.id}
             isEditing={editingId === passage.id}
             editValue={editValue}
@@ -285,5 +316,7 @@ export function PassageList({
         ))}
       </div>
     </DragDropProvider>
+      )}
+    </>
   );
 }

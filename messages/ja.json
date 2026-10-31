@@ -171,7 +171,8 @@
     "brokenLink": "存在しないパッセージ{n}へのリンクが壊れています",
     "ghostRef": "パッセージ{from}は存在しないパッセージ{to}を参照しています",
     "orphan": "パッセージ{n}: 受信リンクなし（孤立）",
-    "noExit": "パッセージ{n}: 送信リンクなし"
+    "noExit": "パッセージ{n}: 送信リンクなし",
+    "showEndMarkers": "終了マーカーを表示"
   },
   "Upload": {
     "title": "ドキュメントをインポート",
@@ -488,7 +489,8 @@
     "aiConnections": "AI: 接続",
     "aiSegment": "AI: セグメント化",
     "aiFallback": "AI 不利用可能 — ローカル分析を使用",
-    "aiRateLimit": "AIリクエスト上限に達しました。数分後に再試行してください。"
+    "aiRateLimit": "AIリクエスト上限に達しました。数分後に再試行してください。",
+    "reanalyze": "リンクを再分析"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "最後のコンテンツシャッフルを取り消しますか？",
     "undoDone": "取り消し完了: {p} パッセージ復元、{l} リンク復元",
     "undoError": "取り消しエラー",
-    "undoConnError": "取り消し中の接続エラー"
+    "undoConnError": "取り消し中の接続エラー",
+    "recoveredLinks": "回復したリンク: {n}"
   },
   "Passage": {
     "targetNotFound": "リンク先パッセージが見つかりません",
@@ -689,7 +692,10 @@
     "drag": "ドラッグで並べ替え",
     "ok": "OK",
     "editNumber": "クリックで番号を変更",
-    "empty": "まだパッセージがありません。ファイルをインポートして始めましょう。"
+    "empty": "まだパッセージがありません。ファイルをインポートして始めましょう。",
+    "searchPlaceholder": "パッセージを検索",
+    "searchClear": "クリア",
+    "searchNoResults": "一致するパッセージなし"
   },
   "Errors": {
     "title": "パッセージ検証",
@@ -704,7 +710,8 @@
     "total": "パッセージ合計: {n}",
     "starts": "開始パッセージ: {n}",
     "fixableCount": "自動修復可能なエラー: {n}",
-    "manualCount": "手動エラー: {n}"
+    "manualCount": "手動エラー: {n}",
+    "dismiss": "非表示"
   },
   "Review": {
     "tab": "レビュー",

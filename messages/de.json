@@ -171,7 +171,8 @@
     "brokenLink": "Defekter Link auf Passage {n}, die nicht existiert",
     "ghostRef": "Passage {from} verweist auf nicht existierende Passage {to}",
     "orphan": "Passage {n}: keine eingehenden Links (Waise)",
-    "noExit": "Passage {n}: keine ausgehenden Links"
+    "noExit": "Passage {n}: keine ausgehenden Links",
+    "showEndMarkers": "Endmarkierungen anzeigen"
   },
   "Upload": {
     "title": "Dokument importieren",
@@ -488,7 +489,8 @@
     "aiConnections": "KI: Verbindungen",
     "aiSegment": "KI: segmentieren",
     "aiFallback": "KI nicht verfügbar — lokale Analyse verwendet",
-    "aiRateLimit": "KI-Anfragelimit erreicht. In wenigen Minuten erneut versuchen."
+    "aiRateLimit": "KI-Anfragelimit erreicht. In wenigen Minuten erneut versuchen.",
+    "reanalyze": "Links neu analysieren"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Letztes Inhaltsmischen rückgängig machen?",
     "undoDone": "Rückgängig abgeschlossen: {p} Passagen wiederhergestellt, {l} Links wiederhergestellt",
     "undoError": "Fehler beim Rückgängigmachen",
-    "undoConnError": "Verbindungsfehler beim Rückgängigmachen"
+    "undoConnError": "Verbindungsfehler beim Rückgängigmachen",
+    "recoveredLinks": "Wiederhergestellte Links: {n}"
   },
   "Passage": {
     "targetNotFound": "Zielpassage nicht gefunden",
@@ -689,7 +692,10 @@
     "drag": "Ziehen zum Neuanordnen",
     "ok": "OK",
     "editNumber": "Klicken, um die Nummer zu ändern",
-    "empty": "Noch keine Passagen. Importiere eine Datei, um zu beginnen."
+    "empty": "Noch keine Passagen. Importiere eine Datei, um zu beginnen.",
+    "searchPlaceholder": "Passagen suchen",
+    "searchClear": "Löschen",
+    "searchNoResults": "Keine passenden Passagen"
   },
   "Errors": {
     "title": "Passagenprüfung",
@@ -704,7 +710,8 @@
     "total": "Passagen gesamt: {n}",
     "starts": "Startpassagen: {n}",
     "fixableCount": "Auto-fixierbare Fehler: {n}",
-    "manualCount": "Manuelle Fehler: {n}"
+    "manualCount": "Manuelle Fehler: {n}",
+    "dismiss": "Ausblenden"
   },
   "Review": {
     "tab": "Prüfung",

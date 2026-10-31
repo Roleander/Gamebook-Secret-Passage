@@ -122,6 +122,15 @@ describe("extractPassagesFromText — avisos de importación", () => {
     expect(r.warnings.some((w) => w.includes("no entero"))).toBe(true);
   });
 
+  it("avisa cuando no hay cabeceras numeradas y todo va a un solo pasaje", () => {
+    const r = extractPassagesFromText(
+      "Sin numeración por aquí.\nSolo prosa continua del librojuego."
+    );
+    expect(r.passages).toHaveLength(1);
+    expect(r.passages[0].content).toContain("Solo prosa continua");
+    expect(r.warnings.some((w) => w.includes("único pasaje"))).toBe(true);
+  });
+
   it("avisa de pasajes con placeholder de contenido", () => {
     const r = extractPassagesFromText(
       "1\nAquí hay texto.\n\n217\n(Escribe aquí el contenido de este pasaje)\n"
@@ -251,5 +260,25 @@ describe("extractPassagesFromText — detección estricta de finales", () => {
       "1\nParece el final.\n\tSalvarme con la espada\nFIN"
     );
     expect(r.passages.find((p) => p.number === 1)?.isEndpoint).toBe(false);
+  });
+});
+
+describe("extractPassagesFromText — cabeceras con marcador entre corchetes", () => {
+  it("reconoce 1 [INICIO] y 5 [FIN] como cabeceras y separa su contenido", () => {
+    const r = extractPassagesFromText(
+      "1 [INICIO]\nTú abres los ojos.\n\n4\nVes una arena.\n\n5 [FIN]\nLas fuerzas te abandonan.\n"
+    );
+    expect(r.passages.map((p) => p.number)).toEqual([1, 4, 5]);
+    expect(r.passages[0].content).toBe("Tú abres los ojos.");
+    expect(r.passages[1].content).toBe("Ves una arena.");
+    expect(r.passages[2].content).toBe("Las fuerzas te abandonan.");
+    expect(r.passages[0].isStart).toBe(true);
+  });
+
+  it("no conserva la linea del marcador dentro del contenido", () => {
+    const r = extractPassagesFromText("12 [MUERTE]\nAcabas de morir.\n");
+    expect(r.passages).toHaveLength(1);
+    expect(r.passages[0].content).toBe("Acabas de morir.");
+    expect(r.passages[0].content).not.toContain("[MUERTE]");
   });
 });

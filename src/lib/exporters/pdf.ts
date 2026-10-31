@@ -15,7 +15,7 @@ interface Passage {
   }[];
 }
 
-export async function generatePDF(projectId: string, readingMode = false, theme: ThemeId = "clasico"): Promise<string> {
+export async function generatePDF(projectId: string, readingMode = false, theme: ThemeId = "clasico", mobile = false, showEndpointMarkers = true): Promise<string> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -31,7 +31,7 @@ export async function generatePDF(projectId: string, readingMode = false, theme:
   });
 
   if (!project) throw new Error("Proyecto no encontrado");
-  return buildPrintHtml(project, readingMode, theme);
+  return buildPrintHtml(project, readingMode, theme, mobile);
 }
 
 function buildLinkMap(passages: Passage[]): Set<number> {
@@ -65,7 +65,7 @@ function buildFontFaces(th: PdfTheme): string {
     .join("\n    ");
 }
 
-export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico"): string {
+export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showEndpointMarkers = true): string {
   const th = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -98,13 +98,15 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: ${th.fontBody};
-      font-size: 14px;
+    font-size: ${mobile ? 16 : 14}px;
       line-height: 1.8;
       color: ${th.text};
       background: ${th.bg};
-      padding: 20px;
+      padding: ${mobile ? 12 : 20}px;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
     }
-    .container { max-width: 800px; margin: 0 auto; background: ${th.containerBg}; padding: 40px; box-shadow: ${th.containerShadow}; }
+    .container { max-width: ${mobile ? "100%" : "800px"}; margin: 0 auto; background: ${th.containerBg}; padding: ${mobile ? 16 : 40}px; box-shadow: ${th.containerShadow}; }
     .cover { text-align: center; padding: 80px 20px; border-bottom: 3px double ${th.accent}; margin-bottom: 40px; break-after: page; }
     .cover h1 { font-size: 32px; color: ${th.accent}; margin-bottom: 10px; letter-spacing: ${th.h1LetterSpacing}; }
     .cover .subtitle { font-size: 14px; color: ${th.subtitle}; font-style: italic; }
@@ -116,11 +118,11 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
     .passage-number-left {
       font-size: 13px; font-weight: bold; color: ${th.accent}; margin-bottom: 8px; break-after: avoid;
     }
-    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; hyphens: auto; -webkit-hyphens: auto; }
+    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; hyphens: auto; -webkit-hyphens: auto; scroll-margin-top: 36px; font-size: ${mobile ? 16 : 14}px; }
     @media screen { .passage-content { scroll-margin-top: 36px; } }
     .passage-links { margin-top: 15px; padding: 10px 15px; background: ${th.linksBg}; border: 1px solid ${th.linksBorder}; border-radius: 4px; break-inside: avoid; }
     .passage-links strong { color: ${th.accent}; }
-    .passage-links a { color: ${th.accent}; text-decoration: none; font-weight: bold; }
+    .passage-links a { color: ${th.accent}; text-decoration: none; font-weight: bold; display: inline-block; padding: ${mobile ? "6px 8px" : "0"}; margin: ${mobile ? "4px 0" : "0"}; border-radius: 4px; }
     .start-marker { color: #22c55e; font-size: 11px; font-weight: bold; }
     .end-marker { color: #ef4444; font-size: 11px; font-weight: bold; }
     @media print { body { background: ${th.printBg}; padding: 0; } .container { box-shadow: none; padding: 0; } }${extras}
@@ -136,8 +138,8 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
 
   project.passages.forEach((passage, idx) => {
     const markers = [];
-    if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
-    if (passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+if (showEndpointMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";

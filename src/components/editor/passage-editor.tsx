@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Trash2, Link2, Unlink, ArrowDown, ArrowUp } from "lucide-react";
+import { forceReplaceNumber } from "@/lib/number-references";
 import { useI18n } from "@/lib/i18n";
+
 
 interface Passage {
   id: string;
@@ -20,7 +22,7 @@ interface Passage {
 interface PassageEditorProps {
   passage: Passage;
   allPassages: Passage[];
-  onUpdate: (updates: Partial<Passage>) => void;
+  onUpdate: (updates: Partial<Passage>) => Promise<boolean>;
   onDelete: () => void;
   onLinkAction: (
     action:
@@ -38,20 +40,28 @@ export function PassageEditor({
 }: PassageEditorProps) {
   const { t } = useI18n();
   const [title, setTitle] = useState(passage.title || "");
+  const [number, setNumber] = useState(passage.number);
   const [content, setContent] = useState(passage.content);
   const [isStart, setIsStart] = useState(passage.isStart);
   const [isEndpoint, setIsEndpoint] = useState(passage.isEndpoint);
   const [showOutgoingDialog, setShowOutgoingDialog] = useState(false);
   const [showIncomingDialog, setShowIncomingDialog] = useState(false);
   const [linkTarget, setLinkTarget] = useState<number | "">("");
+  const [forceFrom, setForceFrom] = useState<number | "">("");
+  const [forceTo, setForceTo] = useState<number | "">("");
+  const [forcePreview, setForcePreview] = useState<string | null>(null);
 
-  const handleSave = () => {
-    onUpdate({
+  const handleSave = async () => {
+    const ok = await onUpdate({
+      number,
       title: title || null,
       content,
       isStart,
       isEndpoint,
     });
+    if (!ok) {
+      setNumber(passage.number);
+    }
   };
 
   const handleCreateOutgoingLink = async () => {
@@ -140,6 +150,20 @@ export function PassageEditor({
           />
         </div>
 
+        <div className="space-y-2">
+          <label htmlFor="passage-number" className="text-sm font-medium">
+            {t("Passage.targetNumber")}
+          </label>
+          <Input
+            id="passage-number"
+            type="number"
+            min={1}
+            value={number}
+            onChange={(e) => setNumber(parseInt(e.target.value) || passage.number)}
+          />
+            
+        </div>
+
         <div className="flex items-center space-x-4">
           <label className="flex items-center space-x-2">
             <input
@@ -160,6 +184,63 @@ export function PassageEditor({
             <span className="text-sm">{t("Passage.isEnd")}</span>
           </label>
         </div>
+      </div>
+
+      <div className="space-y-2 border-t border-border pt-4">
+        <h3 className="text-sm font-medium">Forzar reescritura de un número</h3>
+        <p className="text-xs text-muted-foreground">
+          Sustituye todas las ocurrencias enteras de un número en el texto de este pasaje.
+        </p>
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="space-y-1">
+            <label className="text-xs">{t("Passage.sourceNumber")}</label>
+            <Input
+              type="number"
+              min={1}
+              value={forceFrom}
+              onChange={(e) => setForceFrom(parseInt(e.target.value) || "")}
+              className="w-24"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs">{t("Passage.targetNumber")}</label>
+            <Input
+              type="number"
+              min={1}
+              value={forceTo}
+              onChange={(e) => setForceTo(parseInt(e.target.value) || "")}
+              className="w-24"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (typeof forceFrom !== "number" || typeof forceTo !== "number") return;
+              setForcePreview(forceReplaceNumber(content, forceFrom, forceTo));
+            }}
+            disabled={typeof forceFrom !== "number" || typeof forceTo !== "number"}
+          >
+            {t("Editor.preview")}
+          </Button>
+        </div>
+        {forcePreview !== null && (
+          <div className="space-y-2">
+            <textarea
+              readOnly
+              className="flex min-h-[160px] w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm font-mono"
+              value={forcePreview}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => { setContent(forcePreview); setForcePreview(null); setForceFrom(""); setForceTo(""); }}>
+                {t("Passage.save")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => { setForcePreview(null); }}>
+                {t("Passage.cancel")}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

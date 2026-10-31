@@ -25,7 +25,7 @@ export interface DocxProject {
   passages: Passage[];
 }
 
-export async function buildDocxBuffer(project: DocxProject, readingMode = false, theme: ThemeId = "clasico"): Promise<Buffer> {
+export async function buildDocxBuffer(project: DocxProject, readingMode = false, theme: ThemeId = "clasico", showEndpointMarkers = true): Promise<Buffer> {
   const passageNumbers = new Set(project.passages.map(p => p.number));
   const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
   const bodyFont = th.fontFamilies[0] || "Times New Roman";
@@ -97,7 +97,7 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
   project.passages.forEach((passage, idx) => {
     const markers: string[] = [];
     if (passage.number === 1) markers.push("[INICIO]");
-    if (passage.isEndpoint) markers.push("[FIN]");
+    if (showEndpointMarkers && passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const forcedTargets = new Set<number>(
@@ -246,7 +246,7 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
   return Buffer.from(buffer);
 }
 
-export async function generateDOCX(projectId: string, readingMode = false, theme: ThemeId = "clasico"): Promise<Buffer> {
+export async function generateDOCX(projectId: string, readingMode = false, theme: ThemeId = "clasico", showEndpointMarkers = true): Promise<Buffer> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -266,6 +266,7 @@ export async function generateDOCX(projectId: string, readingMode = false, theme
   return buildDocxBuffer(
     { title: project.title, passages: project.passages },
     readingMode,
-    theme
+    theme,
+    showEndpointMarkers
   );
 }

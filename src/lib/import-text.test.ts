@@ -60,8 +60,8 @@ describe("importParsedResult — desplazamiento de números", () => {
     findPassages
       .mockResolvedValueOnce([{ number: 100 }])
       .mockResolvedValueOnce([
+        { id: "p101", number: 101 },
         { id: "p102", number: 102 },
-        { id: "p103", number: 103 },
       ]);
     findLink.mockResolvedValue(null);
 
@@ -77,12 +77,12 @@ describe("importParsedResult — desplazamiento de números", () => {
       ENT
     );
 
-    expect(createdNumbers()).toEqual([102, 103]);
-    expect(createdContents()[0]).toBe("Ve al 103.");
+    expect(createdNumbers()).toEqual([101, 102]);
+    expect(createdContents()[0]).toBe("Ve al 102.");
     expect(outcome.createdCount).toBe(2);
     expect(outcome.linksCreated).toBe(1);
     expect(createLink).toHaveBeenCalledWith({
-      data: { sourceId: "p102", targetId: "p103", linkText: "Ve al 2" },
+      data: { sourceId: "p101", targetId: "p102", linkText: "Ve al 2" },
     });
   });
 
@@ -180,9 +180,9 @@ describe("importParsedResult — enlaces", () => {
       ENT
     );
 
-    expect(createdNumbers()).toEqual([5, 6]);
+    expect(createdNumbers()).toEqual([1, 2]);
     expect(
-      outcome.warnings.some((w) => w.includes("duplicado") && w.includes("6"))
+      outcome.warnings.some((w) => w.includes("duplicado") && w.includes("2"))
     ).toBe(true);
   });
 });

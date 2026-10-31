@@ -6,6 +6,7 @@ export interface ReplaceSegment {
   content: string;
   isStart?: boolean;
   isEndpoint?: boolean;
+  number?: number | null;
 }
 
 export interface ReplaceLink {
@@ -30,16 +31,27 @@ export async function replaceProjectPassages(
 
   await db.passage.deleteMany({ where: { projectId } });
 
-  await db.passage.createMany({
-    data: segments.map((segment, index) => ({
+  const usedNumbers = new Set<number>();
+  const data = segments.map((segment, index) => {
+    let number = segment.number ?? index + 1;
+    if (usedNumbers.has(number)) {
+      number = Math.max(0, ...usedNumbers) + 1;
+      while (usedNumbers.has(number)) number++;
+    }
+    usedNumbers.add(number);
+    return {
       projectId,
-      number: index + 1,
+      number,
       title: segment.title ?? null,
       content: segment.content,
       sortOrder: index,
-      isStart: segment.isStart ?? index === 0,
+      isStart: segment.isStart ?? (number === 1 || index === 0),
       isEndpoint: segment.isEndpoint ?? false,
-    })),
+    };
+  });
+
+  await db.passage.createMany({
+    data,
   });
 
   const created = await db.passage.findMany({

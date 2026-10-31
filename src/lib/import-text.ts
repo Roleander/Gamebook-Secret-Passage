@@ -20,12 +20,10 @@ export async function importParsedResult(
     where: { projectId },
     select: { number: true },
   });
-  const existingNumbers = new Set(existingPassages.map((p) => p.number));
   const maxPassageNumber =
     existingPassages.length > 0
       ? Math.max(...existingPassages.map((p) => p.number))
       : 0;
-  const startNumber = existingPassages.length > 0 ? maxPassageNumber + 1 : 0;
 
   const passageData: Array<{
     projectId: string;
@@ -36,11 +34,11 @@ export async function importParsedResult(
     isStart: boolean;
     isEndpoint: boolean;
   }> = [];
-  const skippedNumbers: number[] = [];
   const warnings: string[] = [];
+  const skippedNumbers: number[] = [];
   const numberMapping = new Map<number, number>();
-  const assignedFinals = new Set<number>();
-  let maxFinalNumber = startNumber - 1;
+  const seenSourceNumbers = new Set<number>();
+  let nextFinalNumber = maxPassageNumber;
 
   for (let index = 0; index < result.passages.length; index++) {
     const passage = result.passages[index];
@@ -50,22 +48,16 @@ export async function importParsedResult(
       continue;
     }
 
-    let finalNumber = startNumber + passage.number;
+    const finalNumber = ++nextFinalNumber;
 
-    if (existingNumbers.has(finalNumber)) {
-      skippedNumbers.push(finalNumber);
-      continue;
-    }
-
-    if (assignedFinals.has(finalNumber)) {
-      finalNumber = maxFinalNumber + 1;
+    if (seenSourceNumbers.has(passage.number)) {
       warnings.push(
         `Pasaje ${passage.number} duplicado → importado como ${finalNumber}.`
       );
     }
 
-    assignedFinals.add(finalNumber);
-    maxFinalNumber = Math.max(maxFinalNumber, finalNumber);
+    seenSourceNumbers.add(passage.number);
+
     numberMapping.set(passage.number, finalNumber);
 
     passageData.push({

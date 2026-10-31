@@ -41,7 +41,8 @@ export function extractPassagesFromText(text: string): ParseResult {
   const warnings: string[] = [];
 
   // Pattern: number alone on a line (supports decimals "7,5" or "7.5")
-  const passageStartRegex = /^\s*(\d+(?:[.,]\d+)?)\s*$/;
+  // and number + bracketed marker ("45 [FIN]"), like "1 [INICIO]".
+  const passageStartRegex = /^\s*(\d+(?:[.,]\d+)?)\s*(?:\[[^\]]*\])?\s*$/;
 
   const headers: { num: number; startLine: number }[] = [];
   let globalMaxNumber = 0;
@@ -63,6 +64,9 @@ export function extractPassagesFromText(text: string): ParseResult {
   }
 
   if (headers.length === 0) {
+    warnings.push(
+      "No se detectaron cabeceras de pasaje (número solo en una línea). Todo el contenido se importó como un único pasaje. Revisa el formato del archivo."
+    );
     return {
       passages: [{
         number: 1,
@@ -418,7 +422,10 @@ function isStrictEndingMarker(content: string): boolean {
 function stripTrailingStandaloneNumbers(content: string): string {
   const lines = content.split("\n");
   let endIdx = lines.length;
-  while (endIdx > 0 && /^\s*\d+(?:[.,]\d+)?\s*$/.test(lines[endIdx - 1])) {
+  while (
+    endIdx > 0 &&
+    /^\s*\d+(?:[.,]\d+)?\s*(?:\[[^\]]*\])?\s*$/.test(lines[endIdx - 1])
+  ) {
     endIdx--;
   }
   return lines.slice(0, endIdx).join("\n").trim();

@@ -16,6 +16,9 @@ export interface Connection {
   type: "explicit" | "implicit" | "suggested";
   text: string;
   confidence: number;
+  trigger?: string;
+  snippet?: string;
+  confidenceReason?: string;
 }
 
 export interface AnalysisResult {
@@ -58,18 +61,22 @@ export class ConnectionFinderAgent {
   ): AnalysisResult {
     const connections: Connection[] = [];
     const passageMap = new Map(passages.map(p => [p.number, p]));
-    const allNumbers = passages.map(p => p.number);
+    const passageNumbers = new Set(passages.map((p) => p.number));
 
     // Find all connections in each passage
     for (const passage of passages) {
       for (const pattern of this.linkPatterns) {
         let match;
         const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
-        
+
         while ((match = regex.exec(passage.content)) !== null) {
-          const targetNumber = parseInt(match[1]);
+          const targetNumber = parseInt(match[1], 10);
           const digitOffset =
-            match.index + match[0].lastIndexOf(match[1]);
+            match.index + match[0].indexOf(match[1]);
+          if (Number.isNaN(targetNumber) || !passageNumbers.has(targetNumber) || targetNumber === passage.number) {
+            continue;
+          }
+
           if (
             classifyNumber(passage.content, digitOffset, match[1].length) !==
             "reference"
@@ -77,15 +84,19 @@ export class ConnectionFinderAgent {
             continue;
           }
 
-          if (allNumbers.includes(targetNumber) && targetNumber !== passage.number) {
-            connections.push({
-              sourceNumber: passage.number,
-              targetNumber,
-              type: pattern.type,
-              text: match[0],
-              confidence: pattern.type === "explicit" ? 0.9 : 0.5,
-            });
-          }
+          connections.push({
+            sourceNumber: passage.number,
+            targetNumber,
+            type: pattern.type,
+            text: match[0],
+            confidence: pattern.type === "explicit" ? 0.9 : 0.5,
+            trigger: pattern.type === "explicit" ? "explicit-reference" : "implicit-context",
+            snippet: match[0],
+            confidenceReason:
+              pattern.type === "explicit"
+                ? "Patron explicito multilingue"
+                : "Patron contextual de menor certeza",
+          });
         }
       }
     }
@@ -173,7 +184,11 @@ export class ConnectionFinderAgent {
       }
     }
 
-    return cycles;
+    const uniqueCycles = Array.from(
+      new Map(cycles.map((cycle) => [cycle.join("->"), cycle])).values()
+    );
+
+    return uniqueCycles;
   }
 
   /**
@@ -183,26 +198,54 @@ export class ConnectionFinderAgent {
     passages: { number: number; content: string }[]
   ): Connection[] {
     const suggestions: Connection[] = [];
-
-    // Look for thematic connections
-    const themes = this.extractThemes(passages);
+    const themesByPassage = new Map(
+      passages.map((passage) => [
+        passage.number,
+        this.extractPassageThemes(passage.content),
+      ])
+    );
+    const themeToPassages = new Map<string, number[]>();
 
     for (const passage of passages) {
-      const passageThemes = this.extractPassageThemes(passage.content);
-      
-      for (const otherPassage of passages) {
-        if (otherPassage.number === passage.number) continue;
+      const passThemes = themesByPassage.get(passage.number) ?? [];
+      for (const theme of passThemes) {
+        const list = themeToPassages.get(theme);
+        if (list) list.push(passage.number);
+        else themeToPassages.set(theme, [passage.number]);
+      }
+    }
 
-        const otherThemes = this.extractPassageThemes(otherPassage.content);
-        const similarity = this.calculateSimilarity(passageThemes, otherThemes);
+    const sortedNumbers = [...new Set(passages.map((p) => p.number))].sort((a, b) => a - b);
 
+    for (const source of sortedNumbers) {
+      const sourceThemes = themesByPassage.get(source) ?? [];
+      if (sourceThemes.length === 0) continue;
+
+      const targets = new Set<number>();
+      for (const theme of sourceThemes) {
+        for (const target of themeToPassages.get(theme) ?? []) {
+          if (target > source) targets.add(target);
+        }
+      }
+
+      const sourcePassage = passages.find((p) => p.number === source);
+      if (!sourcePassage) continue;
+
+      for (const targetNumber of targets) {
+        const otherPassage = passages.find((p) => p.number === targetNumber);
+        if (!otherPassage) continue;
+        const otherThemes = themesByPassage.get(targetNumber) ?? [];
+        const similarity = this.calculateSimilarity(sourceThemes, otherThemes);
         if (similarity > 0.3) {
+          const targetLabel = targetNumber;
           suggestions.push({
-            sourceNumber: passage.number,
-            targetNumber: otherPassage.number,
+            sourceNumber: source,
+            targetNumber,
             type: "suggested",
-            text: `Conexión temática detectada (${Math.round(similarity * 100)}% similitud)`,
-            confidence: similarity * 0.5, // Lower confidence for suggestions
+            text: `Conexion tematica detectada (${Math.round(similarity * 100)}% similitud)`,
+            confidence: similarity * 0.5,
+            trigger: "theme-similarity",
+            confidenceReason: "Similitud por temas compartidos",
           });
         }
       }

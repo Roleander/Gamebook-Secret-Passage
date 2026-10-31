@@ -119,6 +119,14 @@ export default function EditorPage() {
   const [activeTab, setActiveTab] = useState<"editor" | "upload" | "analysis" | "graph" | "review" | "errors">("editor");
   const [pendingSuggestions, setPendingSuggestions] = useState(0);
   const [autoFixing, setAutoFixing] = useState(false);
+  const [reanalyzingLinks, setReanalyzingLinks] = useState(false);
+  const [linkReanalysisSummary, setLinkReanalysisSummary] = useState<{
+    linksCreated: number;
+    suggestionsPersisted: number;
+    possibleConnections: number;
+    ghostReferenceCount: number;
+    passageCount: number;
+  } | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [readingMode, setReadingMode] = useState(true);
@@ -126,6 +134,7 @@ export default function EditorPage() {
     () => readStoredTheme() ?? DEFAULT_THEME
   );
   const [preserveStart, setPreserveStart] = useState(true);
+  const [showEndpointMarkers, setShowEndpointMarkers] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [shuffling, setShuffling] = useState(false);
   const [ents, setEnts] = useState<Entitlements | null>(null);
@@ -165,16 +174,20 @@ export default function EditorPage() {
         setProject(data);
         cacheProject(toOfflineSnapshot(data)).catch(() => {});
         saveEditorProject(data).catch(() => {});
+        return data;
       } else {
         router.push("/projects");
+        return null;
       }
     } catch (error) {
       console.error("Error fetching project:", error);
       const cached = await getEditorProject<Project>(projectId).catch(() => null);
       if (cached) {
         setProject(cached);
+        return cached;
       } else {
         router.push("/offline");
+        return null;
       }
     } finally {
       setLoading(false);
@@ -251,8 +264,26 @@ export default function EditorPage() {
     };
   }, [fetchProject, t]);
 
-  const handlePassageUpdate = async (updatedPassage: Partial<Passage>) => {
-    if (!selectedPassage) return;
+  const [dismissedErrors, setDismissedErrors] = useState<Set<string>>(() => {
+    try {
+      const stored = window.localStorage.getItem(`dismissed-errors:${projectId}`);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        `dismissed-errors:${projectId}`,
+        JSON.stringify([...dismissedErrors])
+      );
+    } catch {}
+  }, [dismissedErrors, projectId]);
+
+  const handlePassageUpdate = async (updatedPassage: Partial<Passage>): Promise<boolean> => {
+    if (!selectedPassage) return false;
     const result = await queueableFetch(`/api/passages/${selectedPassage.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -269,9 +300,25 @@ export default function EditorPage() {
             }
           : prev
       );
+      setSelectedPassage((prev) => (prev ? { ...prev, ...updatedPassage } : prev));
+      return true;
     } else if (result.ok) {
-      fetchProject();
+      const data = await fetchProject();
+      if (data) {
+        const updated = data.passages.find((p: Passage) => p.id === selectedPassage.id);
+        if (updated) setSelectedPassage(updated);
+      }
+      return true;
     }
+    if (result.response?.status === 409) {
+      try {
+        const body = await result.response.json();
+        alert(body?.error || t("Passage.numberTaken"));
+      } catch {
+        alert(t("Passage.numberTaken"));
+      }
+    }
+    return false;
   };
 
   const handlePassageDelete = (passageId: string) => {
@@ -457,6 +504,9 @@ export default function EditorPage() {
       if (response.ok) {
         alert(
           t("Shuffle.done", { p: result.passageCount, l: result.linksCreated }) +
+            (result.recoveredLinks > 0
+              ? "\n" + t("Shuffle.recoveredLinks", { n: result.recoveredLinks })
+              : "") +
             (result.startPreserved ? t("Shuffle.startPreserved") : "") +
             (result.droppedLinks > 0
               ? "\n" + t("Shuffle.droppedLinks", { n: result.droppedLinks })
@@ -477,6 +527,33 @@ export default function EditorPage() {
       alert(t("Shuffle.connError"));
     } finally {
       setShuffling(false);
+    }
+  };
+
+  const handleLinkReanalysis = async () => {
+    setReanalyzingLinks(true);
+    setLinkReanalysisSummary(null);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/links/reanalyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || t("Analysis.error"));
+      }
+      setLinkReanalysisSummary(data);
+      await fetchProject();
+      if (data?.ghostReferenceCount > 0) setActiveTab("errors");
+      alert(
+        `Enlaces sincronizados: ${data.linksCreated ?? 0}. Sugerencias: ${data.suggestionsPersisted ?? 0}. Referencias pendientes: ${data.ghostReferenceCount ?? 0}.`
+      );
+    } catch (error) {
+      console.error("Error reanalyzing links", error);
+      alert(t("Analysis.error"));
+    } finally {
+      setReanalyzingLinks(false);
     }
   };
 
@@ -512,7 +589,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx") => {
+  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx", mobile = false, showEndpointMarkers = false) => {
     if (format !== "txt" && ents && !ents.features.exportAdvanced) {
       setUpgradeMsg("");
       return;
@@ -522,7 +599,7 @@ export default function EditorPage() {
       const response = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, format, readingMode, theme: exportTheme }),
+        body: JSON.stringify({ projectId, format, readingMode, theme: exportTheme, mobile, showEndpointMarkers }),
       });
 
       if (!response.ok) {
@@ -626,6 +703,9 @@ export default function EditorPage() {
   if (!project) return null;
 
   const errors = validatePassages(project.passages, t);
+  const visibleErrors = errors.filter(
+    (e) => !dismissedErrors.has(`${e.type}:${e.passageNumber}:${e.message}`)
+  );
 
   return (
     <div className="min-h-screen bg-dungeon">
@@ -687,6 +767,16 @@ export default function EditorPage() {
               {t("Editor.undo")}
             </Button>
 
+            <Button
+              variant="outline"
+              onClick={handleLinkReanalysis}
+              disabled={project.passages.length === 0 || reanalyzingLinks}
+              title="Sincronizar enlaces"
+            >
+              <Wand2 className={"w-4 h-4 mr-2 " + (reanalyzingLinks ? "animate-spin" : "")} />
+              {reanalyzingLinks ? t("Editor.shuffling") : t("Analysis.reanalyze")}
+            </Button>
+
             <HistoryPanel
               projectId={projectId}
               isPro={Boolean(ents?.isPro)}
@@ -720,6 +810,15 @@ export default function EditorPage() {
                         />
                         <span>{t("Editor.readingMode")}</span>
                       </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer mt-1">
+            <input
+              type="checkbox"
+              checked={showEndpointMarkers}
+              onChange={(e) => setShowEndpointMarkers(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span>{t("Editor.showEndMarkers")}</span>
+          </label>
                       <p className="text-xs text-muted-foreground mt-1">{t("Editor.readingModeHint")}</p>
                       <p className="text-xs text-muted-foreground mt-2">{t("Editor.printStyle")}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
@@ -752,6 +851,14 @@ export default function EditorPage() {
                     >
                       <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                       {t("Editor.exportPdf")}
+                      {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
+                    </button>
+                    <button
+                      onClick={() => { handleExport("pdf", true); setShowExportMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    >
+                      <span className="w-2 h-2 bg-orange-300 rounded-full mr-2"></span>
+                      {t("Editor.exportPdf")} (movil)
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
@@ -883,7 +990,14 @@ export default function EditorPage() {
                         });
                         if (await handleUpgradeResponse(response)) return;
                         if (response.ok) {
-                          fetchProject();
+                          const data = await response.json().catch(() => null);
+                          await fetchProject();
+                          if (data && data.ghostReferenceCount > 0) {
+                            setActiveTab("errors");
+                            alert(
+                              `Renumeración completada, pero quedan ${data.ghostReferenceCount} referencia(s) pendiente(s).`
+                            );
+                          }
                         }}
                       }
                       title={t("Editor.renumberTitle")}
@@ -952,7 +1066,7 @@ export default function EditorPage() {
                 onClick={() => setActiveTab("errors")}
               >
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                {t("Editor.tabErrors", { n: errors.length })}
+                {t("Editor.tabErrors", { n: visibleErrors.length })}
               </Button>
             </div>
 
@@ -1042,10 +1156,22 @@ export default function EditorPage() {
 
             {activeTab === "errors" && (
               <ErrorPanel
-                errors={errors}
+                errors={visibleErrors}
                 passages={project.passages}
                 onAutoFix={handleAutoFix}
                 autoFixing={autoFixing}
+                onDismiss={(key) =>
+                  setDismissedErrors((prev) => {
+                    const next = new Set(prev);
+                    next.add(key);
+                    return next;
+                  })
+                }
+                onOpenPassage={(number) => {
+                  setActiveTab("editor");
+                  const passage = project.passages.find((p) => p.number === number);
+                  if (passage) setSelectedPassage(passage);
+                }}
               />
             )}
           </div>

@@ -24,6 +24,7 @@ interface DetectedSegment {
   title: string | null;
   content: string;
   confidence: number;
+  number?: number | null;
 }
 
 interface AnalysisPanelProps {
@@ -63,6 +64,13 @@ export function AnalysisPanel({
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [suggestions, setSuggestions] = useState<Connection[] | null>(null);
   const [detected, setDetected] = useState<DetectedSegment[] | null>(null);
+  const [reanalysisBusy, setReanalysisBusy] = useState(false);
+  const [reanalysisSummary, setReanalysisSummary] = useState<{
+    linksCreated: number;
+    suggestionsPersisted: number;
+    possibleConnections: number;
+    ghostReferenceCount: number;
+  } | null>(null);
 
   const existingPairs = new Set(
     passages.flatMap((p) =>
@@ -168,7 +176,12 @@ export function AnalysisPanel({
       const found = detector
         .detect(data.rawContent)
         .filter((d) => d.content.trim().length > 0)
-        .map((d) => ({ title: null, content: d.content, confidence: d.confidence }));
+        .map((d) => ({
+          title: null,
+          content: d.content,
+          confidence: d.confidence,
+          number: d.number ?? null,
+        }));
       setDetected(found);
       setStatus(
         found.length === 0 ? { kind: "info", text: t("Analysis.noDetected") } : null
@@ -325,7 +338,11 @@ export function AnalysisPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId,
-          segments: detected.map((s) => ({ title: s.title, content: s.content })),
+          segments: detected.map((s) => ({
+            title: s.title,
+            content: s.content,
+            number: s.number ?? undefined,
+          })),
         }),
       });
       if (await handleUpgrade(response, t("Analysis.upgradeMsg"))) {
@@ -370,6 +387,41 @@ export function AnalysisPanel({
     );
   }
 
+  const runReanalysis = async () => {
+    setReanalysisBusy(true);
+    setStatus(null);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/links/reanalyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (await handleUpgrade(response, t("Analysis.upgradeMsg"))) {
+        setReanalysisBusy(false);
+        return;
+      }
+      const data = await response.json();
+      if (!response.ok) {
+        setStatus({ kind: "error", text: data.error || t("Analysis.error") });
+        setReanalysisBusy(false);
+        return;
+      }
+      setReanalysisSummary({
+        linksCreated: Number(data.linksCreated) || 0,
+        suggestionsPersisted: Number(data.suggestionsPersisted) || 0,
+        possibleConnections: Number(data.possibleConnections) || 0,
+        ghostReferenceCount: Number(data.ghostReferenceCount) || 0,
+      });
+      if (data.linksCreated > 0 || data.suggestionsPersisted > 0) {
+        onChanged();
+      }
+    } catch {
+      setStatus({ kind: "error", text: t("Analysis.error") });
+    } finally {
+      setReanalysisBusy(false);
+    }
+  };
+
   const strongSuggestions =
     suggestions?.filter((c) => c.confidence >= 0.35) ?? [];
 
@@ -393,6 +445,10 @@ export function AnalysisPanel({
             <ScanText className="w-3.5 h-3.5 mr-1.5" />
             {busy === "detect" ? t("Analysis.analyzing") : t("Analysis.detect")}
           </Button>
+          <Button size="sm" variant="outline" onClick={runReanalysis} disabled={busy !== null || reanalysisBusy}>
+            <Wand2 className="w-3.5 h-3.5 mr-1.5" />
+            {reanalysisBusy ? t("Analysis.analyzing") : t("Analysis.reanalyze")}
+          </Button>
           <Button size="sm" variant="outline" onClick={runAiConnections} disabled={busy !== null}>
             <Sparkles className="w-3.5 h-3.5 mr-1.5" />
             {busy === "aiConnections" ? t("Analysis.analyzing") : t("Analysis.aiConnections")}
@@ -403,6 +459,14 @@ export function AnalysisPanel({
           </Button>
         </div>
 
+        {reanalysisSummary && (
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <p>Links creados: {reanalysisSummary.linksCreated}</p>
+            <p>Sugerencias guardadas: {reanalysisSummary.suggestionsPersisted}</p>
+            <p>Conexiones posibles: {reanalysisSummary.possibleConnections}</p>
+            <p>Referencias pendientes: {reanalysisSummary.ghostReferenceCount}</p>
+          </div>
+        )}
         {status && (
           <p
             className={

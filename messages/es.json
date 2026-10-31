@@ -171,7 +171,8 @@
     "brokenLink": "Enlace roto hacia pasaje {n} que no existe",
     "ghostRef": "El pasaje {from} referencia el pasaje {to}, que no existe",
     "orphan": "Pasaje {n}: no tiene enlaces entrantes (huérfano)",
-    "noExit": "Pasaje {n}: no tiene enlaces salientes"
+    "noExit": "Pasaje {n}: no tiene enlaces salientes",
+    "showEndMarkers": "Mostrar señales de FIN"
   },
   "Upload": {
     "title": "Importar Documento",
@@ -488,7 +489,8 @@
     "aiConnections": "IA: conexiones",
     "aiSegment": "IA: segmentar",
     "aiFallback": "IA no disponible — se usó el análisis local",
-    "aiRateLimit": "Límite de peticiones de IA alcanzado. Inténtalo en unos minutos."
+    "aiRateLimit": "Límite de peticiones de IA alcanzado. Inténtalo en unos minutos.",
+    "reanalyze": "Re-analizar enlaces"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "¿Deshacer el último barajado de contenido?",
     "undoDone": "Deshacer completado: {p} pasajes restaurados, {l} enlaces restaurados",
     "undoError": "Error al deshacer",
-    "undoConnError": "Error de conexión al deshacer"
+    "undoConnError": "Error de conexión al deshacer",
+    "recoveredLinks": "Enlaces recuperados: {n}"
   },
   "Passage": {
     "targetNotFound": "Pasaje destino no encontrado",
@@ -689,7 +692,10 @@
     "drag": "Arrastra para reordenar",
     "ok": "OK",
     "editNumber": "Clic para cambiar número",
-    "empty": "No hay pasajes aún. Importa un archivo para empezar."
+    "empty": "No hay pasajes aún. Importa un archivo para empezar.",
+    "searchPlaceholder": "Buscar pasajes",
+    "searchClear": "Limpiar",
+    "searchNoResults": "Sin pasajes coincidentes"
   },
   "Errors": {
     "title": "Verificación de Pasajes",
@@ -704,7 +710,8 @@
     "total": "Total de pasajes: {n}",
     "starts": "Pasajes de inicio: {n}",
     "fixableCount": "Errores auto-fixables: {n}",
-    "manualCount": "Errores manuales: {n}"
+    "manualCount": "Errores manuales: {n}",
+    "dismiss": "Descartar"
   },
   "Review": {
     "tab": "Revisión",

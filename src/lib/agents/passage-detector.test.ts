@@ -240,3 +240,68 @@ describe("PassageDetectorAgent", () => {
     expect(passages[1].content).toContain("Segundo bloque");
   });
 });
+
+describe("PassageDetectorAgent — cabeceras numeradas solas", () => {
+  it("parte por numeros solos en línea y conserva el numero original", () => {
+    const text = [
+      "Acto I",
+      "======",
+      "",
+      "45",
+      "",
+      "Fallas el lanzamiento del sortilegio.",
+      "",
+      "17",
+      "",
+      "Una terrible descarga eléctrica.",
+      "",
+      "18",
+      "",
+      "Recoges el misterioso pergamino.",
+    ].join("\n");
+
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(3);
+    expect(passages.map((p) => p.number)).toEqual([45, 17, 18]);
+    expect(passages[0].content).toBe("Fallas el lanzamiento del sortilegio.");
+    expect(passages[1].content).toBe("Una terrible descarga eléctrica.");
+    expect(passages[2].content).toBe("Recoges el misterioso pergamino.");
+    expect(passages[0].confidence).toBe(1);
+    expect(passages[0].markers).toEqual(["bare_number"]);
+  });
+
+  it("descarta segmentos vacios y no toma numeros con decimales como cabecera", () => {
+    const text = ["12", "", "13", "", "7,5", "", "Texto después."].join("\n");
+    const passages = createPassageDetector().detect(text);
+    expect(passages.map((p) => p.number)).toEqual([13]);
+    expect(passages[0].content).toContain("7,5");
+    expect(passages[0].content).toContain("Texto después.");
+  });
+
+  it("usa el heuristico cuando hay menos de dos cabeceras", () => {
+    const text = "Un solo número suelto:\n846\ny prosa sin más marcadores.";
+    const passages = createPassageDetector().detect(text);
+    expect(passages).toHaveLength(1);
+    expect(passages[0].number).toBeUndefined();
+  });
+});
+
+describe("PassageDetectorAgent — cabeceras con marcador entre corchetes", () => {
+  it("reconoce 1 [INICIO] y 5 [FIN] como cabeceras", () => {
+    const text = [
+      "1 [INICIO]",
+      "",
+      "Tú abres los ojos.",
+      "",
+      "5 [FIN]",
+      "",
+      "Las fuerzas te abandonan.",
+    ].join("\n");
+
+    const passages = createPassageDetector().detect(text);
+    expect(passages.map((p) => p.number)).toEqual([1, 5]);
+    expect(passages[0].content).toBe("Tú abres los ojos.");
+    expect(passages[1].content).toBe("Las fuerzas te abandonan.");
+    expect(passages[0].content).not.toContain("[INICIO]");
+  });
+});

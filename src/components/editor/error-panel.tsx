@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, AlertCircle, CheckCircle2, Wand2 } from "lucide-react";
+import { AlertTriangle, AlertCircle, CheckCircle2, Wand2, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { PassageError } from "@/lib/editor-validation";
 
@@ -17,9 +17,11 @@ interface ErrorPanelProps {
   passages: Passage[];
   onAutoFix?: () => void;
   autoFixing?: boolean;
+  onDismiss?: (key: string) => void;
+  onOpenPassage?: (number: number) => void;
 }
 
-export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPanelProps) {
+export function ErrorPanel({ errors, passages, onAutoFix, autoFixing, onDismiss, onOpenPassage }: ErrorPanelProps) {
   const { t } = useI18n();
   const fixableCount = errors.filter(e => e.autoFixable).length;
 
@@ -60,24 +62,56 @@ export function ErrorPanel({ errors, passages, onAutoFix, autoFixing }: ErrorPan
               {t("Errors.found", { n: errors.length })}
             </p>
             <div className="space-y-2">
-              {errors.map((error, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start p-3 rounded-md ${
-                    error.autoFixable
-                      ? "bg-blue-500/10 border border-blue-500/50"
-                      : "bg-yellow-500/10 border border-yellow-500/50"
-                  }`}
-                >
-                  <AlertCircle className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 text-yellow-500" />
-                  <div className="flex-1">
-                    <p className="text-sm">{error.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {error.autoFixable ? t("Errors.fixable") : t("Errors.manual")}
-                    </p>
+              {errors.map((error, index) => {
+                const errorKey = `${error.type}:${error.passageNumber}:${error.message}`;
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-start p-3 rounded-md ${
+                      error.autoFixable
+                        ? "bg-blue-500/10 border border-blue-500/50"
+                        : "bg-yellow-500/10 border border-yellow-500/50"
+                    }`}
+                  >
+                    <AlertCircle className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 text-yellow-500" />
+                    <div className="flex-1">
+                      <p className="text-sm">{error.message}</p>
+                      {error.snippet && (
+                        <p className="text-xs text-muted-foreground mt-1 font-mono whitespace-pre-wrap">
+                          {error.snippet}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {error.autoFixable ? t("Errors.fixable") : t("Errors.manual")}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1 ml-2">
+                      {onOpenPassage && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onOpenPassage(error.passageNumber)}
+                          title={t("Passage.heading", { n: error.passageNumber })}
+                          aria-label={t("Passage.heading", { n: error.passageNumber })}
+                        >
+                          <span className="text-xs font-mono">#{error.passageNumber}</span>
+                        </Button>
+                      )}
+                      {!error.autoFixable && onDismiss && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDismiss(errorKey)}
+                          title={t("Errors.dismiss")}
+                          aria-label={t("Errors.dismiss")}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-6 p-4 bg-muted rounded-md">

@@ -171,7 +171,8 @@
     "brokenLink": "Zerwany link do pasażu {n}, który nie istnieje",
     "ghostRef": "Przejście {from} odwołuje się do przejścia {to}, które nie istnieje",
     "orphan": "Pasaż {n}: brak linków wchodzących (sierota)",
-    "noExit": "Pasaż {n}: brak linków wychodzących"
+    "noExit": "Pasaż {n}: brak linków wychodzących",
+    "showEndMarkers": "Pokaż znaczniki końca"
   },
   "Upload": {
     "title": "Importuj dokument",
@@ -488,7 +489,8 @@
     "aiConnections": "AI: połączenia",
     "aiSegment": "AI: segmentuj",
     "aiFallback": "AI niedostępne — użyto lokalnej analizy",
-    "aiRateLimit": "Osiągnięto limit zapytań AI. Spróbuj ponownie za chwilę."
+    "aiRateLimit": "Osiągnięto limit zapytań AI. Spróbuj ponownie za chwilę.",
+    "reanalyze": "Ponownie analizuj łącza"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Cofnąć ostatnie tasowanie treści?",
     "undoDone": "Cofanie zakończone: {p} pasażów przywróconych, {l} linków przywróconych",
     "undoError": "Błąd podczas cofania",
-    "undoConnError": "Błąd połączenia podczas cofania"
+    "undoConnError": "Błąd połączenia podczas cofania",
+    "recoveredLinks": "Odzyskane linki: {n}"
   },
   "Passage": {
     "targetNotFound": "Nie znaleziono pasażu docelowego",
@@ -689,7 +692,10 @@
     "drag": "Przeciągnij, aby uporządkować",
     "ok": "OK",
     "editNumber": "Kliknij, aby zmienić numer",
-    "empty": "Brak pasażów. Zaimportuj plik, aby rozpocząć."
+    "empty": "Brak pasażów. Zaimportuj plik, aby rozpocząć.",
+    "searchPlaceholder": "Szukaj passaży",
+    "searchClear": "Wyczyść",
+    "searchNoResults": "Brak pasujących passaży"
   },
   "Errors": {
     "title": "Weryfikacja pasażów",
@@ -704,7 +710,8 @@
     "total": "Łącznie pasażów: {n}",
     "starts": "Pasaże startowe: {n}",
     "fixableCount": "Błędy auto-naprawialne: {n}",
-    "manualCount": "Błędy ręczne: {n}"
+    "manualCount": "Błędy ręczne: {n}",
+    "dismiss": "Odrzuć"
   },
   "Review": {
     "tab": "Przegląd",

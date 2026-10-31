@@ -3,6 +3,7 @@ export type NumberRole = "reference" | "not-reference" | "ambiguous";
 const KEYWORDS = [
   "ve", "ves", "ved", "va", "van", "ir", "pasa", "pasar", "pasad", "pasan",
   "continua", "continúa", "continúan", "acude", "acudid", "retrocede",
+  "prosigue", "prosiguen",
   "vuelve", "vuelven", "regresa", "salta", "entra", "entran", "sigue", "sal",
   "pasaje", "pasajes", "apartado", "apartados", "punto", "sección", "seccion",
   "secciones", "párrafo", "parrafo", "párrafos", "parrafos", "destino", "al",
@@ -36,7 +37,7 @@ const CONJUNCTION = "(?:y|e|and|et|und|og|i|a|och)";
 
 export function buildKeywordNumberRegex(flags = "giu"): RegExp {
   return new RegExp(
-    `(?:${KEYWORD_SOURCE})(?![\\p{L}])[^0-9]{0,40}(\\d+(?:[.,]\\d+)?)`,
+    `(?:${KEYWORD_SOURCE})(?![\\p{L}])[^0-9\\n.!?…]{0,40}(\\d+(?:[.,]\\d+)?)`,
     flags
   );
 }
@@ -47,14 +48,14 @@ const BRACKET_BEFORE = /[[({«“"]\s*$/u;
 const BRACKET_AFTER = /^[\])}»”"]\s*/u;
 
 const KEYWORD_A = new RegExp(
-  `(?:^|[^\\p{L}])(?:${KEYWORD_SOURCE})(?![\\p{L}])[^0-9\\n]{0,40}(?:\\n[^0-9\\n]{0,40})?$`,
+  `(?:^|[^\\p{L}])(?:${KEYWORD_SOURCE})(?![\\p{L}])(?:[^0-9\\n.!?…]{0,40}(?:\\n[^0-9\\n.!?…]{0,40})?)$`,
   "iu"
 );
 
 const KEYWORD_B = new RegExp(
   `(?:^|[^\\p{L}])(?:${KEYWORD_SOURCE})(?![\\p{L}])` +
-    `(?:[^0-9\\n]{0,40}\\d{1,4}(?:\\s*,\\s*|\\s+${CONJUNCTION}\\s+))*` +
-    `[^0-9\\n]{0,40}\\d{1,4}(?:\\s*,\\s*|\\s+${CONJUNCTION}\\s*)$`,
+    `(?:[^0-9\\n.!?…]{0,40}\\d{1,4}(?:\\s*,\\s*|\\s+${CONJUNCTION}\\s+))*` +
+    `[^0-9\\n.!?…]{0,40}\\d{1,4}(?:\\s*,\\s*|\\s+${CONJUNCTION}\\s*)$`,
   "iu"
 );
 

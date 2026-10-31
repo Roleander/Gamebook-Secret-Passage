@@ -171,7 +171,8 @@
     "brokenLink": "Link quebrado para a passagem {n} que não existe",
     "ghostRef": "A passagem {from} referencia a passagem {to}, que não existe",
     "orphan": "Passagem {n}: sem links de entrada (órfã)",
-    "noExit": "Passagem {n}: sem links de saída"
+    "noExit": "Passagem {n}: sem links de saída",
+    "showEndMarkers": "Mostrar sinais de fim"
   },
   "Upload": {
     "title": "Importar Documento",
@@ -488,7 +489,8 @@
     "aiConnections": "IA: conexões",
     "aiSegment": "IA: segmentar",
     "aiFallback": "IA indisponível — análise local usada",
-    "aiRateLimit": "Limite de pedidos de IA atingido. Tente novamente em minutos."
+    "aiRateLimit": "Limite de pedidos de IA atingido. Tente novamente em minutos.",
+    "reanalyze": "Reanalisar links"
   },
   "Legal": {
     "hub": {
@@ -653,7 +655,8 @@
     "confirmUndo": "Desfazer o último embaralhamento de conteúdo?",
     "undoDone": "Desfazer concluído: {p} passagens restauradas, {l} links restaurados",
     "undoError": "Erro ao desfazer",
-    "undoConnError": "Erro de conexão ao desfazer"
+    "undoConnError": "Erro de conexão ao desfazer",
+    "recoveredLinks": "Links recuperados: {n}"
   },
   "Passage": {
     "targetNotFound": "Passagem de destino não encontrada",
@@ -689,7 +692,10 @@
     "drag": "Arraste para reordenar",
     "ok": "OK",
     "editNumber": "Clique para mudar o número",
-    "empty": "Ainda não há passagens. Importe um arquivo para começar."
+    "empty": "Ainda não há passagens. Importe um arquivo para começar.",
+    "searchPlaceholder": "Procurar passagens",
+    "searchClear": "Limpar",
+    "searchNoResults": "Sem passagens correspondentes"
   },
   "Errors": {
     "title": "Verificação de passagens",
@@ -704,7 +710,8 @@
     "total": "Total de passagens: {n}",
     "starts": "Passagens de início: {n}",
     "fixableCount": "Erros auto-corrigíveis: {n}",
-    "manualCount": "Erros manuais: {n}"
+    "manualCount": "Erros manuais: {n}",
+    "dismiss": "Descartar"
   },
   "Review": {
     "tab": "Revisão",

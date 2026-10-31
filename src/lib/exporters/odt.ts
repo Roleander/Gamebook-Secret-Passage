@@ -32,7 +32,7 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico"): string {
+export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico", showEndpointMarkers = true): string {
   const passageNumbers = new Set(project.passages.map((p) => p.number));
   const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const th = officeTheme(pdfTh);
@@ -88,7 +88,7 @@ ${autoStyles}  <office:body>
           ? '<text:span text:style-name="StartMarker">[INICIO]</text:span>'
           : "[INICIO]"
       );
-    if (passage.isEndpoint) markers.push("[FIN]");
+    if (showEndpointMarkers && passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const forcedTargets = new Set<number>(
@@ -282,7 +282,7 @@ export function packOdtArchive(parts: {
   });
 }
 
-export async function generateODT(projectId: string, readingMode = false, theme: ThemeId = "clasico"): Promise<Buffer> {
+export async function generateODT(projectId: string, readingMode = false, theme: ThemeId = "clasico", showEndpointMarkers = true): Promise<Buffer> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
