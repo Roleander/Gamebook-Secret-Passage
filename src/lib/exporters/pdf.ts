@@ -15,7 +15,7 @@ interface Passage {
   }[];
 }
 
-export async function generatePDF(projectId: string, readingMode = false, theme: ThemeId = "clasico", mobile = false, showEndpointMarkers = true): Promise<string> {
+export async function generatePDF(projectId: string, readingMode = false, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = true): Promise<string> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -49,7 +49,7 @@ function linkifyContent(content: string, passageNumber: number, passageNumbers: 
 
   for (const link of links) {
     result += escapeHtml(content.slice(lastIndex, link.start));
-    result += `<a href="#passage${link.target}" style="color:${th.linkInline};text-decoration:none;border-bottom:1px dotted ${th.linkDotted}">${escapeHtml(link.text)}</a>`;
+    result += `<a href="#passage${link.target}" target="_self" style="color:${th.linkInline};text-decoration:none;border-bottom:1px dotted ${th.linkDotted}">${escapeHtml(link.text)}</a>`;
     lastIndex = link.end;
   }
   result += escapeHtml(content.slice(lastIndex));
@@ -65,7 +65,7 @@ function buildFontFaces(th: PdfTheme): string {
     .join("\n    ");
 }
 
-export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showEndpointMarkers = true): string {
+export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = true): string {
   const th = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -138,8 +138,8 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
 
   project.passages.forEach((passage, idx) => {
     const markers = [];
-if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
-if (showEndpointMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+if (showPassageMarkers && passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+if (showPassageMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
@@ -147,12 +147,12 @@ if (showEndpointMarkers && passage.isEndpoint) markers.push('<span class="end-ma
     const forcedTargets = new Set<number>(passage.outgoingLinks.map((l) => l.target.number));
 
     if (readingMode) {
-      html += `    <div class="passage">\n`;
+      html += `    <div class="passage">\n      <a name="passage${passage.number}"></a>\n      <a id="passage${passage.number}"></a>\n`;
       html += `      <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
       html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th, forcedTargets)}</div>\n`;
       html += `    </div>\n`;
     } else {
-      html += `    <div class="passage">\n`;
+      html += `    <div class="passage">\n      <a name="passage${passage.number}"></a>\n      <a id="passage${passage.number}"></a>\n`;
       html += `      <div class="${numClass}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}${markerStr}</div>\n`;
       html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th, forcedTargets)}</div>\n`;
       if (passage.outgoingLinks.length > 0) {

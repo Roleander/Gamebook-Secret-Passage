@@ -29,7 +29,7 @@ function buildOfficeFontFaces(th: OfficeTheme): string {
     .join("\n    ");
 }
 
-export function buildDocHtml(project: DocProject, readingMode = false, theme: ThemeId = "clasico", showEndpointMarkers = true): string {
+export function buildDocHtml(project: DocProject, readingMode = false, theme: ThemeId = "clasico", showPassageMarkers = true): string {
   const passageNumbers = new Set(project.passages.map(p => p.number));
   const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const th = officeTheme(pdfTh);
@@ -150,8 +150,8 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
 
   project.passages.forEach((passage, idx) => {
     const markers = [];
-if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
-if (showEndpointMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+if (showPassageMarkers && passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+if (showPassageMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
@@ -185,7 +185,7 @@ if (showEndpointMarkers && passage.isEndpoint) markers.push('<span class="end-ma
   return html;
 }
 
-export async function generateDOC(projectId: string, readingMode = false, theme: ThemeId = "clasico", showEndpointMarkers = true): Promise<string> {
+export async function generateDOC(projectId: string, readingMode = false, theme: ThemeId = "clasico", showPassageMarkers = true): Promise<string> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -206,6 +206,6 @@ export async function generateDOC(projectId: string, readingMode = false, theme:
     { title: project.title, passages: project.passages },
     readingMode,
     theme,
-    showEndpointMarkers
+    showPassageMarkers
   );
 }

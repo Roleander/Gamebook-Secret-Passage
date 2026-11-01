@@ -172,7 +172,8 @@
     "ghostRef": "Passaget {from} hänvisar till passaget {to}, som inte finns",
     "orphan": "Pass {n}: inga inkommande länkar (föräldelöst)",
     "noExit": "Pass {n}: inga utgående länkar",
-    "showEndMarkers": "Visa slutmarkörer"
+    "showEndMarkers": "Visa slutmarkörer",
+    "showPassageMarkers": "Visa slutmarkörer"
   },
   "Upload": {
     "title": "Importera dokument",

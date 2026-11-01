@@ -32,7 +32,7 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico", showEndpointMarkers = true): string {
+export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico", showPassageMarkers = true): string {
   const passageNumbers = new Set(project.passages.map((p) => p.number));
   const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const th = officeTheme(pdfTh);
@@ -82,13 +82,13 @@ ${autoStyles}  <office:body>
 
   project.passages.forEach((passage, idx) => {
     const markers = [];
-    if (passage.number === 1)
+    if (showPassageMarkers && passage.number === 1)
       markers.push(
         themed && pdfTh.rubrication
           ? '<text:span text:style-name="StartMarker">[INICIO]</text:span>'
           : "[INICIO]"
       );
-    if (showEndpointMarkers && passage.isEndpoint) markers.push("[FIN]");
+    if (showPassageMarkers && passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const forcedTargets = new Set<number>(
@@ -282,7 +282,7 @@ export function packOdtArchive(parts: {
   });
 }
 
-export async function generateODT(projectId: string, readingMode = false, theme: ThemeId = "clasico", showEndpointMarkers = true): Promise<Buffer> {
+export async function generateODT(projectId: string, readingMode = false, theme: ThemeId = "clasico", showPassageMarkers = true): Promise<Buffer> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {

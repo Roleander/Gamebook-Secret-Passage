@@ -172,7 +172,8 @@
     "ghostRef": "Przejście {from} odwołuje się do przejścia {to}, które nie istnieje",
     "orphan": "Pasaż {n}: brak linków wchodzących (sierota)",
     "noExit": "Pasaż {n}: brak linków wychodzących",
-    "showEndMarkers": "Pokaż znaczniki końca"
+    "showEndMarkers": "Pokaż znaczniki końca",
+    "showPassageMarkers": "Pokaż znaczniki końca"
   },
   "Upload": {
     "title": "Importuj dokument",

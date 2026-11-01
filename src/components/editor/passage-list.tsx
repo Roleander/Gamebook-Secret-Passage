@@ -41,6 +41,7 @@ interface SortableRowProps {
   onCancelEdit: () => void;
   onCommitEdit: (passageId: string) => void;
   onMove: (e: React.MouseEvent, passageId: string, direction: "up" | "down") => void;
+  preview?: string;
 }
 
 function SortableRow({
@@ -302,7 +303,7 @@ export function PassageList({
             isSelected={selectedPassageId === passage.id}
             isEditing={editingId === passage.id}
             editValue={editValue}
-            draggable={Boolean(onReorder)}
+            draggable={Boolean(onReorder && !trimmedQuery)}
             onEditValueChange={setEditValue}
             onSelectPassage={onSelectPassage}
             onStartEdit={(p) => {
@@ -312,6 +313,7 @@ export function PassageList({
             onCancelEdit={() => setEditingId(null)}
             onCommitEdit={handleRenumber}
             onMove={handleMove}
+            preview={snippetById.get(passage.id) ?? (passage.content || '').split('\n')[0]?.trim() ?? ''}
           />
         ))}
       </div>

@@ -134,7 +134,7 @@ export default function EditorPage() {
     () => readStoredTheme() ?? DEFAULT_THEME
   );
   const [preserveStart, setPreserveStart] = useState(true);
-  const [showEndpointMarkers, setShowEndpointMarkers] = useState(false);
+  const [showPassageMarkers, setShowEndpointMarkers] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [shuffling, setShuffling] = useState(false);
   const [ents, setEnts] = useState<Entitlements | null>(null);
@@ -589,7 +589,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx", mobile = false, showEndpointMarkers = false) => {
+  const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx", mobile = false, showPassageMarkers = false) => {
     if (format !== "txt" && ents && !ents.features.exportAdvanced) {
       setUpgradeMsg("");
       return;
@@ -599,7 +599,7 @@ export default function EditorPage() {
       const response = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, format, readingMode, theme: exportTheme, mobile, showEndpointMarkers }),
+        body: JSON.stringify({ projectId, format, readingMode, theme: exportTheme, mobile, showPassageMarkers }),
       });
 
       if (!response.ok) {
@@ -813,11 +813,11 @@ export default function EditorPage() {
           <label className="flex items-center gap-2 text-sm cursor-pointer mt-1">
             <input
               type="checkbox"
-              checked={showEndpointMarkers}
+              checked={showPassageMarkers}
               onChange={(e) => setShowEndpointMarkers(e.target.checked)}
               className="w-4 h-4 rounded border-gray-300"
             />
-            <span>{t("Editor.showEndMarkers")}</span>
+            <span>{t("Editor.showPassageMarkers")}</span>
           </label>
                       <p className="text-xs text-muted-foreground mt-1">{t("Editor.readingModeHint")}</p>
                       <p className="text-xs text-muted-foreground mt-2">{t("Editor.printStyle")}</p>
@@ -846,7 +846,7 @@ export default function EditorPage() {
                       <p className="text-xs text-amber-600 dark:text-amber-500 mt-2">{t("Editor.exportLinksHint")}</p>
                     </div>
                     <button
-                      onClick={() => { handleExport("pdf"); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("pdf", false, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
@@ -854,7 +854,7 @@ export default function EditorPage() {
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
-                      onClick={() => { handleExport("pdf", true); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("pdf", true, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-orange-300 rounded-full mr-2"></span>
@@ -862,7 +862,7 @@ export default function EditorPage() {
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
-                      onClick={() => { handleExport("epub"); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("epub", false, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
@@ -870,14 +870,14 @@ export default function EditorPage() {
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
-                      onClick={() => { handleExport("txt"); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("txt", false, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
                       {t("Editor.exportTxt")}
                     </button>
                     <button
-                      onClick={() => { handleExport("odt"); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("odt", false, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
@@ -885,7 +885,7 @@ export default function EditorPage() {
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
-                      onClick={() => { handleExport("doc"); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("doc", false, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
@@ -893,7 +893,7 @@ export default function EditorPage() {
                       {locked && !ents?.features.exportAdvanced && <Lock className="w-3 h-3 ml-auto text-primary/70" />}
                     </button>
                     <button
-                      onClick={() => { handleExport("docx"); setShowExportMenu(false); }}
+                      onClick={() => { handleExport("docx", false, showPassageMarkers); setShowExportMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
                     >
                       <span className="w-2 h-2 bg-indigo-600 rounded-full mr-2"></span>

@@ -172,7 +172,8 @@
     "ghostRef": "パッセージ{from}は存在しないパッセージ{to}を参照しています",
     "orphan": "パッセージ{n}: 受信リンクなし（孤立）",
     "noExit": "パッセージ{n}: 送信リンクなし",
-    "showEndMarkers": "終了マーカーを表示"
+    "showEndMarkers": "終了マーカーを表示",
+    "showPassageMarkers": "終了マーカーを表示"
   },
   "Upload": {
     "title": "ドキュメントをインポート",

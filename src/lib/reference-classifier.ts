@@ -59,13 +59,24 @@ const KEYWORD_B = new RegExp(
   "iu"
 );
 
+const GAME_RULE_DENY: RegExp[] = [
+  /^\s+(?:o\s+(?:m[aá]s|mas|menos))\b/iu,
+  /^\s+(?:m[aá]s|mas|menos|mayor|menor)(?:\s+de)?\b/iu,
+  /^\s+(?:entre)\b/iu,
+];
+
 const AFTER_DENY: RegExp[] = [
+  ...GAME_RULE_DENY,
   /^[.,]\d/u,
   /^\s*(?:%|€|\$|£|¥)/u,
   /^[:/]\d/u,
   /^\s*[-–—]\s*\d/u,
   /^\s+(?:al|a|hasta|through|to|bis|auf)\s+\d/iu,
   /^\s+(?:pv|hp|pm|xp|ps|po|lp|mp|pts?|puntos?|points?|monedas?|oro|plata|piezas?|gold|cm|mm|km|kg|min|mins?|minutes?|seg|segs?|segundos?|seconds?|horas?|hours?|d[ií]as?|days?|vidas?|lives?|turnos?|turns?|rondas?|rounds?|metros?|metres?|meters?|mètres?)\b/iu,
+];
+
+const GAME_RULE_BEFORE_DENY: RegExp[] = [
+  /\b(?:m[aá]s|mas|menos|mayor|menor|entre)\s*(?:de)?$/iu,
 ];
 
 const BEFORE_DENY: RegExp[] = [
@@ -88,10 +99,10 @@ export function classifyNumber(
   const before = (from > 0 ? "\u0001" : "") + text.slice(from, index);
   const after = text.slice(index + tokenLength, index + tokenLength + 24);
 
-  for (const pattern of AFTER_DENY) {
+  for (const pattern of [...AFTER_DENY, ...GAME_RULE_DENY]) {
     if (pattern.test(after)) return "not-reference";
   }
-  for (const pattern of BEFORE_DENY) {
+  for (const pattern of [...BEFORE_DENY, ...GAME_RULE_BEFORE_DENY]) {
     if (pattern.test(before)) return "not-reference";
   }
   if (GOTO_BEFORE.test(before)) return "reference";

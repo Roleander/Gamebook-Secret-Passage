@@ -30,7 +30,7 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export async function generateEPUB(project: EpubProject, readingMode: boolean, theme: ThemeId = "clasico", showEndpointMarkers = true): Promise<Buffer> {
+export async function generateEPUB(project: EpubProject, readingMode: boolean, theme: ThemeId = "clasico", showPassageMarkers = true): Promise<Buffer> {
   const zip = new JSZip();
   const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
 
@@ -173,8 +173,8 @@ a { color: ${th.linkInline}; text-decoration: none; }
 
   project.passages.forEach((passage) => {
     const markers = [];
-    if (passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
-    if (showEndpointMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
+    if (showPassageMarkers && passage.number === 1) markers.push('<span class="start-marker">[INICIO]</span>');
+    if (showPassageMarkers && passage.isEndpoint) markers.push('<span class="end-marker">[FIN]</span>');
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     let linksHtml = "";

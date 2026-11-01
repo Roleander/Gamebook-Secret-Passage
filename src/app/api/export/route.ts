@@ -29,7 +29,7 @@ const exportSchema = z.object({
   readingMode: z.boolean().optional(),
   theme: z.enum(THEME_IDS as [ThemeId, ...ThemeId[]]).optional(),
   mobile: z.boolean().optional(),
-  showEndpointMarkers: z.boolean().optional(),
+  showPassageMarkers: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     const parsed = parseOr400(exportSchema, await req.json().catch(() => null));
     if (!parsed.ok) return parsed.response;
-    const { projectId, format, readingMode, theme, mobile, showEndpointMarkers } = parsed.data;
+    const { projectId, format, readingMode, theme, mobile, showPassageMarkers } = parsed.data;
 
     if (format !== "txt") {
       const ents = await getEntitlements(
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 
     switch (format) {
       case "pdf": {
-        const html = await generatePDF(projectId, readingMode, theme ?? "clasico", mobile ?? false, showEndpointMarkers ?? true);
+        const html = await generatePDF(projectId, readingMode, theme ?? "clasico", mobile ?? false, showPassageMarkers ?? false);
         const quota = await getPdfExportUsage();
         if (!quota.allowed) {
           return NextResponse.json(
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
         }
       }
       case "epub": {
-        const epubBuffer = await generateEPUB(project, readingMode ?? false, theme ?? "clasico", showEndpointMarkers ?? true);
+        const epubBuffer = await generateEPUB(project, readingMode ?? false, theme ?? "clasico", showPassageMarkers ?? false);
         return new NextResponse(new Uint8Array(epubBuffer), {
           headers: {
             "Content-Type": "application/epub+zip",
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
         });
       }
       case "odt": {
-        const odtBuffer = await generateODT(projectId, readingMode, theme ?? "clasico", showEndpointMarkers ?? true);
+        const odtBuffer = await generateODT(projectId, readingMode, theme ?? "clasico", showPassageMarkers ?? false);
         return new NextResponse(new Uint8Array(odtBuffer), {
           headers: {
             "Content-Type": "application/vnd.oasis.opendocument.text",
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
         });
       }
       case "doc": {
-        const docContent = await generateDOC(projectId, readingMode, theme ?? "clasico", showEndpointMarkers ?? true);
+        const docContent = await generateDOC(projectId, readingMode, theme ?? "clasico", showPassageMarkers ?? false);
         return new NextResponse(docContent, {
           headers: {
             "Content-Type": "application/msword; charset=utf-8",
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
         });
       }
       case "docx": {
-        const docxBuffer = await generateDOCX(projectId, readingMode, theme ?? "clasico", showEndpointMarkers ?? true);
+        const docxBuffer = await generateDOCX(projectId, readingMode, theme ?? "clasico", showPassageMarkers ?? false);
         return new NextResponse(new Uint8Array(docxBuffer), {
           headers: {
             "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

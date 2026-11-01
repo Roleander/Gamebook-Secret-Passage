@@ -172,7 +172,8 @@
     "ghostRef": "Le passage {from} fait référence au passage {to}, qui n'existe pas",
     "orphan": "Passage {n} : aucun lien entrant (orphelin)",
     "noExit": "Passage {n} : aucun lien sortant",
-    "showEndMarkers": "Afficher les marqueurs de fin"
+    "showEndMarkers": "Afficher les marqueurs de fin",
+    "showPassageMarkers": "Afficher les marqueurs de inicio/fin"
   },
   "Upload": {
     "title": "Importer un Document",

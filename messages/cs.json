@@ -172,7 +172,8 @@
     "ghostRef": "Průchod {from} odkazuje na průchod {to}, který neexistuje",
     "orphan": "Pasáž {n}: nemá vstupní odkazy (sirotek)",
     "noExit": "Pasáž {n}: nemá výstupní odkazy",
-    "showEndMarkers": "Zobrazit značky konce"
+    "showEndMarkers": "Zobrazit značky konce",
+    "showPassageMarkers": "Zobrazit značky konce"
   },
   "Upload": {
     "title": "Importovat dokument",

@@ -172,7 +172,8 @@
     "ghostRef": "Passage {from} references passage {to}, which does not exist",
     "orphan": "Passage {n}: no incoming links (orphan)",
     "noExit": "Passage {n}: no outgoing links",
-    "showEndMarkers": "Show ending markers"
+    "showEndMarkers": "Show ending markers",
+    "showPassageMarkers": "Show start/end markers"
   },
   "Upload": {
     "title": "Import Document",

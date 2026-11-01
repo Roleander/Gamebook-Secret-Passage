@@ -172,7 +172,8 @@
     "ghostRef": "Passage {from} verweist auf nicht existierende Passage {to}",
     "orphan": "Passage {n}: keine eingehenden Links (Waise)",
     "noExit": "Passage {n}: keine ausgehenden Links",
-    "showEndMarkers": "Endmarkierungen anzeigen"
+    "showEndMarkers": "Endmarkierungen anzeigen",
+    "showPassageMarkers": "Endmarkierungen anzeigen"
   },
   "Upload": {
     "title": "Dokument importieren",
