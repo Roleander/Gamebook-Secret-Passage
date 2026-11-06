@@ -118,12 +118,13 @@ describe("EPUB export (generateEPUB)", () => {
     expect(css).toContain("pointer-events: none");
   });
 
-  it("los 4 temas nuevos embeben sus fuentes y llevan watermark y divisor", async () => {
+  it("los temas nuevos embeben sus fuentes y llevan watermark y divisor", async () => {
     const cases: Array<[ThemeId, string]> = [
       ["celta", "MedievalSharp"],
       ["cruzada", "UnifrakturCook"],
       ["renacentista", "Cinzel Decorative"],
       ["alquimia", "Pirata One"],
+      ["iluminado", "Cinzel Decorative"],
     ];
     for (const [theme, family] of cases) {
       const zip = await loadZip(theme);

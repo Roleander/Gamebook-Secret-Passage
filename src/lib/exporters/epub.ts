@@ -97,6 +97,12 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
     ? `.passage-divider { display: flex; justify-content: center; margin: 8px 0; color: ${th.accent}; opacity: 0.4; }\n.passage-divider svg { width: 70px; height: 8px; }\n`
     : "";
   const smallCapsRule = pdfTh.smallCaps ? `.passage-number, .passage-number-center { font-variant: small-caps; letter-spacing: 1px; }\n` : "";
+  const dropCapRule = pdfTh.dropCap
+    ? `.content::first-letter { font-family: ${th.fontHeading}; font-weight: ${th.headingWeight}; font-size: 2.8em; float: left; line-height: 0.9; padding: 2px 6px 0 0; color: ${th.accent};${pdfTh.dropCapBoxed ? ` background: ${th.linkInline}; color: ${th.paperBg}; border: 1px solid ${th.linkDotted};` : ""} }\n`
+    : "";
+  const frameRule = pdfTh.pageFrame
+    ? `body { border: 1px solid ${th.linksBorder}; outline: 1px solid ${th.linksBorder}; outline-offset: -6px; }\n`
+    : "";
 
   const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0">
@@ -118,7 +124,7 @@ ${fontManifestItems.length ? fontManifestItems.join("\n") + "\n" : ""}${project.
 </package>`;
   zip.file("OEBPS/content.opf", contentOpf);
 
-  zip.file("OEBPS/style.css", `${fontFaceCss}${headingRule}${upperRule}${watermarkRule}${dividerRule}${smallCapsRule}body {
+  zip.file("OEBPS/style.css", `${fontFaceCss}${headingRule}${upperRule}${watermarkRule}${dividerRule}${smallCapsRule}${dropCapRule}${frameRule}body {
   font-family: ${th.fontBody};
   line-height: 1.8;
   padding: 20px;

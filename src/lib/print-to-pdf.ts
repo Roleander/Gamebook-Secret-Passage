@@ -33,6 +33,9 @@ export async function htmlToPdf(html: string, mobile = false): Promise<Buffer> {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load", timeout: 30000 });
     await page.evaluate(() => document.fonts.ready);
+    const fullBleed = await page.evaluate(
+      () => !!document.querySelector('meta[name="pdf-full-bleed"]')
+    );
     const pageOptions = mobile
       ? {
           width: "390px",
@@ -46,7 +49,9 @@ export async function htmlToPdf(html: string, mobile = false): Promise<Buffer> {
           format: "A4" as const,
           printBackground: true,
           displayHeaderFooter: false,
-          margin: { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
+          margin: fullBleed
+            ? { top: "0", right: "0", bottom: "0", left: "0" }
+            : { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
           timeout: 30000,
         };
     const pdf = await page.pdf(pageOptions);

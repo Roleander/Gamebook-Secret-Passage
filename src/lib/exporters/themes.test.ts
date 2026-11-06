@@ -103,6 +103,7 @@ describe("planes de estilo de impresión", () => {
     expect(PDF_THEMES.papiro.rubrication).toBe(false);
     expect(PDF_THEMES.celta.rubrication).toBe(false);
     expect(PDF_THEMES.alquimia.rubrication).toBe(false);
+    expect(PDF_THEMES.iluminado.rubrication).toBe(true);
   });
 
   it("los temas oscuros grimorio y alquimia marcan dark y los claros no", () => {
@@ -111,7 +112,7 @@ describe("planes de estilo de impresión", () => {
     for (const id of THEME_IDS.filter((t) => t !== "grimorio" && t !== "alquimia")) {
       expect(PDF_THEMES[id].dark, `${id} dark`).toBe(false);
     }
-    expect(THEME_IDS).toHaveLength(8);
+    expect(THEME_IDS).toHaveLength(9);
   });
 
   it("los watermarks de los temas nuevos tienen formas distintas", () => {
@@ -123,6 +124,22 @@ describe("planes de estilo de impresión", () => {
     expect(PDF_THEMES.alquimia.watermarkSvg).toContain("path");
   });
 
+  it("iluminado define esquinas, cenefa, medallon y capitular iluminada", () => {
+    const th = PDF_THEMES.iluminado;
+    expect(th.cornerSvg).toContain("<svg");
+    expect(th.cornerTopSvg).toContain("<svg");
+    expect(th.bandSvg).toContain("<svg");
+    expect(th.sideBandSvg).toContain("<svg");
+    expect(th.medallionSvg).toContain("<svg");
+    expect(th.pageFrame).toBe(true);
+    expect(th.dropCap).toBe(true);
+    expect(th.dropCapBoxed).toBe(true);
+    expect(th.smallCaps).toBe(true);
+    expect(pdfThemeRules(th)).toContain("page-decor");
+    expect(pdfThemeRules(th)).toContain("padding: 136px 118px 124px");
+    expect(pvThemeCss("iluminado")).toContain("background-position: top left");
+  });
+
   it("isThemeId valida identificadores", () => {
     expect(isThemeId("grimorio")).toBe(true);
     expect(isThemeId("clasico")).toBe(true);
@@ -130,6 +147,7 @@ describe("planes de estilo de impresión", () => {
     expect(isThemeId("cruzada")).toBe(true);
     expect(isThemeId("renacentista")).toBe(true);
     expect(isThemeId("alquimia")).toBe(true);
+    expect(isThemeId("iluminado")).toBe(true);
     expect(isThemeId("otro")).toBe(false);
     expect(isThemeId(null)).toBe(false);
     expect(isThemeId(42)).toBe(false);

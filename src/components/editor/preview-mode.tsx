@@ -150,7 +150,7 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl pv-page">
         {/* Passage header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">

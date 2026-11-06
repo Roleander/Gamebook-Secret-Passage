@@ -15,7 +15,7 @@ interface Passage {
   }[];
 }
 
-export async function generatePDF(projectId: string, readingMode = false, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = true): Promise<string> {
+export async function generatePDF(projectId: string, readingMode = false, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = false): Promise<string> {
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -31,7 +31,7 @@ export async function generatePDF(projectId: string, readingMode = false, theme:
   });
 
   if (!project) throw new Error("Proyecto no encontrado");
-  return buildPrintHtml(project, readingMode, theme, mobile);
+  return buildPrintHtml(project, readingMode, theme, mobile, showPassageMarkers);
 }
 
 function buildLinkMap(passages: Passage[]): Set<number> {
@@ -65,7 +65,7 @@ function buildFontFaces(th: PdfTheme): string {
     .join("\n    ");
 }
 
-export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = true): string {
+export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = false): string {
   const th = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const escapeHtml = (text: string) =>
     text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -86,6 +86,21 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
   const divider = th.dividerSvg
     ? `<div class="passage-divider" aria-hidden="true">${th.dividerSvg}</div>\n    `
     : "";
+  const decorSvg = (source: string, id: string) => source.replace(/__ID__/g, id);
+  const pageDecor =
+    th.cornerSvg && th.cornerTopSvg && th.bandSvg && th.medallionSvg && !mobile
+      ? `<div class="page-decor" aria-hidden="true">
+    <div class="decor-band decor-top">${decorSvg(th.bandSvg, "ilbTop")}</div>
+    <div class="decor-band decor-bottom">${decorSvg(th.bandSvg, "ilbBottom")}</div>
+    ${th.sideBandSvg ? `<div class="decor-band decor-left">${decorSvg(th.sideBandSvg, "ilsLeft")}</div><div class="decor-band decor-right">${decorSvg(th.sideBandSvg, "ilsRight")}</div>` : ""}
+    <div class="decor-corner decor-tl">${th.cornerTopSvg}</div>
+    <div class="decor-corner decor-tr">${th.cornerTopSvg}</div>
+    <div class="decor-corner decor-bl">${th.cornerSvg}</div>
+    <div class="decor-corner decor-br">${th.cornerSvg}</div>
+    <div class="decor-medallion decor-top-medallion">${th.medallionSvg}</div>
+    <div class="decor-medallion decor-bottom-medallion">${th.medallionSvg}</div>
+  </div>`
+      : "";
 
   let html = `<!DOCTYPE html>
 <html lang="es">
@@ -93,6 +108,7 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  ${pageDecor ? '<meta name="pdf-full-bleed" content="1">' : ""}
   <title>${escapeHtml(project.title)}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -129,11 +145,14 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
   </style>
 </head>
 <body>
-  <div class="container">${watermark}
+  <div class="page-wrap">
+  ${pageDecor}
+  <div class="container${mobile ? " mobile" : ""}">${watermark}
     <div class="cover">${emblem}
       <h1>${escapeHtml(project.title)}</h1>
       <p class="subtitle">Librojuego generado por Secret Passage</p>${ornament}
     </div>
+    ${pageDecor ? `<table class="page-flow"><thead><tr><td colspan="3"></td></tr></thead><tfoot><tr><td colspan="3"></td></tr></tfoot><tbody><tr><td class="flow-left"></td><td class="flow-main">` : ""}
 `;
 
   project.passages.forEach((passage, idx) => {
@@ -170,6 +189,6 @@ if (showPassageMarkers && passage.isEndpoint) markers.push('<span class="end-mar
     }
   });
 
-  html += `  </div>\n</body>\n</html>`;
+  html += `  ${pageDecor ? `</td><td class="flow-right"></td></tr></tbody></table>` : ""}\n  </div>\n  </div>\n</body>\n</html>`;
   return html;
 }

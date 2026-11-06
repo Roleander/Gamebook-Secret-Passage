@@ -1,8 +1,8 @@
 import { FONT_FILES } from "./font-files";
 
-export type ThemeId = "clasico" | "grimorio" | "papiro" | "pergamino" | "celta" | "cruzada" | "renacentista" | "alquimia";
+export type ThemeId = "clasico" | "grimorio" | "papiro" | "pergamino" | "celta" | "cruzada" | "renacentista" | "alquimia" | "iluminado";
 
-export const THEME_IDS: ThemeId[] = ["clasico", "grimorio", "papiro", "pergamino", "celta", "cruzada", "renacentista", "alquimia"];
+export const THEME_IDS: ThemeId[] = ["clasico", "grimorio", "papiro", "pergamino", "celta", "cruzada", "renacentista", "alquimia", "iluminado"];
 export const DEFAULT_THEME: ThemeId = "clasico";
 
 export function isThemeId(value: unknown): value is ThemeId {
@@ -18,6 +18,7 @@ export const THEME_SWATCH: Record<ThemeId, string> = {
   cruzada: "#efe6d2",
   renacentista: "#faf6ee",
   alquimia: "#161821",
+  iluminado: "#efe3c4",
 };
 
 export interface PdfTheme {
@@ -52,6 +53,11 @@ export interface PdfTheme {
   dropCapBoxed?: boolean;
   rubrication?: boolean;
   smallCaps?: boolean;
+  cornerSvg?: string;
+  cornerTopSvg?: string;
+  bandSvg?: string;
+  sideBandSvg?: string;
+  medallionSvg?: string;
 }
 
 export const SVG_WATERMARK_GRIMORIO =
@@ -77,6 +83,27 @@ export const SVG_WATERMARK_ALQUIMIA =
 
 export const SVG_DIVIDER =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 12" fill="none" stroke="currentColor" stroke-width="1"><path d="M4 6h44M72 6h44"/><path d="M60 2l4 4-4 4-4-4z" fill="currentColor" stroke="none"/></svg>';
+
+export const SVG_WATERMARK_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="50" cy="50" r="46"/><circle cx="50" cy="50" r="38"/><path d="M50 18c6 12 6 24 0 36-6-12-6-24 0-36z"/><path d="M50 54c-12-10-24-10-34-4 8 12 20 16 34 12"/><path d="M50 54c12-10 24-10 34-4-8 12-20 16-34 12"/><path d="M50 62v18M42 74h16"/><circle cx="50" cy="50" r="6"/></svg>';
+
+export const SVG_DIVIDER_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 8h52M102 8h52"/><path d="M80 2l6 6-6 6-6-6z" fill="currentColor" stroke="none"/><path d="M64 8c4-6 10-6 12 0-2 6-8 6-12 0zM96 8c-4-6-10-6-12 0 2 6 8 6 12 0z"/></svg>';
+
+export const SVG_CORNER_TOP_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="none" stroke="#b08d2a" stroke-width="2" stroke-linecap="round"><path d="M2 58V14A12 12 0 0 1 14 2h44"/><path d="M10 66V22A12 12 0 0 1 22 10h46"/><path d="M14 98C18 72 34 54 58 46c18-6 30-18 34-36"/><path d="M22 104C26 82 40 66 62 60"/><path d="M78 6c10 2 18 10 20 20"/></g><g fill="none" stroke="#b08d2a" stroke-width="1.6" stroke-linecap="round"><path d="M24 96c-10-12-6-26 6-30 10-3 18 5 16 14-2 8-12 11-17 5"/><path d="M96 30c10 0 18 8 20 18"/></g><g fill="#1f3f7a" stroke="#b08d2a" stroke-width="1.4"><path d="M52 40c-2-12 10-18 18-12-1 10-8 16-18 12z"/></g><g fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.4"><path d="M40 64c-12 2-18-8-12-16 9 0 15 6 12 16z"/></g><g><circle cx="62" cy="54" r="7" fill="#8c1c1c" stroke="#b08d2a" stroke-width="2"/><circle cx="62" cy="54" r="3" fill="#c9a227"/><path d="M62 40v-8M62 76v-8M46 54h-8M86 54h-8M51 43l-5-5M78 70l-5-5M73 43l5-5M46 70l5-5" stroke="#b08d2a" stroke-width="2"/></g></svg>';
+
+export const SVG_CORNER_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 150"><path d="M98 78 C88 58 76 34 62 12 C72 16 82 22 88 30 C84 31 81 32 79 34 C88 37 96 42 102 48 C96 49 92 51 90 53 C95 59 97 68 98 78 Z" fill="#1f3f7a" stroke="#b08d2a" stroke-width="2" stroke-linejoin="round"/><g stroke="#b08d2a" stroke-width="1.3" fill="none"><path d="M98 78 L64 14"/><path d="M98 78 L88 30"/><path d="M98 78 L102 48"/><path d="M98 78 L90 53"/></g><path d="M106 82 C98 62 90 34 84 10 C90 12 94 14 96 16 C96 20 97 24 98 28 C102 26 106 26 110 26 C110 30 109 34 108 38 C112 39 117 40 122 42 C120 45 118 48 116 52 C118 55 119 58 120 62 C114 66 109 74 106 82 Z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="2.4" stroke-linejoin="round"/><g stroke="#b08d2a" stroke-width="1.4" fill="none"><path d="M106 82 L86 12"/><path d="M106 82 L96 16"/><path d="M106 82 L110 26"/><path d="M106 82 L122 42"/><path d="M106 82 L120 62"/></g><path d="M90 18 C95 21 98 24 100 28" stroke="#c9a227" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M74 118 C56 132 34 138 24 126 C14 114 22 100 34 100 C42 100 46 107 42 113" fill="none" stroke="#b08d2a" stroke-width="8" stroke-linecap="round"/><path d="M74 118 C56 132 34 138 24 126 C14 114 22 100 34 100 C42 100 46 107 42 113" fill="none" stroke="#8c1c1c" stroke-width="4.5" stroke-linecap="round"/><path d="M74 118 C82 110 90 102 96 94 C101 87 104 82 107 76" fill="none" stroke="#b08d2a" stroke-width="19" stroke-linecap="round"/><path d="M74 118 C82 110 90 102 96 94 C101 87 104 82 107 76" fill="none" stroke="#1f3f7a" stroke-width="14" stroke-linecap="round"/><g stroke="#b08d2a" stroke-width="1.5" fill="none"><path d="M79 119 C83 113 87 107 92 103"/><path d="M85 121 C89 115 94 109 98 105"/><path d="M91 123 C95 117 99 112 103 108"/></g><path d="M107 78 C112 70 118 62 124 56" fill="none" stroke="#b08d2a" stroke-width="15" stroke-linecap="round"/><path d="M107 78 C112 70 118 62 124 56" fill="none" stroke="#1f3f7a" stroke-width="10" stroke-linecap="round"/><path d="M122 56 C121 46 127 39 137 37 L157 40 C162 41 162 46 157 48 C151 50 145 52 141 54 L142 59 C136 64 124 64 122 56 Z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="2.4"/><path d="M130 60 C138 64 150 60 158 53 L160 57 C153 63 141 68 131 65 Z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="2"/><path d="M132 59 C140 60 150 56 157 52 C150 58 140 62 133 61 Z" fill="#6d1010" stroke="none"/><path d="M135 58 C141 56 147 54 153 51" fill="none" stroke="#c9a227" stroke-width="1.8" stroke-linecap="round"/><circle cx="144" cy="46" r="2.6" fill="#c9a227" stroke="#b08d2a" stroke-width="1"/><circle cx="144" cy="46" r="1" fill="#3b2a1a"/><path d="M126 45 C118 35 108 28 100 31 C108 35 114 42 118 52" fill="#1f3f7a" stroke="#b08d2a" stroke-width="1.8"/><path d="M131 40 C125 31 115 23 106 27 C116 31 122 38 125 47" fill="#1f3f7a" stroke="#b08d2a" stroke-width="1.8"/><path d="M128 44 l-4 -9 8 3 2 -8 4 10" fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.4"/><path d="M148 51 l1 3 2 -3 M154 47 l1 3 2 -3" fill="#f7edd2" stroke="#b08d2a" stroke-width=".8"/><path d="M124 56 l-5 5 6 0 -2 6 6 -2 0 6 5 -6" fill="#b08d2a" stroke="#b08d2a" stroke-width="1.4" stroke-linejoin="round"/><path d="M76 116 C78 125 80 131 78 137" stroke="#b08d2a" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M76 116 C78 125 80 131 78 137" stroke="#1f3f7a" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M78 137 l-8 5 M78 137 l0 8 M78 137 l8 5" stroke="#b08d2a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M106 98 C110 106 111 113 110 120" stroke="#b08d2a" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M106 98 C110 106 111 113 110 120" stroke="#1f3f7a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M110 120 l-7 6 M110 120 l1 8 M110 120 l8 5" stroke="#b08d2a" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M42 113 l-2 -11 10 6 5 -9 3 12 z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.6"/><path d="M2 144 C20 136 38 144 56 142 C74 140 88 146 104 144 C124 141 150 146 178 142" fill="none" stroke="#b08d2a" stroke-width="2.4"/><path d="M16 148 C30 140 44 148 58 142" fill="none" stroke="#1f3f7a" stroke-width="3"/><path d="M112 148 C128 142 144 148 160 143" fill="none" stroke="#8c1c1c" stroke-width="3"/><circle cx="66" cy="146" r="2" fill="#c9a227"/><circle cx="104" cy="144" r="2" fill="#c9a227"/></svg>';
+
+export const SVG_BAND_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="64"><defs><pattern id="__ID__" width="150" height="64" patternUnits="userSpaceOnUse"><g fill="none" stroke="#b08d2a" stroke-width="1.5" stroke-linecap="round"><path d="M0 8h150M0 56h150"/><path d="M0 12h150M0 52h150" opacity=".55"/><path d="M0 32C25 10 50 10 75 32S125 54 150 32"/><path d="M0 40C25 18 50 18 75 40S125 62 150 40" opacity=".5"/><path d="M30 22c-6-8 2-16 10-12M120 42c6 8-2 16-10 12"/></g><g fill="#1f3f7a" stroke="#b08d2a" stroke-width="1.2"><path d="M33 22c-4-7 3-13 10-9-1 7-5 11-10 9z"/></g><g fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.2"><path d="M92 38c4-7 12-5 12 3-5 3-10 2-12-3z"/></g><g fill="#c9a227"><circle cx="20" cy="34" r="2.2"/><circle cx="130" cy="30" r="2.2"/><path d="M75 27l5 5-5 5-5-5z"/></g></pattern></defs><rect width="100%" height="64" fill="url(#__ID__)"/></svg>';
+
+export const SVG_SIDE_BAND_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="150"><defs><pattern id="__ID__" width="64" height="150" patternUnits="userSpaceOnUse"><g fill="none" stroke="#b08d2a" stroke-width="1.5" stroke-linecap="round"><path d="M8 0v150M56 0v150"/><path d="M12 0v150M52 0v150" opacity=".55"/><path d="M32 0C10 25 10 50 32 75S54 125 32 150"/><path d="M40 0C18 25 18 50 40 75S62 125 40 150" opacity=".5"/><path d="M22 30c-8-6-16 2-12 10M42 120c8 6 16-2 12-10"/></g><g fill="#1f3f7a" stroke="#b08d2a" stroke-width="1.2"><path d="M22 30c-7-4-13 3-9 10 7-1 11-5 9-10z"/></g><g fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.2"><path d="M38 118c7-4 13 3 9 10-7-1-11-5-9-10z"/></g><g fill="#c9a227"><circle cx="30" cy="20" r="2.2"/><circle cx="34" cy="130" r="2.2"/><path d="M29 71l5 5-5 5-5-5z"/></g></pattern></defs><rect width="64" height="100%" fill="url(#__ID__)"/></svg>';
+
+export const SVG_MEDALLION_ILUMINADO =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 100"><g fill="none" stroke="#b08d2a" stroke-width="2"><circle cx="90" cy="50" r="34"/><circle cx="90" cy="50" r="29" opacity=".65"/><path d="M56 42C36 26 20 24 8 32c14 4 22 12 26 24M124 42c20-16 36-18 48-10-14 4-22 12-26 24"/><path d="M56 60C36 76 20 78 8 70c14-4 22-12 26-24M124 60c20 16 36 18 48 10-14-4-22-12-26-24"/></g><path d="M82 50C84 34 94 24 108 22c-4 12-10 20-20 26z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.4"/><path d="M88 48c4-8 10-14 16-18M84 50c5-5 10-9 16-12" fill="none" stroke="#b08d2a" stroke-width="1"/><path d="M68 50c8-6 18-6 26 0 6 4 10 5 16 3" fill="none" stroke="#b08d2a" stroke-width="10" stroke-linecap="round"/><path d="M68 50c8-6 18-6 26 0 6 4 10 5 16 3" fill="none" stroke="#1f3f7a" stroke-width="6" stroke-linecap="round"/><path d="M110 53c12 2 18-6 14-14" fill="none" stroke="#b08d2a" stroke-width="6" stroke-linecap="round"/><path d="M110 53c12 2 18-6 14-14" fill="none" stroke="#1f3f7a" stroke-width="3" stroke-linecap="round"/><path d="M72 55l-4 10 4 1 4-8M100 57l-2 10 4 0 2-8" fill="none" stroke="#b08d2a" stroke-width="2.2" stroke-linecap="round"/><path d="M84 34c7 0 12 5 12 11 0 5-3 9-8 10l-14 2 6-6-10-3 8-4-4-6 10-4z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.6"/><path d="M68 48l-12 2 5 4-6 2 11 2" fill="none" stroke="#b08d2a" stroke-width="1.4"/><circle cx="79" cy="42" r="1.8" fill="#c9a227"/><path d="M86 32c0-6 4-10 10-11-2 4-2 8 0 10" fill="none" stroke="#b08d2a" stroke-width="1.6"/><path d="M56 46c-5-3-9-1-10 3 4 0 6 3 5 6 3-4 5-6 8-6z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.2"/><path d="M90 84l5 5-5 5-5-5z" fill="#8c1c1c" stroke="#b08d2a" stroke-width="1.2"/></svg>';
 
 export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
   clasico: {
@@ -342,6 +369,45 @@ export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
     rubrication: false,
     smallCaps: false,
   },
+  iluminado: {
+    id: "iluminado",
+    bg: "#efe3c4",
+    containerBg: "#f7edd2",
+    containerShadow: "0 0 24px rgba(110,78,35,0.28)",
+    printBg: "#efe3c4",
+    text: "#2b2118",
+    subtitle: "#6b5a3e",
+    accent: "#8c1c1c",
+    linksBg: "#f3e8cd",
+    linksBorder: "#c9b17a",
+    linkInline: "#1f3f7a",
+    linkDotted: "#b08d2a",
+    fontBody: "'EB Garamond', Georgia, 'Times New Roman', serif",
+    fontHeading: "'Cinzel Decorative', Georgia, serif",
+    headingWeight: "700",
+    h1LetterSpacing: "3px",
+    uppercaseHeadings: false,
+    dropCap: true,
+    ornament: true,
+    bodyTexture:
+      "radial-gradient(ellipse at 18% 22%, rgba(140,100,50,0.10) 0, transparent 32%), radial-gradient(ellipse at 82% 68%, rgba(120,85,45,0.09) 0, transparent 30%), radial-gradient(circle at 52% 92%, rgba(110,75,35,0.07) 0, transparent 24%), repeating-linear-gradient(0deg, rgba(120,90,45,0.025) 0px, rgba(120,90,45,0.025) 1px, transparent 1px, transparent 5px)",
+    containerTexture:
+      "radial-gradient(ellipse at 15% 18%, rgba(140,100,50,0.08) 0, transparent 26%), radial-gradient(ellipse at 85% 60%, rgba(120,85,45,0.07) 0, transparent 28%), radial-gradient(circle at 45% 88%, rgba(110,75,35,0.06) 0, transparent 22%), repeating-linear-gradient(0deg, rgba(120,90,45,0.02) 0px, rgba(120,90,45,0.02) 1px, transparent 1px, transparent 6px)",
+    fontFamilies: ["EB Garamond", "Cinzel Decorative"],
+    dark: false,
+    watermarkSvg: SVG_WATERMARK_ILUMINADO,
+    watermarkOpacity: 0.045,
+    dividerSvg: SVG_DIVIDER_ILUMINADO,
+    pageFrame: true,
+    dropCapBoxed: true,
+    rubrication: true,
+    smallCaps: true,
+    cornerSvg: SVG_CORNER_ILUMINADO,
+    cornerTopSvg: SVG_CORNER_TOP_ILUMINADO,
+    bandSvg: SVG_BAND_ILUMINADO,
+    sideBandSvg: SVG_SIDE_BAND_ILUMINADO,
+    medallionSvg: SVG_MEDALLION_ILUMINADO,
+  },
 };
 
 export interface OfficeTheme {
@@ -442,6 +508,47 @@ export function pdfThemeRules(th: PdfTheme): string {
     rules.push(
       `.container { border: 1px solid ${th.linksBorder}; outline: 1px solid ${th.linksBorder}; outline-offset: 3px; }`
     );
+  }
+  if (th.cornerSvg) {
+    rules.push(
+      `.page-wrap { position: relative; max-width: 800px; margin: 0 auto; }`,
+      `.page-decor { position: absolute; inset: 0; z-index: 20; pointer-events: none; color: ${th.linkDotted}; }`,
+      `.page-decor::before { content: ""; position: absolute; inset: 64px; border: 1px solid ${th.linkDotted}; pointer-events: none; }`,
+      `body { position: relative; }`,
+      `.container { padding: 136px 118px 124px; }`,
+      `.container.mobile { padding: 24px 18px; }`,
+      `.decor-band { position: absolute; color: ${th.linkDotted}; }`,
+      `.decor-band svg { display: block; width: 100%; height: 100%; }`,
+      `.decor-top { top: 0; left: 0; right: 0; height: 64px; }`,
+      `.decor-bottom { bottom: 0; left: 0; right: 0; height: 64px; transform: scaleY(-1); }`,
+      `.decor-left { top: 0; bottom: 0; left: 0; width: 64px; }`,
+      `.decor-right { top: 0; bottom: 0; right: 0; width: 64px; transform: scaleX(-1); }`,
+      `.decor-corner { position: absolute; width: 128px; height: 128px; }`,
+      `.decor-corner svg { width: 100%; height: 100%; }`,
+      `.decor-bl, .decor-br { width: 150px; height: 125px; }`,
+      `.decor-tl { top: 0; left: 0; }`,
+      `.decor-tr { top: 0; right: 0; transform: scaleX(-1); }`,
+      `.decor-bl { bottom: 0; left: 0; }`,
+      `.decor-br { bottom: 0; right: 0; transform: scaleX(-1); }`,
+      `.decor-medallion { position: absolute; left: 50%; width: 180px; height: 100px; transform: translateX(-50%); }`,
+      `.decor-top-medallion { top: 0; }`,
+      `.decor-bottom-medallion { bottom: 0; transform: translateX(-50%) scaleY(-1); }`,
+      `.container { border: none; outline: none; box-shadow: ${th.containerShadow}; }`,
+      `.cover { border-bottom: 3px double ${th.linkDotted}; padding-top: 120px; }`,
+      `@media screen { .cover { padding-top: 0; } }`,
+      `.passage-number-center::after, .passage-number-left::after { content: ""; display: block; width: 64px; height: 1px; margin: 6px auto 0; background: ${th.linkDotted}; opacity: 0.75; }`,
+      `.passage-number-left::after { margin-left: 0; }`,
+      `.page-flow { width: 100%; border-collapse: collapse; }`,
+      `.page-flow thead, .page-flow tfoot { display: none; }`,
+      `.page-flow .flow-left, .page-flow .flow-right { width: 0; padding: 0; }`,
+      `.page-flow .flow-main { padding: 0; vertical-align: top; }`,
+      `@media print { .page-decor { position: fixed; } .page-wrap { max-width: none; margin: 0; } html, body { background: ${th.printBg}; } .container { background: transparent; box-shadow: none; padding: 0; max-width: none; } .container.mobile { padding: 24px 18px; } .page-flow thead { display: table-header-group; } .page-flow tfoot { display: table-footer-group; } .page-flow thead td { height: 136px; padding: 0; font-size: 0; line-height: 0; } .page-flow tfoot td { height: 124px; padding: 0; font-size: 0; line-height: 0; } .page-flow .flow-left, .page-flow .flow-right { width: 118px; } }`
+    );
+    if (th.dropCap) {
+      rules.push(
+        `.container .passage-content::first-letter { background: ${th.linkInline}; color: ${th.containerBg}; border: 2px solid ${th.linkDotted}; box-shadow: 2px 2px 0 ${th.accent}; padding: 3px 8px; margin-right: 6px; }`
+      );
+    }
   }
   if (th.dividerSvg) {
     rules.push(
@@ -604,6 +711,23 @@ const PV_PALETTES: Record<Exclude<ThemeId, "clasico">, PvPalette> = {
     card: "#1a1d26",
     cardForeground: "#d9d4c5",
   },
+  iluminado: {
+    background: "#efe3c4",
+    foreground: "#2b2118",
+    primary: "#8c1c1c",
+    primaryForeground: "#f7edd2",
+    secondary: "#f3e8cd",
+    secondaryForeground: "#2b2118",
+    muted: "#f3e8cd",
+    mutedForeground: "#6b5a3e",
+    accent: "#e6d6ae",
+    accentForeground: "#2b2118",
+    border: "#c9b17a",
+    input: "#f3e8cd",
+    ring: "#8c1c1c",
+    card: "#f7edd2",
+    cardForeground: "#2b2118",
+  },
 };
 
 export function pvThemeCss(theme: ThemeId): string {
@@ -645,6 +769,45 @@ export function pvThemeCss(theme: ThemeId): string {
   const frameRule = th.pageFrame
     ? `\n[data-pv-theme="${theme}"] .container { border: 1px solid ${th.linksBorder}; outline: 1px solid ${th.linksBorder}; outline-offset: 3px; }`
     : "";
+  let cornerRule = "";
+  if (th.cornerSvg && th.bandSvg) {
+    const svg = (source: string) =>
+      `url("data:image/svg+xml,${encodeURIComponent(source).replace(/'/g, "%27")}")`;
+    const images: string[] = [];
+    const positions: string[] = [];
+    const repeats: string[] = [];
+    const sizes: string[] = [];
+    const layer = (source: string, position: string, repeat: string, size: string) => {
+      images.push(svg(source));
+      positions.push(position);
+      repeats.push(repeat);
+      sizes.push(size);
+    };
+    layer(th.bandSvg, "top left", "repeat-x", "150px 64px");
+    layer(th.bandSvg, "bottom left", "repeat-x", "150px 64px");
+    if (th.sideBandSvg) {
+      layer(th.sideBandSvg, "top left", "repeat-y", "64px 150px");
+      layer(th.sideBandSvg, "top right", "repeat-y", "64px 150px");
+    }
+    if (th.cornerTopSvg) {
+      layer(th.cornerTopSvg, "top left", "no-repeat", "128px 128px");
+      layer(th.cornerTopSvg, "top right", "no-repeat", "128px 128px");
+    }
+    layer(th.cornerSvg, "bottom left", "no-repeat", "150px 125px");
+    layer(th.cornerSvg, "bottom right", "no-repeat", "150px 125px");
+    if (th.medallionSvg) {
+      layer(th.medallionSvg, "top center", "no-repeat", "180px 100px");
+      layer(th.medallionSvg, "bottom center", "no-repeat", "180px 100px");
+    }
+    cornerRule = `
+[data-pv-theme="${theme}"] .pv-page {
+  background-image: ${images.join(", ")};
+  background-position: ${positions.join(", ")};
+  background-repeat: ${repeats.join(", ")};
+  background-size: ${sizes.join(", ")};
+  padding: 136px 118px 124px;
+}`;
+  }
   return `${faces}
 [data-pv-theme="${theme}"] {
   --background: ${p.background};
@@ -667,5 +830,5 @@ export function pvThemeCss(theme: ThemeId): string {
   font-family: ${th.fontBody};
   color: ${p.foreground};
 }
-${headRule}${upperRule}${smallCapsRule}${watermarkRule}${frameRule}`;
+${headRule}${upperRule}${smallCapsRule}${watermarkRule}${frameRule}${cornerRule}`;
 }

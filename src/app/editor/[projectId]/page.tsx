@@ -82,6 +82,7 @@ const THEME_LABEL_KEY: Record<ThemeId, string> = {
   cruzada: "Editor.themeCruzada",
   renacentista: "Editor.themeRenacentista",
   alquimia: "Editor.themeAlquimia",
+  iluminado: "Editor.themeIluminado",
 };
 
 function readStoredTheme(): ThemeId | null {

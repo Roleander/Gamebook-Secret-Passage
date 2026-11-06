@@ -234,4 +234,28 @@ describe("PDF print export (buildPrintHtml)", () => {
     expect(alquimia).toContain("::first-letter");
     expect(alquimia).toContain("#12141a");
   });
+
+  it("las senales de INICIO/FIN estan ocultas por defecto y solo aparecen con el flag", () => {
+    const hidden = buildPrintHtml(project, false);
+    expect(hidden).not.toContain("[INICIO]");
+    expect(hidden).not.toContain("[FIN]");
+
+    const shown = buildPrintHtml(project, false, "clasico", false, true);
+    expect(shown).toContain("[INICIO]");
+    expect(shown).toContain("[FIN]");
+  });
+
+  it("iluminado pinta cenefa, dragones y medallones, y los omite en modo movil", () => {
+    const html = buildPrintHtml(project, false, "iluminado");
+    expect(html).toContain('class="page-decor"');
+    expect(html).toContain("decor-band decor-top");
+    expect(html).toContain("decor-corner decor-bl");
+    expect(html).toContain("decor-medallion decor-top-medallion");
+    expect(html).toContain("padding: 136px 118px 124px");
+    expect(html).toContain("::first-letter");
+    expect(html).not.toContain("data:image");
+
+    const mobile = buildPrintHtml(project, false, "iluminado", true);
+    expect(mobile).not.toContain('class="page-decor"');
+  });
 });
