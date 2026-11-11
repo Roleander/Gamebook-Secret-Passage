@@ -73,7 +73,10 @@
     "confirmDelete": "Opravdu chcete smazat tento projekt?",
     "subtitle": "Spravujte své knihohry",
     "createFirstButton": "Vytvořit první projekt",
-    "noDescription": "Bez popisu"
+    "noDescription": "Bez popisu",
+    "duplicate": "Duplikovat",
+    "duplicateLimit": "Dosáhl jsi limitu projektů svého plánu. Přejdi na Pro, abys mohl projekty duplikovat.",
+    "duplicateError": "Projekt se nepodařilo duplikovat."
   },
   "NewProject": {
     "title": "Nový projekt",
@@ -492,7 +495,10 @@
     "aiSegment": "AI: segmentovat",
     "aiFallback": "AI není k dispozici — použita místní analýza",
     "aiRateLimit": "Dosažen limit AI požadavků. Zkuste to za chvíli znovu.",
-    "reanalyze": "Znovu analyzovat odkazy"
+    "reanalyze": "Znovu analyzovat odkazy",
+    "aiReady": "AI připojena: {model}",
+    "aiLocalReady": "Místní AI připojena: {model}",
+    "aiUnavailable": "AI není na tomto serveru nakonfigurována: tlačítka AI použijí místní analýzu."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Přidat vstupní odkaz",
     "incomingHint": "Vyberte pasáž, která povede na tuto pasáž ({n})",
     "source": "Zdrojová pasáž",
-    "sourceNumber": "Číslo zdrojové pasáže"
+    "sourceNumber": "Číslo zdrojové pasáže",
+    "illustration": "Ilustrace",
+    "illustrationHint": "Přidej obrázek k této pasáži (JPG, PNG, WebP nebo SVG, max. 2 MB).",
+    "illustrationAltPlaceholder": "Alternativní text (volitelné)",
+    "removeIllustration": "Odebrat ilustraci",
+    "illustrationUploading": "Nahrávání…",
+    "illustrationTypeError": "Formát není povolen. Použij JPG, PNG, WebP nebo SVG.",
+    "illustrationSizeError": "Obrázek přesahuje 2 MB.",
+    "illustrationUploadError": "Ilustraci se nepodařilo nahrát.",
+    "illustrationSaveHint": "Kliknutím na Uložit použiješ ilustraci u pasáže."
   },
   "PassageList": {
     "drag": "Přetáhněte pro změnu pořadí",

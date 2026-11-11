@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Trash2, Link2, Unlink, ArrowDown, ArrowUp } from "lucide-react";
+import { Save, Trash2, Link2, Unlink, ArrowDown, ArrowUp, ImagePlus, Loader2 } from "lucide-react";
 import { forceReplaceNumber } from "@/lib/number-references";
 import { useI18n } from "@/lib/i18n";
 
@@ -15,6 +15,8 @@ interface Passage {
   content: string;
   isStart: boolean;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: { targetId: string; target: { number: number } }[];
   incomingLinks: { sourceId: string; source: { number: number } }[];
 }
@@ -44,6 +46,10 @@ export function PassageEditor({
   const [content, setContent] = useState(passage.content);
   const [isStart, setIsStart] = useState(passage.isStart);
   const [isEndpoint, setIsEndpoint] = useState(passage.isEndpoint);
+  const [illustration, setIllustration] = useState(passage.illustration || "");
+  const [illustrationAlt, setIllustrationAlt] = useState(passage.illustrationAlt || "");
+  const [uploadingIllustration, setUploadingIllustration] = useState(false);
+  const [illustrationError, setIllustrationError] = useState<string | null>(null);
   const [showOutgoingDialog, setShowOutgoingDialog] = useState(false);
   const [showIncomingDialog, setShowIncomingDialog] = useState(false);
   const [linkTarget, setLinkTarget] = useState<number | "">("");
@@ -58,9 +64,53 @@ export function PassageEditor({
       content,
       isStart,
       isEndpoint,
+      illustration: illustration.trim() || null,
+      illustrationAlt: illustrationAlt.trim() || null,
     });
     if (!ok) {
       setNumber(passage.number);
+    }
+  };
+
+  const handleIllustrationUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+
+    setIllustrationError(null);
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
+    if (!allowedTypes.includes(file.type)) {
+      setIllustrationError(t("Passage.illustrationTypeError"));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setIllustrationError(t("Passage.illustrationSizeError"));
+      return;
+    }
+
+    setUploadingIllustration(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "illustration");
+      formData.append("passageId", passage.id);
+
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.url) {
+        setIllustrationError(data?.error || t("Passage.illustrationUploadError"));
+        return;
+      }
+      setIllustration(data.url);
+    } catch {
+      setIllustrationError(t("Passage.illustrationUploadError"));
+    } finally {
+      setUploadingIllustration(false);
     }
   };
 
@@ -254,6 +304,67 @@ export function PassageEditor({
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-4">
+        <h3 className="text-sm font-medium flex items-center">
+          <ImagePlus className="w-4 h-4 mr-2 text-primary" />
+          {t("Passage.illustration")}
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          {t("Passage.illustrationHint")}
+        </p>
+
+        {illustration && (
+          <div className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+            <img
+              src={illustration}
+              alt={illustrationAlt || ""}
+              className="mx-auto max-h-64 w-auto max-w-full rounded border border-border bg-background p-1"
+            />
+            <Input
+              value={illustrationAlt}
+              onChange={(e) => setIllustrationAlt(e.target.value)}
+              placeholder={t("Passage.illustrationAltPlaceholder")}
+              maxLength={300}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIllustration("");
+                setIllustrationAlt("");
+                setIllustrationError(null);
+              }}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {t("Passage.removeIllustration")}
+            </Button>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/svg+xml"
+            onChange={handleIllustrationUpload}
+            disabled={uploadingIllustration}
+            className="max-w-sm cursor-pointer text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-2 file:py-1 file:text-sm file:text-primary"
+          />
+          {uploadingIllustration && (
+            <span className="flex items-center text-xs text-muted-foreground">
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              {t("Passage.illustrationUploading")}
+            </span>
+          )}
+        </div>
+        {illustrationError && (
+          <p className="text-xs text-destructive">{illustrationError}</p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          {t("Passage.illustrationSaveHint")}
+        </p>
       </div>
 
       {/* Links Section */}

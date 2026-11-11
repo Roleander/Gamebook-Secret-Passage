@@ -45,12 +45,14 @@ model Passage {
   project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   number        Int
   title         String?
-  content       String
-  sortOrder     Int       @default(0)
-  isStart       Boolean   @default(false)
-  isEndpoint    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  content         String
+  sortOrder       Int       @default(0)
+  isStart         Boolean   @default(false)
+  isEndpoint      Boolean   @default(false)
+  illustration    String?
+  illustrationAlt String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   outgoingLinks PassageLink[] @relation("SourcePassage")
   incomingLinks PassageLink[] @relation("TargetPassage")

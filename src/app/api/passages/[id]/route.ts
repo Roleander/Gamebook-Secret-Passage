@@ -8,6 +8,7 @@ import { replaceNumberReferences } from "@/lib/number-references";
 import { rewriteProjectLinkTexts } from "@/lib/link-texts";
 import { syncProjectLinks } from "@/lib/link-sync";
 import { getEntitlements } from "@/lib/entitlements";
+import { isAllowedIllustrationUrl } from "@/lib/illustration";
 import { createProjectSnapshot } from "@/lib/snapshots";
 import {
   referencesTo,
@@ -22,6 +23,16 @@ const passagePatchSchema = z.object({
   number: z.number().int().min(1).optional(),
   isStart: z.boolean().optional(),
   isEndpoint: z.boolean().optional(),
+  illustration: z
+    .string()
+    .max(2048)
+    .nullable()
+    .optional()
+    .refine(
+      (value) => value === null || value === "" || isAllowedIllustrationUrl(value),
+      { message: "La URL de la ilustración no es válida" }
+    ),
+  illustrationAlt: z.string().max(300).nullable().optional(),
 });
 
 const passageDeleteSchema = z.object({

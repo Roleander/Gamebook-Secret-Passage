@@ -73,7 +73,10 @@
     "confirmDelete": "Sind Sie sicher, dass Sie dieses Projekt löschen möchten?",
     "subtitle": "Verwalte deine Spielbücher",
     "createFirstButton": "Erstes Projekt erstellen",
-    "noDescription": "Keine Beschreibung"
+    "noDescription": "Keine Beschreibung",
+    "duplicate": "Duplizieren",
+    "duplicateLimit": "Du hast das Projektlimit deines Plans erreicht. Upgrade auf Pro, um Projekte zu duplizieren.",
+    "duplicateError": "Das Projekt konnte nicht dupliziert werden."
   },
   "NewProject": {
     "title": "Neues Projekt",
@@ -492,7 +495,10 @@
     "aiSegment": "KI: segmentieren",
     "aiFallback": "KI nicht verfügbar — lokale Analyse verwendet",
     "aiRateLimit": "KI-Anfragelimit erreicht. In wenigen Minuten erneut versuchen.",
-    "reanalyze": "Links neu analysieren"
+    "reanalyze": "Links neu analysieren",
+    "aiReady": "KI verbunden: {model}",
+    "aiLocalReady": "Lokale KI verbunden: {model}",
+    "aiUnavailable": "KI ist auf diesem Server nicht konfiguriert: Die KI-Schaltflächen verwenden die lokale Analyse."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Eingehenden Link hinzufügen",
     "incomingHint": "Wähle die Passage, die zu dieser Passage verlinken wird ({n})",
     "source": "Quellpassage",
-    "sourceNumber": "Nummer der Quellpassage"
+    "sourceNumber": "Nummer der Quellpassage",
+    "illustration": "Illustration",
+    "illustrationHint": "Füge ein Bild für diesen Abschnitt hinzu (JPG, PNG, WebP oder SVG, max. 2 MB).",
+    "illustrationAltPlaceholder": "Alternativtext (optional)",
+    "removeIllustration": "Illustration entfernen",
+    "illustrationUploading": "Wird hochgeladen…",
+    "illustrationTypeError": "Format nicht erlaubt. Verwende JPG, PNG, WebP oder SVG.",
+    "illustrationSizeError": "Das Bild ist größer als 2 MB.",
+    "illustrationUploadError": "Die Illustration konnte nicht hochgeladen werden.",
+    "illustrationSaveHint": "Klicke auf Speichern, um die Illustration auf den Abschnitt anzuwenden."
   },
   "PassageList": {
     "drag": "Ziehen zum Neuanordnen",

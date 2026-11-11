@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n";
@@ -71,6 +71,24 @@ export function AnalysisPanel({
     possibleConnections: number;
     ghostReferenceCount: number;
   } | null>(null);
+  const [aiStatus, setAiStatus] = useState<{
+    configured: boolean;
+    provider: "groq" | "local" | "openai-compatible";
+    model: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/ai/status")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setAiStatus(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const existingPairs = new Set(
     passages.flatMap((p) =>
@@ -458,6 +476,24 @@ export function AnalysisPanel({
             {busy === "aiSegment" ? t("Analysis.analyzing") : t("Analysis.aiSegment")}
           </Button>
         </div>
+
+        {aiStatus && (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                aiStatus.configured ? "bg-green-500" : "bg-amber-500"
+              }`}
+            />
+            {aiStatus.configured
+              ? t(
+                  aiStatus.provider === "local"
+                    ? "Analysis.aiLocalReady"
+                    : "Analysis.aiReady",
+                  { model: aiStatus.model }
+                )
+              : t("Analysis.aiUnavailable")}
+          </p>
+        )}
 
         {reanalysisSummary && (
           <div className="space-y-1 text-xs text-muted-foreground">

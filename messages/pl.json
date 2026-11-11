@@ -73,7 +73,10 @@
     "confirmDelete": "Czy na pewno chcesz usunąć ten projekt?",
     "subtitle": "Zarządzaj swoimi grami książkowymi",
     "createFirstButton": "Utwórz pierwszy projekt",
-    "noDescription": "Brak opisu"
+    "noDescription": "Brak opisu",
+    "duplicate": "Duplikuj",
+    "duplicateLimit": "Osiągnięto limit projektów w Twoim planie. Przejdź na Pro, aby duplikować projekty.",
+    "duplicateError": "Nie udało się zduplikować projektu."
   },
   "NewProject": {
     "title": "Nowy projekt",
@@ -492,7 +495,10 @@
     "aiSegment": "AI: segmentuj",
     "aiFallback": "AI niedostępne — użyto lokalnej analizy",
     "aiRateLimit": "Osiągnięto limit zapytań AI. Spróbuj ponownie za chwilę.",
-    "reanalyze": "Ponownie analizuj łącza"
+    "reanalyze": "Ponownie analizuj łącza",
+    "aiReady": "AI połączona: {model}",
+    "aiLocalReady": "Lokalna AI połączona: {model}",
+    "aiUnavailable": "AI nie jest skonfigurowana na tym serwerze: przyciski AI użyją analizy lokalnej."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Dodaj link wchodzący",
     "incomingHint": "Wybierz pasaż, który będzie prowadził do tego pasażu ({n})",
     "source": "Pasaż źródłowy",
-    "sourceNumber": "Numer pasażu źródłowego"
+    "sourceNumber": "Numer pasażu źródłowego",
+    "illustration": "Ilustracja",
+    "illustrationHint": "Dodaj obraz do tego fragmentu (JPG, PNG, WebP lub SVG, maks. 2 MB).",
+    "illustrationAltPlaceholder": "Tekst alternatywny (opcjonalnie)",
+    "removeIllustration": "Usuń ilustrację",
+    "illustrationUploading": "Przesyłanie…",
+    "illustrationTypeError": "Niedozwolony format. Użyj JPG, PNG, WebP lub SVG.",
+    "illustrationSizeError": "Obraz przekracza 2 MB.",
+    "illustrationUploadError": "Nie udało się przesłać ilustracji.",
+    "illustrationSaveHint": "Kliknij Zapisz, aby zastosować ilustrację do fragmentu."
   },
   "PassageList": {
     "drag": "Przeciągnij, aby uporządkować",

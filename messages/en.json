@@ -73,7 +73,10 @@
     "confirmDelete": "Are you sure you want to delete this project?",
     "subtitle": "Manage your gamebooks",
     "createFirstButton": "Create First Project",
-    "noDescription": "No description"
+    "noDescription": "No description",
+    "duplicate": "Duplicate",
+    "duplicateLimit": "You have reached your plan's project limit. Upgrade to Pro to duplicate projects.",
+    "duplicateError": "Could not duplicate the project."
   },
   "NewProject": {
     "title": "New Project",
@@ -492,7 +495,10 @@
     "aiSegment": "AI: segment",
     "aiFallback": "AI unavailable — used local analysis",
     "aiRateLimit": "AI request limit reached. Try again in a few minutes.",
-    "reanalyze": "Re-analyze links"
+    "reanalyze": "Re-analyze links",
+    "aiReady": "AI connected: {model}",
+    "aiLocalReady": "Local AI connected: {model}",
+    "aiUnavailable": "AI is not configured on this server: AI buttons will use local analysis."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Add Incoming Link",
     "incomingHint": "Select the passage that will link to this passage ({n})",
     "source": "Source passage",
-    "sourceNumber": "Source passage number"
+    "sourceNumber": "Source passage number",
+    "illustration": "Illustration",
+    "illustrationHint": "Add an image for this passage (JPG, PNG, WebP or SVG, max. 2 MB).",
+    "illustrationAltPlaceholder": "Alternative text (optional)",
+    "removeIllustration": "Remove illustration",
+    "illustrationUploading": "Uploading…",
+    "illustrationTypeError": "Format not allowed. Use JPG, PNG, WebP or SVG.",
+    "illustrationSizeError": "The image exceeds 2 MB.",
+    "illustrationUploadError": "Could not upload the illustration.",
+    "illustrationSaveHint": "Press Save to apply the illustration to the passage."
   },
   "PassageList": {
     "drag": "Drag to reorder",

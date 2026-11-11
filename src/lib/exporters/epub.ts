@@ -1,4 +1,5 @@
-import { findPassageLinks } from "@/lib/reference-links";
+import { exportableLinks, exportableTargets, findPassageLinks } from "@/lib/reference-links";
+import { fetchIllustrations } from "@/lib/illustration";
 import { PDF_THEMES, officeTheme, type OfficeTheme, type ThemeId } from "@/lib/exporters/themes";
 import { FONTS_DATA } from "@/lib/exporters/fonts-data";
 import JSZip from "jszip";
@@ -9,7 +10,10 @@ interface EpubPassage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: {
+    targetId?: string | null;
     target: { number: number };
     linkText: string | null;
   }[];
@@ -37,6 +41,7 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
   const passageNumbers = new Set<number>(
     project.passages.map((p) => p.number)
   );
+  const passageIds = new Set<string>(project.passages.map((p) => p.id));
 
   function linkifyContent(
     content: string,
@@ -90,6 +95,24 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
   const headingRule = th.id === "clasico" ? "" : `h1, .passage-number, .passage-number-center { font-family: ${th.fontHeading}; font-weight: ${th.headingWeight}; }\n`;
   const upperRule = th.uppercaseHeadings ? `h1, .passage-number, .passage-number-center { text-transform: uppercase; letter-spacing: 2px; }\n` : "";
   const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
+
+  const illustrations = await fetchIllustrations(project.passages);
+  const illustrationManifestItems: string[] = [];
+  const illustrationByNumber = new Map<
+    number,
+    { href: string; alt: string }
+  >();
+  const passageByNumber = new Map(project.passages.map((p) => [p.number, p]));
+  for (const [number, image] of illustrations) {
+    const fileName = `passage-${number}.${image.ext}`;
+    const href = `images/${fileName}`;
+    const alt = passageByNumber.get(number)?.illustrationAlt?.trim() || "";
+    zip.file(`OEBPS/${href}`, image.data);
+    illustrationManifestItems.push(
+      `    <item id="ill${number}" href="${href}" media-type="${image.mime}"/>`
+    );
+    illustrationByNumber.set(number, { href, alt });
+  }
   const watermarkRule = pdfTh.watermarkSvg
     ? `.page-watermark { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); width: 220px; height: 220px; pointer-events: none; color: ${th.accent}; opacity: ${pdfTh.watermarkOpacity ?? 0.06}; }\nbody { position: relative; }\n`
     : "";
@@ -102,6 +125,15 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
     : "";
   const frameRule = pdfTh.pageFrame
     ? `body { border: 1px solid ${th.linksBorder}; outline: 1px solid ${th.linksBorder}; outline-offset: -6px; }\n`
+    : "";
+  const iluminado = pdfTh.id === "iluminado";
+  const ornamentCss = iluminado
+    ? `.chapter-frame { border: 2px solid ${th.linksBorder}; outline: 1px solid ${th.accent}; outline-offset: -7px; padding: 18px 16px 22px; background: ${th.paperBg}; }
+.medallion { display: flex; justify-content: center; margin: 4px 0 14px; }
+.medallion svg { width: 132px; height: 132px; }
+.chapter-frieze { margin-top: 20px; }
+.chapter-frieze svg { display: block; width: 100%; height: auto; }
+`
     : "";
 
   const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
@@ -116,7 +148,7 @@ export async function generateEPUB(project: EpubProject, readingMode: boolean, t
   <manifest>
     <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
     <item id="style" href="style.css" media-type="text/css"/>
-${fontManifestItems.length ? fontManifestItems.join("\n") + "\n" : ""}${project.passages.map((p) => `    <item id="chapter${p.number}" href="${chapterFileName(p.number)}" media-type="application/xhtml+xml"/>`).join("\n")}
+${fontManifestItems.length ? fontManifestItems.join("\n") + "\n" : ""}${illustrationManifestItems.length ? illustrationManifestItems.join("\n") + "\n" : ""}${project.passages.map((p) => `    <item id="chapter${p.number}" href="${chapterFileName(p.number)}" media-type="application/xhtml+xml"/>`).join("\n")}
   </manifest>
   <spine>
     ${project.passages.map((p) => `<itemref idref="chapter${p.number}"/>`).join("\n    ")}
@@ -124,7 +156,7 @@ ${fontManifestItems.length ? fontManifestItems.join("\n") + "\n" : ""}${project.
 </package>`;
   zip.file("OEBPS/content.opf", contentOpf);
 
-  zip.file("OEBPS/style.css", `${fontFaceCss}${headingRule}${upperRule}${watermarkRule}${dividerRule}${smallCapsRule}${dropCapRule}${frameRule}body {
+  zip.file("OEBPS/style.css", `${fontFaceCss}${headingRule}${upperRule}${watermarkRule}${dividerRule}${smallCapsRule}${dropCapRule}${frameRule}${ornamentCss}body {
   font-family: ${th.fontBody};
   line-height: 1.8;
   padding: 20px;
@@ -157,7 +189,10 @@ ${fontManifestItems.length ? fontManifestItems.join("\n") + "\n" : ""}${project.
 .links strong { color: ${th.accent}; display: block; margin-bottom: 8px; }
 a { color: ${th.linkInline}; text-decoration: none; }
 .start-marker { color: #22c55e; font-size: 0.85em; }
-.end-marker { color: #ef4444; font-size: 0.85em; }`);
+.end-marker { color: #ef4444; font-size: 0.85em; }
+.passage-illustration { margin: 12px 0 16px; text-align: center; }
+.passage-illustration img { max-width: 100%; height: auto; }
+.passage-illustration figcaption { margin-top: 5px; font-size: 0.85em; font-style: italic; color: ${th.subtitle}; }`);
 
   const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -184,9 +219,10 @@ a { color: ${th.linkInline}; text-decoration: none; }
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     let linksHtml = "";
-    if (!readingMode && passage.outgoingLinks.length > 0) {
+    const options = exportableLinks(passage.outgoingLinks, passageIds, passage.number);
+    if (!readingMode && options.length > 0) {
       linksHtml = `<div class="links"><strong>Opciones:</strong>\n`;
-      passage.outgoingLinks.forEach((link) => {
+      options.forEach((link) => {
         const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
         linksHtml += `<p>→ <a href="${chapterFileName(link.target.number)}">${escapeXml(text)}</a></p>\n`;
       });
@@ -206,6 +242,19 @@ a { color: ${th.linkInline}; text-decoration: none; }
     const dividerHtml = pdfTh.dividerSvg
       ? `<div class="passage-divider" aria-hidden="true">${pdfTh.dividerSvg}</div>`
       : "";
+    const uniqueSvg = (source: string, id: string) => source.replace(/__ID__/g, id);
+    const medallionHtml =
+      iluminado && pdfTh.medallionSvg
+        ? `<div class="medallion" aria-hidden="true">${uniqueSvg(pdfTh.medallionSvg, `med${passage.number}`)}</div>`
+        : "";
+    const friezeHtml =
+      iluminado && pdfTh.friezeSvg
+        ? `<div class="chapter-frieze" aria-hidden="true">${uniqueSvg(pdfTh.friezeSvg, `frz${passage.number}`)}</div>`
+        : "";
+    const illustration = illustrationByNumber.get(passage.number);
+    const illustrationHtml = illustration
+      ? `<figure class="passage-illustration"><img src="${illustration.href}" alt="${escapeXml(illustration.alt)}"/>${illustration.alt ? `<figcaption>${escapeXml(illustration.alt)}</figcaption>` : ""}</figure>`
+      : "";
 
     const chapterXhtml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -215,10 +264,15 @@ a { color: ${th.linkInline}; text-decoration: none; }
   <link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body>${watermarkDiv}
-  ${titleLine}
-  <div class="content">${linkifyContent(passage.content, passage.number, new Set(passage.outgoingLinks.map((l) => l.target.number)))}</div>
-  ${linksHtml}
-  ${dividerHtml}
+  <div class="chapter-frame">
+    ${medallionHtml}
+    ${titleLine}
+    ${illustrationHtml}
+    <div class="content">${linkifyContent(passage.content, passage.number, exportableTargets(passage.outgoingLinks, passageIds, passage.number))}</div>
+    ${linksHtml}
+    ${dividerHtml}
+    ${friezeHtml}
+  </div>
 </body>
 </html>`;
 

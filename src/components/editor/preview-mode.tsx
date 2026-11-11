@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, BookOpen, Flag, Target, ExternalLink } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { pvThemeCss, type ThemeId } from "@/lib/exporters/themes";
-import { findPassageLinks } from "@/lib/reference-links";
+import { exportableLinks, exportableTargets, findPassageLinks } from "@/lib/reference-links";
 
 interface Passage {
   id: string;
@@ -15,6 +15,8 @@ interface Passage {
   content: string;
   isStart: boolean;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: {
     targetId: string;
     target: { number: number };
@@ -69,7 +71,17 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
   };
 
   const passageNumbers = new Set(passages.map((p) => p.number));
-  const forcedTargets = new Set<number>(currentPassage.outgoingLinks.map((l) => l.target.number));
+  const passageIds = new Set(passages.map((p) => p.id));
+  const forcedTargets = exportableTargets(
+    currentPassage.outgoingLinks,
+    passageIds,
+    currentPassage.number
+  );
+  const options = exportableLinks(
+    currentPassage.outgoingLinks,
+    passageIds,
+    currentPassage.number
+  );
   const inlineLinks = findPassageLinks(
     currentPassage.content || "",
     passageNumbers,
@@ -180,6 +192,20 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
         {/* Passage content */}
         <Card className="mb-8">
           <CardContent className="p-6">
+            {currentPassage.illustration && (
+              <figure className="mb-6 text-center">
+                <img
+                  src={currentPassage.illustration}
+                  alt={currentPassage.illustrationAlt || ""}
+                  className="mx-auto max-h-[420px] w-auto max-w-full rounded-md border border-border p-1"
+                />
+                {currentPassage.illustrationAlt && (
+                  <figcaption className="mt-2 text-sm italic text-muted-foreground">
+                    {currentPassage.illustrationAlt}
+                  </figcaption>
+                )}
+              </figure>
+            )}
             <div className="prose prose-lg max-w-none">
               {contentNodes.length > 0 ? (
                 <p className="mb-4 text-foreground leading-relaxed whitespace-pre-wrap">
@@ -195,7 +221,7 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
         </Card>
 
         {/* Outgoing links */}
-        {currentPassage.outgoingLinks.length > 0 && (
+        {options.length > 0 && (
           <Card className="mb-8 border-primary/30 bg-primary/5">
             <CardContent className="p-6">
               <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
@@ -203,7 +229,7 @@ export function PreviewMode({ project, onClose, theme = "clasico" }: PreviewMode
                 {t("Preview.options")}
               </h2>
               <div className="space-y-2">
-                {currentPassage.outgoingLinks.map((link, i) => (
+                {options.map((link, i) => (
                   <Button
                     key={i}
                     variant="outline"

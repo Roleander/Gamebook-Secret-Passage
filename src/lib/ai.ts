@@ -1,5 +1,15 @@
 const DEFAULT_BASE_URL = "https://api.groq.com/openai/v1";
 const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "host.docker.internal"]);
+
+export type AiProvider = "groq" | "local" | "openai-compatible";
+
+export type AiStatus = {
+  configured: boolean;
+  provider: AiProvider;
+  model: string;
+  host: string;
+};
 
 export class AiNotConfiguredError extends Error {
   constructor() {
@@ -33,7 +43,38 @@ export class AiOutputError extends Error {
 }
 
 export function isAiConfigured(): boolean {
-  return Boolean(process.env.AI_API_KEY);
+  if (process.env.AI_API_KEY?.trim()) return true;
+  const baseUrl = process.env.AI_BASE_URL?.trim();
+  if (!baseUrl) return false;
+  try {
+    const parsed = new URL(baseUrl);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function getAiStatus(): AiStatus {
+  const baseUrl = process.env.AI_BASE_URL?.trim() || DEFAULT_BASE_URL;
+  let host = "";
+  try {
+    host = new URL(baseUrl).hostname.toLowerCase();
+  } catch {
+    // Invalid base URL: isAiConfigured() already treats it as disabled.
+  }
+  const provider: AiProvider =
+    host === "api.groq.com"
+      ? "groq"
+      : LOCAL_HOSTS.has(host)
+        ? "local"
+        : "openai-compatible";
+
+  return {
+    configured: isAiConfigured(),
+    provider,
+    model: process.env.AI_MODEL?.trim() || DEFAULT_MODEL,
+    host,
+  };
 }
 
 function stripCodeFences(text: string): string {
@@ -51,10 +92,11 @@ export async function chatJson(
   user: string,
   maxTokens = 4096
 ): Promise<unknown> {
-  const apiKey = process.env.AI_API_KEY;
-  if (!apiKey) throw new AiNotConfiguredError();
+  const apiKey = process.env.AI_API_KEY?.trim();
+  const explicitBaseUrl = process.env.AI_BASE_URL?.trim();
+  if (!apiKey && !explicitBaseUrl) throw new AiNotConfiguredError();
 
-  const baseUrl = (process.env.AI_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
+  const baseUrl = (explicitBaseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
   const model = process.env.AI_MODEL || DEFAULT_MODEL;
 
   const doFetch = (withResponseFormat: boolean): Promise<Response> => {
@@ -73,7 +115,7 @@ export async function chatJson(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(55_000),

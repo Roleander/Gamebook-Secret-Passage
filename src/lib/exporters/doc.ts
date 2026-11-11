@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { findPassageLinks } from "@/lib/reference-links";
+import { exportableLinks, exportableTargets, findPassageLinks } from "@/lib/reference-links";
+import { isAllowedIllustrationUrl } from "@/lib/illustration";
 import { PDF_THEMES, officeTheme, type OfficeTheme, type ThemeId } from "@/lib/exporters/themes";
 import { FONTS_TTF_DATA } from "@/lib/exporters/fonts-ttf-data";
 
@@ -9,7 +10,10 @@ interface Passage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: {
+    targetId?: string | null;
     target: { number: number };
     linkText: string | null;
   }[];
@@ -31,6 +35,7 @@ function buildOfficeFontFaces(th: OfficeTheme): string {
 
 export function buildDocHtml(project: DocProject, readingMode = false, theme: ThemeId = "clasico", showPassageMarkers = true): string {
   const passageNumbers = new Set(project.passages.map(p => p.number));
+  const passageIds = new Set(project.passages.map(p => p.id));
   const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const th = officeTheme(pdfTh);
   const markerColor = th.id !== "clasico" && pdfTh.rubrication ? th.accent : "#22C55E";
@@ -41,6 +46,13 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function illustrationHtml(passage: Passage): string {
+    const url = passage.illustration?.trim();
+    if (!url || !isAllowedIllustrationUrl(url)) return "";
+    const alt = passage.illustrationAlt?.trim() || "";
+    return `  <div class="passage-illustration"><img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}">${alt ? `<div class="illustration-caption">${escapeHtml(alt)}</div>` : ""}</div>\n`;
   }
 
   function linkifyContent(
@@ -116,6 +128,23 @@ export function buildDocHtml(project: DocProject, readingMode = false, theme: Th
       margin-bottom: 12pt;
       white-space: pre-wrap;
     }
+    .passage-illustration {
+      text-align: center;
+      margin: 10pt 0 12pt;
+      page-break-inside: avoid;
+    }
+    .passage-illustration img {
+      max-width: 100%;
+      height: auto;
+      border: 1pt solid ${th.linksBorder};
+      padding: 3pt;
+    }
+    .illustration-caption {
+      font-size: 9pt;
+      font-style: italic;
+      color: ${th.subtitle};
+      margin-top: 3pt;
+    }
     .passage-links {
       margin-top: 12pt;
       padding: 8pt 12pt;
@@ -155,20 +184,24 @@ if (showPassageMarkers && passage.isEndpoint) markers.push('<span class="end-mar
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
+    const forcedTargets = exportableTargets(passage.outgoingLinks, passageIds, passage.number);
+    const options = exportableLinks(passage.outgoingLinks, passageIds, passage.number);
 
     html += `<div class="passage"><a name="passage${passage.number}" id="passage${passage.number}"></a>\n`;
 
     if (readingMode) {
       html += `  <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
-      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number, new Set(passage.outgoingLinks.map((l) => l.target.number)))}</div>\n`;
+      html += illustrationHtml(passage);
+      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number, forcedTargets)}</div>\n`;
     } else {
       let header = `Pasaje ${passage.number}`;
       if (passage.title) header += ` — ${escapeHtml(passage.title)}`;
       html += `  <div class="${numClass}">${header}${markerStr}</div>\n`;
-      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number, new Set(passage.outgoingLinks.map((l) => l.target.number)))}</div>\n`;
-      if (passage.outgoingLinks.length > 0) {
+      html += illustrationHtml(passage);
+      html += `  <div class="passage-content">${linkifyContent(passage.content, passage.number, forcedTargets)}</div>\n`;
+      if (options.length > 0) {
         html += `  <div class="passage-links"><strong>Opciones:</strong><br>\n`;
-        passage.outgoingLinks.forEach((link) => {
+        options.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           html += `    → <a href="#passage${link.target.number}">${escapeHtml(text)}</a><br>\n`;
         });

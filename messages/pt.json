@@ -73,7 +73,10 @@
     "confirmDelete": "Tem certeza de que deseja excluir este projeto?",
     "subtitle": "Gerencie seus jogolivros",
     "createFirstButton": "Criar Primeiro Projeto",
-    "noDescription": "Sem descrição"
+    "noDescription": "Sem descrição",
+    "duplicate": "Duplicar",
+    "duplicateLimit": "Atingiste o limite de projetos do teu plano. Passa para Pro para duplicar projetos.",
+    "duplicateError": "Não foi possível duplicar o projeto."
   },
   "NewProject": {
     "title": "Novo Projeto",
@@ -492,7 +495,10 @@
     "aiSegment": "IA: segmentar",
     "aiFallback": "IA indisponível — análise local usada",
     "aiRateLimit": "Limite de pedidos de IA atingido. Tente novamente em minutos.",
-    "reanalyze": "Reanalisar links"
+    "reanalyze": "Reanalisar links",
+    "aiReady": "IA ligada: {model}",
+    "aiLocalReady": "IA local ligada: {model}",
+    "aiUnavailable": "A IA não está configurada neste servidor: os botões de IA usarão a análise local."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Adicionar link de entrada",
     "incomingHint": "Selecione a passagem que apontará para esta passagem ({n})",
     "source": "Passagem de origem",
-    "sourceNumber": "Número da passagem de origem"
+    "sourceNumber": "Número da passagem de origem",
+    "illustration": "Ilustração",
+    "illustrationHint": "Adiciona uma imagem a esta passagem (JPG, PNG, WebP ou SVG, máx. 2 MB).",
+    "illustrationAltPlaceholder": "Texto alternativo (opcional)",
+    "removeIllustration": "Remover ilustração",
+    "illustrationUploading": "A carregar…",
+    "illustrationTypeError": "Formato não permitido. Usa JPG, PNG, WebP ou SVG.",
+    "illustrationSizeError": "A imagem excede 2 MB.",
+    "illustrationUploadError": "Não foi possível carregar a ilustração.",
+    "illustrationSaveHint": "Prime Guardar para aplicar a ilustração à passagem."
   },
   "PassageList": {
     "drag": "Arraste para reordenar",

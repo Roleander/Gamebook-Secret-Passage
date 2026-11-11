@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { findPassageLinksPerLine, type PassageLink } from "@/lib/reference-links";
+import { exportableLinks, exportableTargets, findPassageLinksPerLine, type PassageLink } from "@/lib/reference-links";
+import { fetchIllustrations } from "@/lib/illustration";
 import { ZipArchive } from "archiver";
 import { Writable } from "stream";
 import { PDF_THEMES, officeTheme, type OfficeTheme, type ThemeId } from "@/lib/exporters/themes";
@@ -11,7 +12,10 @@ interface Passage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: {
+    targetId?: string | null;
     target: { number: number };
     linkText: string | null;
   }[];
@@ -21,6 +25,12 @@ export interface OdtData {
   title: string;
   passages: Passage[];
 }
+
+export type OdtIllustration = {
+  href: string;
+  width: number;
+  height: number;
+};
 
 function escapeXml(text: string): string {
   return text
@@ -32,11 +42,25 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico", showPassageMarkers = true): string {
+export function buildContentXml(project: OdtData, readingMode: boolean, theme: ThemeId = "clasico", showPassageMarkers = true, illustrations?: ReadonlyMap<number, OdtIllustration>): string {
   const passageNumbers = new Set(project.passages.map((p) => p.number));
+  const passageIds = new Set(project.passages.map((p) => p.id));
   const pdfTh = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const th = officeTheme(pdfTh);
   const themed = th.id !== "clasico";
+
+  const illustrationParagraph = (passage: Passage): string => {
+    const image = illustrations?.get(passage.number);
+    if (!image) return "";
+    const naturalWidthCm = (image.width * 2.54) / 96;
+    let width = Math.max(3, Math.min(12, naturalWidthCm));
+    let height = (width * image.height) / image.width;
+    if (height > 18) {
+      height = 18;
+      width = (height * image.width) / image.height;
+    }
+    return `      <text:p text:style-name="Illustration"><draw:frame text:anchor-type="paragraph" svg:width="${width.toFixed(2)}cm" svg:height="${height.toFixed(2)}cm"><draw:image xlink:href="${escapeXml(image.href)}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame></text:p>\n`;
+  };
 
   function convertInlineLinks(line: string, links: PassageLink[]): string {
     let result = "";
@@ -51,18 +75,26 @@ export function buildContentXml(project: OdtData, readingMode: boolean, theme: T
     return result;
   }
 
-  const autoStyles = themed
-    ? `  <office:automatic-styles>
-    <style:style style:name="PassageDivider" style:family="paragraph" style:next-style-name="Standard">
+  const illustrationStyle =
+    illustrations && illustrations.size > 0
+      ? `    <style:style style:name="Illustration" style:family="paragraph" style:next-style-name="Standard">
+      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.3cm"/>
+    </style:style>
+`
+      : "";
+  const autoStyles =
+    themed || illustrationStyle
+      ? `  <office:automatic-styles>
+${themed ? `    <style:style style:name="PassageDivider" style:family="paragraph" style:next-style-name="Standard">
       <style:paragraph-properties fo:text-align="center"/>
       <style:text-properties fo:color="${th.accent}" fo:font-size="12pt"/>
     </style:style>
 ${pdfTh.rubrication ? `    <style:style style:name="StartMarker" style:family="text">
       <style:text-properties fo:color="${th.accent}" fo:font-weight="bold"/>
     </style:style>
-` : ""}  </office:automatic-styles>
+` : ""}` : ""}${illustrationStyle}  </office:automatic-styles>
 `
-    : "";
+      : "";
 
   let contentXml = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
@@ -71,6 +103,8 @@ ${pdfTh.rubrication ? `    <style:style style:name="StartMarker" style:family="t
   xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
   xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
   office:version="1.2">
 ${autoStyles}  <office:body>
     <office:text>
@@ -91,9 +125,12 @@ ${autoStyles}  <office:body>
     if (showPassageMarkers && passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
-    const forcedTargets = new Set<number>(
-      passage.outgoingLinks.map((l) => l.target.number)
+    const forcedTargets = exportableTargets(
+      passage.outgoingLinks,
+      passageIds,
+      passage.number
     );
+    const options = exportableLinks(passage.outgoingLinks, passageIds, passage.number);
     const lineLinks = findPassageLinksPerLine(
       passage.content,
       passageNumbers,
@@ -103,6 +140,7 @@ ${autoStyles}  <office:body>
 
     if (readingMode) {
       contentXml += `      <text:p text:style-name="PassageNumberCenter"><text:bookmark text:name="passage${passage.number}"/>${passage.number}${markerStr}</text:p>\n`;
+      contentXml += illustrationParagraph(passage);
       const lines = passage.content.split("\n");
       lines.forEach((line, i) => {
         contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line, lineLinks[i])}</text:p>\n`;
@@ -111,13 +149,14 @@ ${autoStyles}  <office:body>
       let header = `Pasaje ${passage.number}`;
       if (passage.title) header += ` — ${escapeXml(passage.title)}`;
       contentXml += `      <text:p text:style-name="PassageNumber"><text:bookmark text:name="passage${passage.number}"/>${header}${markerStr}</text:p>\n`;
+      contentXml += illustrationParagraph(passage);
       const lines = passage.content.split("\n");
       lines.forEach((line, i) => {
         contentXml += `      <text:p text:style-name="Standard">${convertInlineLinks(line, lineLinks[i])}</text:p>\n`;
       });
-      if (passage.outgoingLinks.length > 0) {
+      if (options.length > 0) {
         contentXml += `      <text:p text:style-name="PassageNumber">Opciones:</text:p>\n`;
-        passage.outgoingLinks.forEach((link) => {
+        options.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           contentXml += `      <text:p text:style-name="Standard">  → `;
           contentXml += `<text:a xlink:type="simple" xlink:href="#passage${link.target.number}" text:style-name="Hyperlink">${escapeXml(text)}</text:a></text:p>\n`;
@@ -219,12 +258,21 @@ export const ODT_META_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </office:meta>
 </office:document-meta>`;
 
-export function buildManifestXml(th: OfficeTheme): string {
+export function buildManifestXml(
+  th: OfficeTheme,
+  images: { href: string; mime: string }[] = []
+): string {
   const fontEntries = th.fontFamilies
     .flatMap((family) =>
       FONTS_TTF_DATA.filter((f) => f.family === family).map(
         (f) => `  <manifest:file-entry manifest:media-type="application/vnd.oasis.opendocument.font" manifest:full-path="${ttfFileName(family, f.weight, f.style)}"/>\n`
       )
+    )
+    .join("");
+  const imageEntries = images
+    .map(
+      (image) =>
+        `  <manifest:file-entry manifest:media-type="${image.mime}" manifest:full-path="${image.href}"/>\n`
     )
     .join("");
 
@@ -233,7 +281,7 @@ export function buildManifestXml(th: OfficeTheme): string {
   <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="content.xml"/>
   <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="styles.xml"/>
   <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="meta.xml"/>
-${fontEntries}</manifest:manifest>`;
+${fontEntries}${imageEntries}</manifest:manifest>`;
 }
 
 export const ODT_MANIFEST_XML = buildManifestXml(officeTheme(PDF_THEMES.clasico));
@@ -244,6 +292,7 @@ export function packOdtArchive(parts: {
   meta: string;
   manifest: string;
   fonts?: { name: string; data: Buffer }[];
+  images?: { name: string; data: Buffer }[];
 }): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -278,6 +327,12 @@ export function packOdtArchive(parts: {
       }
     }
 
+    if (parts.images) {
+      for (const image of parts.images) {
+        archive.append(image.data, { name: image.name });
+      }
+    }
+
     archive.finalize();
   });
 }
@@ -300,10 +355,25 @@ export async function generateODT(projectId: string, readingMode = false, theme:
   if (!project) throw new Error("Proyecto no encontrado");
 
   const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
+  const fetchedIllustrations = await fetchIllustrations(project.passages);
+  const illustrationFiles: { name: string; mime: string; data: Buffer }[] = [];
+  const illustrationMap = new Map<number, OdtIllustration>();
+  for (const [number, image] of fetchedIllustrations) {
+    const href = `Pictures/passage-${number}.${image.ext}`;
+    illustrationFiles.push({ name: href, mime: image.mime, data: image.data });
+    illustrationMap.set(number, {
+      href,
+      width: image.width,
+      height: image.height,
+    });
+  }
+
   const contentXml = buildContentXml(
     { title: project.title, passages: project.passages },
     readingMode,
-    theme
+    theme,
+    showPassageMarkers,
+    illustrationMap
   );
 
   const fonts = th.fontFamilies
@@ -318,7 +388,14 @@ export async function generateODT(projectId: string, readingMode = false, theme:
     content: contentXml,
     styles: buildStylesXml(th),
     meta: ODT_META_XML,
-    manifest: buildManifestXml(th),
+    manifest: buildManifestXml(
+      th,
+      illustrationFiles.map((image) => ({ href: image.name, mime: image.mime }))
+    ),
     fonts,
+    images: illustrationFiles.map((image) => ({
+      name: image.name,
+      data: image.data,
+    })),
   });
 }

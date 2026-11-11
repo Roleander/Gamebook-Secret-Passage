@@ -73,7 +73,10 @@
     "confirmDelete": "Sei sicuro di voler eliminare questo progetto?",
     "subtitle": "Gestisci i tuoi gioco-libri",
     "createFirstButton": "Crea il primo progetto",
-    "noDescription": "Nessuna descrizione"
+    "noDescription": "Nessuna descrizione",
+    "duplicate": "Duplica",
+    "duplicateLimit": "Hai raggiunto il limite di progetti del tuo piano. Passa a Pro per duplicare i progetti.",
+    "duplicateError": "Impossibile duplicare il progetto."
   },
   "NewProject": {
     "title": "Nuovo Progetto",
@@ -492,7 +495,10 @@
     "aiSegment": "IA: segmenta",
     "aiFallback": "IA non disponibile — usata l'analisi locale",
     "aiRateLimit": "Limite richieste IA raggiunto. Riprova tra qualche minuto.",
-    "reanalyze": "Rianalizza i collegamenti"
+    "reanalyze": "Rianalizza i collegamenti",
+    "aiReady": "IA connessa: {model}",
+    "aiLocalReady": "IA locale connessa: {model}",
+    "aiUnavailable": "L'IA non è configurata su questo server: i pulsanti IA useranno l'analisi locale."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Aggiungi collegamento in entrata",
     "incomingHint": "Seleziona il passaggio che collegherà verso questo passaggio ({n})",
     "source": "Passaggio di origine",
-    "sourceNumber": "Numero del passaggio di origine"
+    "sourceNumber": "Numero del passaggio di origine",
+    "illustration": "Illustrazione",
+    "illustrationHint": "Aggiungi un'immagine per questo passaggio (JPG, PNG, WebP o SVG, max. 2 MB).",
+    "illustrationAltPlaceholder": "Testo alternativo (facoltativo)",
+    "removeIllustration": "Rimuovi illustrazione",
+    "illustrationUploading": "Caricamento…",
+    "illustrationTypeError": "Formato non consentito. Usa JPG, PNG, WebP o SVG.",
+    "illustrationSizeError": "L'immagine supera i 2 MB.",
+    "illustrationUploadError": "Impossibile caricare l'illustrazione.",
+    "illustrationSaveHint": "Premi Salva per applicare l'illustrazione al passaggio."
   },
   "PassageList": {
     "drag": "Trascina per riordinare",

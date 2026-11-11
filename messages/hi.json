@@ -73,7 +73,10 @@
     "confirmDelete": "क्या आप वाकई इस प्रोजेक्ट को हटाना चाहते हैं?",
     "subtitle": "अपने गेमबुक प्रबंधित करें",
     "createFirstButton": "पहला प्रोजेक्ट बनाएँ",
-    "noDescription": "कोई विवरण नहीं"
+    "noDescription": "कोई विवरण नहीं",
+    "duplicate": "डुप्लिकेट करें",
+    "duplicateLimit": "आप अपनी योजना की परियोजना सीमा तक पहुँच गए हैं। परियोजनाओं को डुप्लिकेट करने के लिए Pro में अपग्रेड करें।",
+    "duplicateError": "परियोजना को डुप्लिकेट नहीं किया जा सका।"
   },
   "NewProject": {
     "title": "नया प्रोजेक्ट",
@@ -492,7 +495,10 @@
     "aiSegment": "AI: खंड बनाएँ",
     "aiFallback": "AI अनुपलब्ध — स्थानीय विश्लेषण उपयोग हुआ",
     "aiRateLimit": "AI अनुरोध सीमा पूरी। कुछ मिनट बाद पुनः प्रयास करें।",
-    "reanalyze": "लिंक फिर विश्लेषण करें"
+    "reanalyze": "लिंक फिर विश्लेषण करें",
+    "aiReady": "AI जुड़ा है: {model}",
+    "aiLocalReady": "स्थानीय AI जुड़ा है: {model}",
+    "aiUnavailable": "इस सर्वर पर AI कॉन्फ़िगर नहीं है: AI बटन स्थानीय विश्लेषण का उपयोग करेंगे।"
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "इनकमिंग लिंक जोड़ें",
     "incomingHint": "वह खंड चुनें जो इस खंड की ओर लिंक करेगा ({n})",
     "source": "स्रोत खंड",
-    "sourceNumber": "स्रोत खंड नंबर"
+    "sourceNumber": "स्रोत खंड नंबर",
+    "illustration": "चित्र",
+    "illustrationHint": "इस पैसेज के लिए छवि जोड़ें (JPG, PNG, WebP या SVG, अधिकतम 2 MB)।",
+    "illustrationAltPlaceholder": "वैकल्पिक टेक्स्ट (वैकल्पिक)",
+    "removeIllustration": "चित्र हटाएँ",
+    "illustrationUploading": "अपलोड हो रहा है…",
+    "illustrationTypeError": "प्रारूप अनुमत नहीं है। JPG, PNG, WebP या SVG का उपयोग करें।",
+    "illustrationSizeError": "छवि 2 MB से बड़ी है।",
+    "illustrationUploadError": "चित्र अपलोड नहीं हो सका।",
+    "illustrationSaveHint": "पैसेज पर चित्र लागू करने के लिए सहेजें दबाएँ।"
   },
   "PassageList": {
     "drag": "क्रम बदलने के लिए खींचें",

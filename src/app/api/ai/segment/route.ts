@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getEntitlements, upgradeRequired } from "@/lib/entitlements";
 import {
   chatJson,
+  isAiConfigured,
   AiNotConfiguredError,
   AiRateLimitError,
   AiHttpError,
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
 
-    if (!process.env.AI_API_KEY) {
+    if (!isAiConfigured()) {
       return NextResponse.json(
         { error: "El servicio de IA no está configurado", code: "AI_NOT_CONFIGURED" },
         { status: 503 }

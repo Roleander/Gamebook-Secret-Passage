@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { findPassageLinks, findPassageLinksPerLine } from "@/lib/reference-links";
+import {
+  exportableLinks,
+  exportableTargets,
+  findPassageLinks,
+  findPassageLinksPerLine,
+  isLinkInsideDocument,
+} from "@/lib/reference-links";
 
 describe("findPassageLinks", () => {
   const numbers = new Set([1, 3, 12, 20]);
@@ -98,5 +104,61 @@ describe("findPassageLinksPerLine", () => {
     expect(
       findPassageLinksPerLine("Mira el 5", numbers, undefined, new Set([5]))[0]
     ).toHaveLength(1);
+  });
+});
+
+describe("isLinkInsideDocument", () => {
+  const passageIds = new Set(["p1", "p2"]);
+
+  it("acepta enlaces internos y rechaza destinos de otro proyecto", () => {
+    expect(
+      isLinkInsideDocument({ targetId: "p2", target: { number: 2 } }, passageIds)
+    ).toBe(true);
+    expect(
+      isLinkInsideDocument(
+        { targetId: "otro-proyecto", target: { number: 2 } },
+        passageIds
+      )
+    ).toBe(false);
+  });
+
+  it("acepta enlaces sin targetId (datos antiguos o enlaces por número)", () => {
+    expect(isLinkInsideDocument({ target: { number: 2 } }, passageIds)).toBe(
+      true
+    );
+  });
+
+  it("rechaza autollenlaces y destinos sin número válido", () => {
+    expect(
+      isLinkInsideDocument({ targetId: "p1", target: { number: 1 } }, passageIds, 1)
+    ).toBe(false);
+    expect(
+      isLinkInsideDocument({
+        targetId: "p2",
+        target: { number: Number.NaN },
+      })
+    ).toBe(false);
+  });
+});
+
+describe("exportableLinks", () => {
+  it("filtra enlaces externos, autollenlaces y números duplicados", () => {
+    const links = [
+      { targetId: "p2", target: { number: 2 }, linkText: "Interno" },
+      { targetId: "externo", target: { number: 2 }, linkText: "Ajeno" },
+      { targetId: "p1", target: { number: 1 }, linkText: "Yo mismo" },
+      { targetId: "p2b", target: { number: 2 }, linkText: "Duplicado" },
+    ];
+
+    const result = exportableLinks(links, new Set(["p1", "p2", "p2b"]), 1);
+
+    expect(result).toEqual([links[0]]);
+    expect(
+      exportableTargets(
+        [links[0], { targetId: "externo", target: { number: 3 } }],
+        new Set(["p1", "p2"]),
+        1
+      )
+    ).toEqual(new Set([2]));
   });
 });

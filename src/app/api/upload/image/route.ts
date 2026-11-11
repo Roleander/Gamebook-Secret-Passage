@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -21,13 +22,18 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const type = formData.get("type");
+    const passageId = formData.get("passageId");
 
     if (!file) {
       return NextResponse.json({ error: "No se proporcionó archivo" }, { status: 400 });
     }
 
-    if (type !== "avatar" && type !== "logo") {
+    if (type !== "avatar" && type !== "logo" && type !== "illustration") {
       return NextResponse.json({ error: "Tipo de subida no válido" }, { status: 400 });
+    }
+
+    if (type === "illustration" && typeof passageId !== "string") {
+      return NextResponse.json({ error: "Pasaje no indicado" }, { status: 400 });
     }
 
     if (!(ALLOWED_IMAGE_MIME as readonly string[]).includes(file.type)) {
@@ -58,6 +64,19 @@ export async function POST(req: Request) {
       );
     }
 
+    if (type === "illustration") {
+      const passage = await db.passage.findFirst({
+        where: {
+          id: passageId as string,
+          project: { userId },
+        },
+        select: { id: true },
+      });
+      if (!passage) {
+        return NextResponse.json({ error: "Pasaje no encontrado" }, { status: 404 });
+      }
+    }
+
     const bytes = new Uint8Array(await file.arrayBuffer());
 
     if (bytes.length > MAX_IMAGE_SIZE) {
@@ -85,12 +104,15 @@ export async function POST(req: Request) {
     }
 
     const ext = IMAGE_MIME_EXT[detected];
-    const pathname = `${type}/${userId}.${ext}`;
+    const pathname =
+      type === "illustration"
+        ? `illustrations/${userId}/${passageId as string}-${randomUUID()}.${ext}`
+        : `${type}/${userId}.${ext}`;
 
     const blob = await put(pathname, content, {
       access: "public",
       addRandomSuffix: false,
-      allowOverwrite: true,
+      allowOverwrite: type !== "illustration",
     });
 
     if (type === "avatar") {
@@ -101,11 +123,13 @@ export async function POST(req: Request) {
     }
     // type === "logo": URL returned only — persisted via PUT /api/admin/config
     // when the admin presses "Guardar logo" in the profile page.
+    // type === "illustration": URL returned only — persisted when the passage
+    // editor saves the passage.
 
     return NextResponse.json({
       url: blob.url,
       pathname: blob.pathname,
-      persisted: type !== "logo",
+      persisted: type === "avatar",
     });
   } catch (error) {
     console.error("Error uploading image:", error);

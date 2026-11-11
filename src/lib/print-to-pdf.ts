@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import puppeteer from "puppeteer-core";
+import { addModernNameTree } from "@/lib/pdf-destinations";
 
 const WINDOWS_CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
@@ -55,7 +56,7 @@ export async function htmlToPdf(html: string, mobile = false): Promise<Buffer> {
           timeout: 30000,
         };
     const pdf = await page.pdf(pageOptions);
-    return Buffer.from(pdf);
+    return addModernNameTree(Buffer.from(pdf));
   } finally {
     await browser.close().catch(() => {});
   }

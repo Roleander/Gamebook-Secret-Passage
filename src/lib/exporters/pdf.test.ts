@@ -8,7 +8,9 @@ interface TestPassage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
-  outgoingLinks: { target: { number: number }; linkText: string | null }[];
+  illustration?: string | null;
+  illustrationAlt?: string | null;
+  outgoingLinks: { targetId?: string | null; target: { number: number }; linkText: string | null }[];
 }
 
 function passage(overrides: Partial<TestPassage> = {}): TestPassage {
@@ -51,6 +53,45 @@ describe("PDF print export (buildPrintHtml)", () => {
     const html = buildPrintHtml(project, true);
     expect(html).toContain('<div class="passage-content" id="passage1">');
     expect(html).toContain('href="#passage2"');
+  });
+
+  it("incluye la ilustración del pasaje y escapa el texto alternativo", () => {
+    const illustrated = {
+      title: "Ilustrado",
+      passages: [
+        passage({
+          number: 1,
+          content: "Texto",
+          illustration:
+            "https://store.public.blob.vercel-storage.com/illustrations/u/p1.png",
+          illustrationAlt: 'Un "dragón" <dorado>',
+        }),
+      ],
+    };
+    const html = buildPrintHtml(illustrated, false);
+    expect(html).toContain('<figure class="passage-illustration">');
+    expect(html).toContain(
+      'src="https://store.public.blob.vercel-storage.com/illustrations/u/p1.png"'
+    );
+    expect(html).toContain('alt="Un &quot;dragón&quot; &lt;dorado&gt;"');
+    expect(html).not.toContain('alt="Un "dragón"');
+  });
+
+  it("ignora ilustraciones alojadas en hosts no confiables", () => {
+    const unsafe = {
+      title: "Sin figura",
+      passages: [
+        passage({
+          number: 1,
+          illustration: "https://example.com/illustration.png",
+          illustrationAlt: "No debe aparecer",
+        }),
+      ],
+    };
+    const html = buildPrintHtml(unsafe, false);
+    expect(html).not.toContain('<figure class="passage-illustration">');
+    expect(html).not.toContain('alt="No debe aparecer"');
+    expect(html).not.toContain("No debe aparecer");
   });
 
   it("el div de contenido tiene scroll-margin-top solo en pantalla (no altera el PDF)", () => {
@@ -249,13 +290,58 @@ describe("PDF print export (buildPrintHtml)", () => {
     const html = buildPrintHtml(project, false, "iluminado");
     expect(html).toContain('class="page-decor"');
     expect(html).toContain("decor-band decor-top");
+    expect(html).toContain("decor-band decor-frieze");
     expect(html).toContain("decor-corner decor-bl");
     expect(html).toContain("decor-medallion decor-top-medallion");
-    expect(html).toContain("padding: 136px 118px 124px");
+    expect(html).toContain("decor-medallion decor-bottom-medallion");
+    expect(html).toContain("padding: 156px 132px 156px");
     expect(html).toContain("::first-letter");
     expect(html).not.toContain("data:image");
 
+    // Cada SVG con degradado o patrón debe tener un id único: si se repite,
+    // Chrome resuelve ambos al primer `defs` y uno de los dragones pierde color.
+    for (const id of ["ilMedTop", "ilMedBottom", "ilbTop", "ilsLeft", "ilsRight", "ilFrieze", "ilEmblem"]) {
+      const count = (html.match(new RegExp(`id="${id}"`, "g")) || []).length;
+      expect(count, `${id} definido una sola vez`).toBe(1);
+    }
+    expect(html).not.toContain("__ID__");
+
     const mobile = buildPrintHtml(project, false, "iluminado", true);
     expect(mobile).not.toContain('class="page-decor"');
+  });
+
+  it("no duplica el ancla de un pasaje (un solo id passageN)", () => {
+    const html = buildPrintHtml(project, false);
+    expect((html.match(/id="passage1"/g) || []).length).toBe(1);
+    expect((html.match(/id="passage2"/g) || []).length).toBe(1);
+    expect((html.match(/name="passage1"/g) || []).length).toBe(0);
+  });
+
+  it("descarta opciones con destino ajeno, autollenlaces y duplicados", () => {
+    const linkProject = {
+      title: "Links filtrados",
+      passages: [
+        passage({
+          id: "p1",
+          number: 1,
+          content: "",
+          outgoingLinks: [
+            { targetId: "ajeno", target: { number: 3 }, linkText: "Fuera" },
+            { targetId: "p1", target: { number: 1 }, linkText: "Yo" },
+            { targetId: "p2", target: { number: 2 }, linkText: "Dentro" },
+            { targetId: "p2", target: { number: 2 }, linkText: "Repetido" },
+          ],
+        }),
+        passage({ id: "p2", number: 2, content: "Fin" }),
+      ],
+    };
+    const html = buildPrintHtml(linkProject, false);
+    expect(html).toContain('href="#passage2"');
+    expect(html).toContain("Dentro");
+    expect(html).not.toContain("Fuera");
+    expect(html).not.toContain("Yo");
+    expect(html).not.toContain("Repetido");
+    expect(html).not.toContain('href="#passage3"');
+    expect((html.match(/href="#passage2"/g) || []).length).toBe(1);
   });
 });

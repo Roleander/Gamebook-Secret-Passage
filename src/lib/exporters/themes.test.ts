@@ -106,11 +106,12 @@ describe("planes de estilo de impresión", () => {
     expect(PDF_THEMES.iluminado.rubrication).toBe(true);
   });
 
-  it("los temas oscuros grimorio y alquimia marcan dark y los claros no", () => {
+  it("los temas oscuros grimorio, alquimia e iluminado marcan dark y los claros no", () => {
     expect(PDF_THEMES.grimorio.dark).toBe(true);
     expect(PDF_THEMES.alquimia.dark).toBe(true);
-    for (const id of THEME_IDS.filter((t) => t !== "grimorio" && t !== "alquimia")) {
-      expect(PDF_THEMES[id].dark, `${id} dark`).toBe(false);
+    expect(PDF_THEMES.iluminado.dark).toBe(true);
+    for (const id of THEME_IDS.filter((t) => !PDF_THEMES[t].dark)) {
+      expect(PDF_THEMES[id].dark, `${id} dark`).not.toBe(true);
     }
     expect(THEME_IDS).toHaveLength(9);
   });
@@ -131,13 +132,21 @@ describe("planes de estilo de impresión", () => {
     expect(th.bandSvg).toContain("<svg");
     expect(th.sideBandSvg).toContain("<svg");
     expect(th.medallionSvg).toContain("<svg");
+    expect(th.friezeSvg).toContain("<svg");
+    expect(th.emblemSvg).toBe(th.medallionSvg);
+    expect(th.friezeSvg).toContain("__ID__");
+    expect(th.medallionSvg).toContain("__ID__");
     expect(th.pageFrame).toBe(true);
     expect(th.dropCap).toBe(true);
     expect(th.dropCapBoxed).toBe(true);
     expect(th.smallCaps).toBe(true);
+    expect(th.dark).toBe(true);
+    expect(th.decor?.frame).toEqual({ top: 156, side: 132, bottom: 156 });
     expect(pdfThemeRules(th)).toContain("page-decor");
-    expect(pdfThemeRules(th)).toContain("padding: 136px 118px 124px");
+    expect(pdfThemeRules(th)).toContain("decor-frieze");
+    expect(pdfThemeRules(th)).toContain("padding: 156px 132px 156px");
     expect(pvThemeCss("iluminado")).toContain("background-position: top left");
+    expect(pvThemeCss("iluminado")).toContain("800px 96px");
   });
 
   it("isThemeId valida identificadores", () => {
@@ -182,7 +191,7 @@ describe("planes de estilo de impresión", () => {
   });
 
   it("officeTheme invierte la paleta de los temas oscuros a papel claro", () => {
-    for (const id of THEME_IDS.filter((t) => PDF_THEMES[t].dark)) {
+    for (const id of ["grimorio", "alquimia"] as const) {
       const ot = officeTheme(PDF_THEMES[id]);
       expect(ot.paperBg, `${id} paperBg`).toBe("#f5f0e8");
       expect(ot.text).toBe("#2a1f14");
@@ -192,6 +201,17 @@ describe("planes de estilo de impresión", () => {
     }
     expect(officeTheme(PDF_THEMES.grimorio).paperBg).toBe("#f5f0e8");
     expect(officeTheme(PDF_THEMES.alquimia).paperBg).toBe("#f5f0e8");
+  });
+
+  it("iluminado usa vitela clara con azul y oro en papel", () => {
+    const ot = officeTheme(PDF_THEMES.iluminado);
+    expect(ot.paperBg).toBe("#f4e8c9");
+    expect(ot.text).toBe("#2a2118");
+    expect(ot.accent).toBe("#8c1c1c");
+    expect(ot.linkInline).toBe("#1f3f7a");
+    expect(ot.linkDotted).toBe("#b08d2a");
+    expect(ot.uppercaseHeadings).toBe(false);
+    expect(ot.fontFamilies).toEqual(["EB Garamond", "Cinzel Decorative"]);
   });
 
   it("officeTheme de los temas claros conserva sus colores (clasico blanco)", () => {

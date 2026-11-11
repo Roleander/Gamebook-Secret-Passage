@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
-import { findPassageLinksPerLine, type PassageLink } from "@/lib/reference-links";
+import { exportableLinks, exportableTargets, findPassageLinksPerLine, type PassageLink } from "@/lib/reference-links";
+import { fetchIllustrations } from "@/lib/illustration";
 import {
-  Document, Packer, Paragraph, TextRun, Bookmark, InternalHyperlink,
+  Document, Packer, Paragraph, TextRun, BookmarkStart, BookmarkEnd, InternalHyperlink, ImageRun,
   AlignmentType, TabStopType, TabStopPosition,
   BorderStyle, ShadingType, convertInchesToTwip, CharacterSet,
 } from "docx";
@@ -14,7 +15,10 @@ interface Passage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: {
+    targetId?: string | null;
     target: { number: number };
     linkText: string | null;
   }[];
@@ -27,6 +31,7 @@ export interface DocxProject {
 
 export async function buildDocxBuffer(project: DocxProject, readingMode = false, theme: ThemeId = "clasico", showPassageMarkers = true): Promise<Buffer> {
   const passageNumbers = new Set(project.passages.map(p => p.number));
+  const passageIds = new Set(project.passages.map(p => p.id));
   const th = officeTheme(PDF_THEMES[theme] ?? PDF_THEMES.clasico);
   const bodyFont = th.fontFamilies[0] || "Times New Roman";
   const headingFont = th.fontFamilies[th.fontFamilies.length - 1] || "Times New Roman";
@@ -67,6 +72,45 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
 
   const children: Paragraph[] = [];
 
+  const illustrations = await fetchIllustrations(project.passages);
+  const docxImages = new Map<
+    number,
+    { data: Buffer; type: "jpg" | "png"; width: number; height: number; alt: string }
+  >();
+  for (const [number, image] of illustrations) {
+    const type = image.mime === "image/jpeg" ? "jpg" : image.mime === "image/png" ? "png" : null;
+    if (!type) continue;
+    const alt = project.passages.find((p) => p.number === number)?.illustrationAlt?.trim() || "";
+    docxImages.set(number, {
+      data: image.data,
+      type,
+      width: image.width,
+      height: image.height,
+      alt,
+    });
+  }
+
+  const addIllustration = (passage: Passage) => {
+    const image = docxImages.get(passage.number);
+    if (!image) return;
+    const maxWidth = 460;
+    const maxHeight = 360;
+    const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const alt = image.alt || `Ilustración del pasaje ${passage.number}`;
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 120 },
+      children: [new ImageRun({
+        type: image.type,
+        data: image.data,
+        transformation: { width, height },
+        altText: { name: alt, description: image.alt || undefined, title: image.alt || undefined },
+      })],
+    }));
+  };
+
   // Title
   children.push(new Paragraph({
     alignment: AlignmentType.CENTER,
@@ -100,32 +144,38 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
     if (showPassageMarkers && passage.isEndpoint) markers.push("[FIN]");
     const markerStr = markers.length > 0 ? ` ${markers.join(" ")}` : "";
 
-    const forcedTargets = new Set<number>(
-      passage.outgoingLinks.map((l) => l.target.number)
+    const forcedTargets = exportableTargets(
+      passage.outgoingLinks,
+      passageIds,
+      passage.number
     );
+    const options = exportableLinks(passage.outgoingLinks, passageIds, passage.number);
     const lineLinks = findPassageLinksPerLine(
       passage.content,
       passageNumbers,
       passage.number,
       forcedTargets
     );
+    const bookmarkId = idx + 1;
 
     if (readingMode) {
       // Passage number centered as bookmark
       children.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { before: 300, after: 100 },
-        children: [new Bookmark({
-          id: `passage${passage.number}`,
-          children: [new TextRun({
+        children: [
+          new BookmarkStart(`passage${passage.number}`, bookmarkId),
+          new TextRun({
             text: `${passage.number}${markerStr}`,
             font: headingFont,
             size: 24,
             bold: true,
             color: accentHex,
-          })],
-        })],
+          }),
+          new BookmarkEnd(bookmarkId),
+        ],
       }));
+      addIllustration(passage);
       // Content
       const lines = passage.content.split("\n");
       lines.forEach((line, i) => {
@@ -137,20 +187,22 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
     } else {
       // Passage header as bookmark
       let header = `Pasaje ${passage.number}`;
-      if (passage.title) header += ` â€” ${passage.title}`;
+      if (passage.title) header += ` — ${passage.title}`;
       children.push(new Paragraph({
         spacing: { before: 300, after: 100 },
-        children: [new Bookmark({
-          id: `passage${passage.number}`,
-          children: [new TextRun({
+        children: [
+          new BookmarkStart(`passage${passage.number}`, bookmarkId),
+          new TextRun({
             text: `${header}${markerStr}`,
             font: headingFont,
             size: 28,
             bold: true,
             color: accentHex,
-          })],
-        })],
+          }),
+          new BookmarkEnd(bookmarkId),
+        ],
       }));
+      addIllustration(passage);
       // Content
       const lines = passage.content.split("\n");
       lines.forEach((line, i) => {
@@ -160,7 +212,7 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
         }));
       });
       // Options
-      if (passage.outgoingLinks.length > 0) {
+      if (options.length > 0) {
         children.push(new Paragraph({
           spacing: { before: 100 },
           children: [new TextRun({
@@ -171,13 +223,13 @@ export async function buildDocxBuffer(project: DocxProject, readingMode = false,
             color: accentHex,
           })],
         }));
-        passage.outgoingLinks.forEach((link) => {
+        options.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           children.push(new Paragraph({
             spacing: { after: 50 },
             indent: { left: convertInchesToTwip(0.3) },
             children: [
-              new TextRun({ text: "â†’ ", font: bodyFont, size: 22, color: textHex }),
+              new TextRun({ text: "→ ", font: bodyFont, size: 22, color: textHex }),
               new InternalHyperlink({
                 anchor: `passage${link.target.number}`,
                 children: [new TextRun({

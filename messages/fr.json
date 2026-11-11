@@ -73,7 +73,10 @@
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce projet ?",
     "subtitle": "Gérez vos livres-jeux",
     "createFirstButton": "Créer le premier projet",
-    "noDescription": "Sans description"
+    "noDescription": "Sans description",
+    "duplicate": "Dupliquer",
+    "duplicateLimit": "Vous avez atteint la limite de projets de votre forfait. Passez à Pro pour dupliquer des projets.",
+    "duplicateError": "Impossible de dupliquer le projet."
   },
   "NewProject": {
     "title": "Nouveau Projet",
@@ -492,7 +495,10 @@
     "aiSegment": "IA : segmenter",
     "aiFallback": "IA indisponible — analyse locale utilisée",
     "aiRateLimit": "Limite de requêtes IA atteinte. Réessayez dans quelques minutes.",
-    "reanalyze": "Analyser à nouveau les liens"
+    "reanalyze": "Analyser à nouveau les liens",
+    "aiReady": "IA connectée : {model}",
+    "aiLocalReady": "IA locale connectée : {model}",
+    "aiUnavailable": "L’IA n’est pas configurée sur ce serveur : les boutons IA utiliseront l’analyse locale."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Ajouter un lien entrant",
     "incomingHint": "Sélectionnez le passage qui pointera vers ce passage ({n})",
     "source": "Passage source",
-    "sourceNumber": "Numéro du passage source"
+    "sourceNumber": "Numéro du passage source",
+    "illustration": "Illustration",
+    "illustrationHint": "Ajoutez une image pour ce passage (JPG, PNG, WebP ou SVG, max. 2 Mo).",
+    "illustrationAltPlaceholder": "Texte alternatif (facultatif)",
+    "removeIllustration": "Retirer l’illustration",
+    "illustrationUploading": "Téléversement…",
+    "illustrationTypeError": "Format non autorisé. Utilisez JPG, PNG, WebP ou SVG.",
+    "illustrationSizeError": "L’image dépasse 2 Mo.",
+    "illustrationUploadError": "Impossible de téléverser l’illustration.",
+    "illustrationSaveHint": "Cliquez sur Enregistrer pour appliquer l’illustration au passage."
   },
   "PassageList": {
     "drag": "Glissez pour réordonner",

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Header } from "@/components/header";
 import { HeroLogo } from "@/components/hero-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, Calendar, FileText, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Calendar, FileText, Trash2, Copy, Loader2 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 
@@ -34,8 +35,10 @@ interface Project {
 export default function ProjectsPage() {
   const { t, locale } = useI18n();
   const { status } = useSession();
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -87,6 +90,37 @@ export default function ProjectsPage() {
       }
     } catch (error) {
       console.error("Error deleting project:", error);
+    }
+  };
+
+  const handleDuplicate = async (projectId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (duplicatingId !== null) return;
+
+    setDuplicatingId(projectId);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/duplicate`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => null);
+
+      if (response.ok && data?.id) {
+        router.push(`/editor/${data.id}`);
+        return;
+      }
+
+      alert(
+        data?.error ||
+          (response.status === 402
+            ? t("Projects.duplicateLimit")
+            : t("Projects.duplicateError"))
+      );
+    } catch (error) {
+      console.error("Error duplicating project:", error);
+      alert(t("Projects.duplicateError"));
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -163,14 +197,33 @@ export default function ProjectsPage() {
                         <BookOpen className="w-5 h-5 mr-2 text-primary" />
                         {project.title}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => handleDelete(project.id, e)}
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <span className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleDuplicate(project.id, e)}
+                          disabled={duplicatingId !== null}
+                          title={t("Projects.duplicate")}
+                          aria-label={t("Projects.duplicate")}
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        >
+                          {duplicatingId === project.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleDelete(project.id, e)}
+                          title={t("Projects.delete")}
+                          aria-label={t("Projects.delete")}
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </span>
                     </CardTitle>
                     <CardDescription>
                       {project.description || t("Projects.noDescription")}

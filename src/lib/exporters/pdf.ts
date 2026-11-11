@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { findPassageLinks } from "@/lib/reference-links";
+import { exportableLinks, exportableTargets, findPassageLinks } from "@/lib/reference-links";
+import { isAllowedIllustrationUrl, loadIllustrationDataUris } from "@/lib/illustration";
 import { PDF_THEMES, pdfThemeRules, type PdfTheme, type ThemeId } from "@/lib/exporters/themes";
 import { FONTS_DATA } from "@/lib/exporters/fonts-data";
 
@@ -9,7 +10,10 @@ interface Passage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
+  illustration?: string | null;
+  illustrationAlt?: string | null;
   outgoingLinks: {
+    targetId?: string | null;
     target: { number: number };
     linkText: string | null;
   }[];
@@ -31,7 +35,8 @@ export async function generatePDF(projectId: string, readingMode = false, theme:
   });
 
   if (!project) throw new Error("Proyecto no encontrado");
-  return buildPrintHtml(project, readingMode, theme, mobile, showPassageMarkers);
+  const illustrationSources = await loadIllustrationDataUris(project.passages);
+  return buildPrintHtml(project, readingMode, theme, mobile, showPassageMarkers, illustrationSources);
 }
 
 function buildLinkMap(passages: Passage[]): Set<number> {
@@ -65,12 +70,25 @@ function buildFontFaces(th: PdfTheme): string {
     .join("\n    ");
 }
 
-export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = false): string {
+export function buildPrintHtml(project: { title: string; passages: Passage[] }, readingMode: boolean, theme: ThemeId = "clasico", mobile = false, showPassageMarkers = false, illustrationSources?: ReadonlyMap<number, string>): string {
   const th = PDF_THEMES[theme] ?? PDF_THEMES.clasico;
   const escapeHtml = (text: string) =>
-    text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const illustrationFigure = (passage: Passage): string => {
+    const url = passage.illustration?.trim();
+    if (!url || !isAllowedIllustrationUrl(url)) return "";
+    const source = illustrationSources?.get(passage.number) || url;
+    const alt = passage.illustrationAlt?.trim() || "";
+    return `\n      <figure class="passage-illustration"><img src="${escapeHtml(source)}" alt="${escapeHtml(alt)}" loading="lazy">${alt ? `<figcaption>${escapeHtml(alt)}</figcaption>` : ""}</figure>`;
+  };
 
   const passageNumbers = buildLinkMap(project.passages);
+  const passageIds = new Set(project.passages.map((p) => p.id));
 
   const themedRules = pdfThemeRules(th);
   const extras =
@@ -79,26 +97,30 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
       : `\n    ${[buildFontFaces(th), themedRules].filter(Boolean).join("\n    ")}`;
   const ornament =
     th.ornament ? `\n      <p class="cover-ornament"><span></span></p>` : "";
-  const emblem = th.emblemSvg ? `\n      <div class="cover-emblem">${th.emblemSvg}</div>` : "";
+  const decorSvg = (source: string, id: string) => source.replace(/__ID__/g, id);
+  const emblem = th.emblemSvg
+    ? `\n      <div class="cover-emblem">${decorSvg(th.emblemSvg, "ilEmblem")}</div>`
+    : "";
   const watermark = th.watermarkSvg
     ? `\n    <div class="page-watermark" aria-hidden="true">${th.watermarkSvg}</div>`
     : "";
   const divider = th.dividerSvg
     ? `<div class="passage-divider" aria-hidden="true">${th.dividerSvg}</div>\n    `
     : "";
-  const decorSvg = (source: string, id: string) => source.replace(/__ID__/g, id);
   const pageDecor =
     th.cornerSvg && th.cornerTopSvg && th.bandSvg && th.medallionSvg && !mobile
       ? `<div class="page-decor" aria-hidden="true">
     <div class="decor-band decor-top">${decorSvg(th.bandSvg, "ilbTop")}</div>
-    <div class="decor-band decor-bottom">${decorSvg(th.bandSvg, "ilbBottom")}</div>
+    ${th.friezeSvg
+      ? `<div class="decor-band decor-frieze">${decorSvg(th.friezeSvg, "ilFrieze")}</div>`
+      : `<div class="decor-band decor-bottom">${decorSvg(th.bandSvg, "ilbBottom")}</div>`}
     ${th.sideBandSvg ? `<div class="decor-band decor-left">${decorSvg(th.sideBandSvg, "ilsLeft")}</div><div class="decor-band decor-right">${decorSvg(th.sideBandSvg, "ilsRight")}</div>` : ""}
     <div class="decor-corner decor-tl">${th.cornerTopSvg}</div>
     <div class="decor-corner decor-tr">${th.cornerTopSvg}</div>
     <div class="decor-corner decor-bl">${th.cornerSvg}</div>
     <div class="decor-corner decor-br">${th.cornerSvg}</div>
-    <div class="decor-medallion decor-top-medallion">${th.medallionSvg}</div>
-    <div class="decor-medallion decor-bottom-medallion">${th.medallionSvg}</div>
+    <div class="decor-medallion decor-top-medallion">${decorSvg(th.medallionSvg, "ilMedTop")}</div>
+    <div class="decor-medallion decor-bottom-medallion">${decorSvg(th.medallionSvg, "ilMedBottom")}</div>
   </div>`
       : "";
 
@@ -134,7 +156,10 @@ export function buildPrintHtml(project: { title: string; passages: Passage[] }, 
     .passage-number-left {
       font-size: 13px; font-weight: bold; color: ${th.accent}; margin-bottom: 8px; break-after: avoid;
     }
-    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; hyphens: auto; -webkit-hyphens: auto; scroll-margin-top: 36px; font-size: ${mobile ? 16 : 14}px; }
+    .passage-content { text-align: justify; margin-bottom: 15px; white-space: pre-wrap; orphans: 2; widows: 2; hyphens: auto; -webkit-hyphens: auto; scroll-margin-top: 36px; font-size: ${mobile ? 16 : 14}px; break-before: avoid; }
+    .passage-illustration { margin: 12px auto 16px; text-align: center; break-inside: avoid; }
+    .passage-illustration img { display: block; max-width: 100%; max-height: ${mobile ? 230 : 320}px; width: auto; height: auto; margin: 0 auto; padding: 4px; border: 1px solid ${th.linksBorder}; background: ${th.containerBg}; }
+    .passage-illustration figcaption { margin-top: 5px; font-size: 11px; font-style: italic; color: ${th.subtitle}; }
     @media screen { .passage-content { scroll-margin-top: 36px; } }
     .passage-links { margin-top: 15px; padding: 10px 15px; background: ${th.linksBg}; border: 1px solid ${th.linksBorder}; border-radius: 4px; break-inside: avoid; }
     .passage-links strong { color: ${th.accent}; }
@@ -163,20 +188,23 @@ if (showPassageMarkers && passage.isEndpoint) markers.push('<span class="end-mar
 
     const numClass = readingMode ? "passage-number-center" : "passage-number-left";
     const content = trimContentEdges(passage.content);
-    const forcedTargets = new Set<number>(passage.outgoingLinks.map((l) => l.target.number));
+    const options = exportableLinks(passage.outgoingLinks, passageIds, passage.number);
+    const forcedTargets = exportableTargets(passage.outgoingLinks, passageIds, passage.number);
 
     if (readingMode) {
-      html += `    <div class="passage">\n      <a name="passage${passage.number}"></a>\n      <a id="passage${passage.number}"></a>\n`;
+      html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">${passage.number}${markerStr}</div>\n`;
+      html += `${illustrationFigure(passage)}\n`;
       html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th, forcedTargets)}</div>\n`;
       html += `    </div>\n`;
     } else {
-      html += `    <div class="passage">\n      <a name="passage${passage.number}"></a>\n      <a id="passage${passage.number}"></a>\n`;
+      html += `    <div class="passage">\n`;
       html += `      <div class="${numClass}">Pasaje ${passage.number}${passage.title ? ` — ${escapeHtml(passage.title)}` : ""}${markerStr}</div>\n`;
+      html += `${illustrationFigure(passage)}\n`;
       html += `      <div class="passage-content" id="passage${passage.number}">${linkifyContent(content, passage.number, passageNumbers, escapeHtml, th, forcedTargets)}</div>\n`;
-      if (passage.outgoingLinks.length > 0) {
+      if (options.length > 0) {
         html += `      <div class="passage-links"><strong>Opciones:</strong><br>\n`;
-        passage.outgoingLinks.forEach((link) => {
+        options.forEach((link) => {
           const text = link.linkText || `Continuar al pasaje ${link.target.number}`;
           html += `        → <a href="#passage${link.target.number}">${escapeHtml(text)}</a><br>\n`;
         });

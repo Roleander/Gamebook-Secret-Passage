@@ -73,7 +73,10 @@
     "confirmDelete": "このプロジェクトを削除しますか？",
     "subtitle": "ゲームブックを管理",
     "createFirstButton": "最初のプロジェクトを作成",
-    "noDescription": "説明なし"
+    "noDescription": "説明なし",
+    "duplicate": "複製",
+    "duplicateLimit": "プランのプロジェクト上限に達しました。Pro にアップグレードするとプロジェクトを複製できます。",
+    "duplicateError": "プロジェクトを複製できませんでした。"
   },
   "NewProject": {
     "title": "新規プロジェクト",
@@ -492,7 +495,10 @@
     "aiSegment": "AI: セグメント化",
     "aiFallback": "AI 不利用可能 — ローカル分析を使用",
     "aiRateLimit": "AIリクエスト上限に達しました。数分後に再試行してください。",
-    "reanalyze": "リンクを再分析"
+    "reanalyze": "リンクを再分析",
+    "aiReady": "AI 接続済み: {model}",
+    "aiLocalReady": "ローカル AI 接続済み: {model}",
+    "aiUnavailable": "このサーバーでは AI が設定されていません。AI ボタンはローカル分析を使用します。"
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "受信リンクを追加",
     "incomingHint": "このパッセージへリンクするパッセージを選択してください（{n}）",
     "source": "リンク元パッセージ",
-    "sourceNumber": "リンク元の番号"
+    "sourceNumber": "リンク元の番号",
+    "illustration": "イラスト",
+    "illustrationHint": "このパッセージに画像を追加します（JPG、PNG、WebP、SVG、最大 2 MB）。",
+    "illustrationAltPlaceholder": "代替テキスト（任意）",
+    "removeIllustration": "イラストを削除",
+    "illustrationUploading": "アップロード中…",
+    "illustrationTypeError": "許可されていない形式です。JPG、PNG、WebP、SVG を使用してください。",
+    "illustrationSizeError": "画像が 2 MB を超えています。",
+    "illustrationUploadError": "イラストをアップロードできませんでした。",
+    "illustrationSaveHint": "保存を押すと、イラストがパッセージに適用されます。"
   },
   "PassageList": {
     "drag": "ドラッグで並べ替え",

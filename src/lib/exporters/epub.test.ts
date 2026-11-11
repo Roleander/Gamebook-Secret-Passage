@@ -9,7 +9,7 @@ interface TestPassage {
   title: string | null;
   content: string;
   isEndpoint: boolean;
-  outgoingLinks: { target: { number: number }; linkText: string | null }[];
+  outgoingLinks: { targetId?: string | null; target: { number: number }; linkText: string | null }[];
 }
 
 function passage(overrides: Partial<TestPassage> = {}): TestPassage {
@@ -141,5 +141,55 @@ describe("EPUB export (generateEPUB)", () => {
       expect(ch1, `${theme} divisor`).toContain('<div class="passage-divider" aria-hidden="true">');
       expect(ch1, `${theme} lang`).toContain('lang="es"');
     }
+  });
+
+  it("iluminado decora cada capitulo con marco, medallon y cenefa con ids unicos", async () => {
+    const zip = await loadZip("iluminado");
+    const ch1 = await zip.files["OEBPS/chapter1.xhtml"].async("string");
+    const ch2 = await zip.files["OEBPS/chapter2.xhtml"].async("string");
+
+    expect(ch1).toContain('class="chapter-frame"');
+    expect(ch1).toContain('class="medallion"');
+    expect(ch1).toContain('class="chapter-frieze"');
+    expect(ch1).toContain('id="med1"');
+    expect(ch2).toContain('id="med2"');
+    expect(ch1).toContain('id="frz1"');
+    expect(ch2).toContain('id="frz2"');
+    expect(ch1).not.toContain("__ID__");
+    expect(ch2).not.toContain("__ID__");
+
+    const css = await zip.files["OEBPS/style.css"].async("string");
+    expect(css).toContain(".chapter-frame");
+    expect(css).toContain(".medallion svg");
+    expect(css).toContain(".chapter-frieze svg");
+  });
+
+  it("la caja de opciones descarta enlaces ajenos, autollenlaces y duplicados", async () => {
+    const filtered = {
+      id: "epub-links",
+      title: "Filtrados",
+      passages: [
+        passage({
+          id: "p1",
+          number: 1,
+          outgoingLinks: [
+            { targetId: "ajeno", target: { number: 2 }, linkText: "Fuera" },
+            { targetId: "p1", target: { number: 1 }, linkText: "Yo" },
+            { targetId: "p2", target: { number: 2 }, linkText: "Dentro" },
+            { targetId: "p2", target: { number: 2 }, linkText: "Repetido" },
+          ],
+        }),
+        passage({ id: "p2", number: 2, content: "Fin" }),
+      ],
+    };
+    const buf = await generateEPUB(filtered as any, false, "clasico");
+    const zip = await JSZip.loadAsync(buf);
+    const ch1 = await zip.files["OEBPS/chapter1.xhtml"].async("string");
+    expect(ch1).toContain('href="chapter2.xhtml"');
+    expect(ch1).toContain("Dentro");
+    expect(ch1).not.toContain("Fuera");
+    expect(ch1).not.toContain("Yo");
+    expect(ch1).not.toContain("Repetido");
+    expect((ch1.match(/href="chapter2.xhtml"/g) || []).length).toBe(1);
   });
 });

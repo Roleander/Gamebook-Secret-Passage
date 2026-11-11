@@ -73,7 +73,10 @@
     "confirmDelete": "¿Seguro que quieres eliminar este proyecto?",
     "subtitle": "Gestiona tus librojuegos",
     "createFirstButton": "Crear Primer Proyecto",
-    "noDescription": "Sin descripción"
+    "noDescription": "Sin descripción",
+    "duplicate": "Duplicar",
+    "duplicateLimit": "Has alcanzado el límite de proyectos de tu plan. Mejora a Pro para duplicar.",
+    "duplicateError": "No se pudo duplicar el proyecto."
   },
   "NewProject": {
     "title": "Nuevo Proyecto",
@@ -492,7 +495,10 @@
     "aiSegment": "IA: segmentar",
     "aiFallback": "IA no disponible — se usó el análisis local",
     "aiRateLimit": "Límite de peticiones de IA alcanzado. Inténtalo en unos minutos.",
-    "reanalyze": "Re-analizar enlaces"
+    "reanalyze": "Re-analizar enlaces",
+    "aiReady": "IA conectada: {model}",
+    "aiLocalReady": "IA local conectada: {model}",
+    "aiUnavailable": "IA no configurada en este servidor: los botones de IA usarán el análisis local."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Añadir Enlace Entrante",
     "incomingHint": "Selecciona el pasaje que enlazará hacia este pasaje ({n})",
     "source": "Pasaje origen",
-    "sourceNumber": "Número del pasaje origen"
+    "sourceNumber": "Número del pasaje origen",
+    "illustration": "Ilustración",
+    "illustrationHint": "Añade una imagen para este pasaje (JPG, PNG, WebP o SVG, máx. 2 MB).",
+    "illustrationAltPlaceholder": "Texto alternativo (opcional)",
+    "removeIllustration": "Quitar ilustración",
+    "illustrationUploading": "Subiendo…",
+    "illustrationTypeError": "Formato no permitido. Usa JPG, PNG, WebP o SVG.",
+    "illustrationSizeError": "La imagen supera los 2 MB.",
+    "illustrationUploadError": "No se pudo subir la ilustración.",
+    "illustrationSaveHint": "Pulsa Guardar para aplicar la ilustración al pasaje."
   },
   "PassageList": {
     "drag": "Arrastra para reordenar",

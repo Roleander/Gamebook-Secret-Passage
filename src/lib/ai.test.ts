@@ -5,6 +5,7 @@ import {
   AiOutputError,
   AiRateLimitError,
   chatJson,
+  isAiConfigured,
 } from "@/lib/ai";
 
 function completion(content: string): Response {
@@ -62,10 +63,28 @@ describe("chatJson", () => {
     await expect(chatJson("s", "u")).rejects.toMatchObject({ status: 500 });
   });
 
-  it("throws AiNotConfiguredError without an API key", async () => {
+  it("throws AiNotConfiguredError without an API key or base URL", async () => {
     vi.stubEnv("AI_API_KEY", "");
+    vi.stubEnv("AI_BASE_URL", "");
+    expect(isAiConfigured()).toBe(false);
     await expect(chatJson("s", "u")).rejects.toBeInstanceOf(AiNotConfiguredError);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("works with a local provider without an API key", async () => {
+    vi.stubEnv("AI_API_KEY", "");
+    vi.stubEnv("AI_BASE_URL", "http://127.0.0.1:11434/v1");
+    vi.stubEnv("AI_MODEL", "llama3.1");
+    fetchMock.mockResolvedValueOnce(completion('{"ok":true}'));
+
+    expect(isAiConfigured()).toBe(true);
+    const result = await chatJson("s", "u");
+    expect(result).toEqual({ ok: true });
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(String(url)).toBe("http://127.0.0.1:11434/v1/chat/completions");
+    expect(init.headers.Authorization).toBeUndefined();
+    expect(JSON.parse(init.body).model).toBe("llama3.1");
   });
 
   it("retries without response_format when the provider answers 400", async () => {

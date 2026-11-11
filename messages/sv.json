@@ -73,7 +73,10 @@
     "confirmDelete": "Är du säker på att du vill ta bort detta projekt?",
     "subtitle": "Hantera dina spelböcker",
     "createFirstButton": "Skapa första projekt",
-    "noDescription": "Ingen beskrivning"
+    "noDescription": "Ingen beskrivning",
+    "duplicate": "Duplicera",
+    "duplicateLimit": "Du har nått projektgränsen för din plan. Uppgradera till Pro för att duplicera projekt.",
+    "duplicateError": "Det gick inte att duplicera projektet."
   },
   "NewProject": {
     "title": "Nytt projekt",
@@ -492,7 +495,10 @@
     "aiSegment": "AI: segmentera",
     "aiFallback": "AI otillgänglig — lokal analys användes",
     "aiRateLimit": "AI-förfrågningsgräns nådd. Försök igen om några minuter.",
-    "reanalyze": "Analysera länkar igen"
+    "reanalyze": "Analysera länkar igen",
+    "aiReady": "AI ansluten: {model}",
+    "aiLocalReady": "Lokal AI ansluten: {model}",
+    "aiUnavailable": "AI är inte konfigurerad på den här servern: AI-knapparna använder lokal analys."
   },
   "Legal": {
     "hub": {
@@ -688,7 +694,16 @@
     "addIncoming": "Lägg till inkommande länk",
     "incomingHint": "Välj pass som kommer att länka hit ({n})",
     "source": "Källpass",
-    "sourceNumber": "Källpassets nummer"
+    "sourceNumber": "Källpassets nummer",
+    "illustration": "Illustration",
+    "illustrationHint": "Lägg till en bild för detta avsnitt (JPG, PNG, WebP eller SVG, max 2 MB).",
+    "illustrationAltPlaceholder": "Alternativ text (valfritt)",
+    "removeIllustration": "Ta bort illustration",
+    "illustrationUploading": "Laddar upp…",
+    "illustrationTypeError": "Formatet tillåts inte. Använd JPG, PNG, WebP eller SVG.",
+    "illustrationSizeError": "Bilden är större än 2 MB.",
+    "illustrationUploadError": "Det gick inte att ladda upp illustrationen.",
+    "illustrationSaveHint": "Tryck på Spara för att använda illustrationen i avsnittet."
   },
   "PassageList": {
     "drag": "Dra för att ordna om",

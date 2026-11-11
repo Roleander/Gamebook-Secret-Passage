@@ -7,6 +7,61 @@ export interface PassageLink {
   text: string;
 }
 
+export interface OutgoingLinkRef {
+  targetId?: string | null;
+  target: { number: number };
+}
+
+/**
+ * Un enlace solo puede viajar dentro de un documento si su destino forma
+ * parte de ese mismo documento. `passageIds` es el conjunto de pasajes que se
+ * está exportando (un proyecto o, en el futuro, un conjunto completo), así
+ * que la comprobación por id no rompe los enlaces entre proyectos cuando
+ * ambos acaban en el mismo archivo.
+ */
+export function isLinkInsideDocument(
+  link: OutgoingLinkRef,
+  passageIds?: ReadonlySet<string>,
+  currentNumber?: number
+): boolean {
+  const target = link.target?.number;
+  if (!Number.isFinite(target)) return false;
+  if (currentNumber !== undefined && target === currentNumber) return false;
+  if (passageIds && link.targetId && !passageIds.has(link.targetId)) return false;
+  return true;
+}
+
+/**
+ * Enlaces de la caja «Opciones» listos para exportar: sin destinos ajenos al
+ * documento, sin autollenlaces y sin duplicados de número.
+ */
+export function exportableLinks<T extends OutgoingLinkRef>(
+  links: readonly T[],
+  passageIds?: ReadonlySet<string>,
+  currentNumber?: number
+): T[] {
+  const seen = new Set<number>();
+  const out: T[] = [];
+  for (const link of links) {
+    if (!isLinkInsideDocument(link, passageIds, currentNumber)) continue;
+    const target = link.target.number;
+    if (seen.has(target)) continue;
+    seen.add(target);
+    out.push(link);
+  }
+  return out;
+}
+
+export function exportableTargets(
+  links: readonly OutgoingLinkRef[],
+  passageIds?: ReadonlySet<string>,
+  currentNumber?: number
+): Set<number> {
+  return new Set(
+    exportableLinks(links, passageIds, currentNumber).map((l) => l.target.number)
+  );
+}
+
 export function findPassageLinks(
   content: string,
   passageNumbers: ReadonlySet<number>,
