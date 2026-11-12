@@ -221,18 +221,21 @@ export const SVG_DRAGON_ILUMINADO =
   `<g stroke-linecap="round" stroke-linejoin="round">
     <path d="M2 30C-4 22 2 12 12 14c6 1 8 7 4 10" fill="none" stroke="#c9a227" stroke-width="4"/>
     <path d="M4 30C44 16 96 14 138 20" fill="none" stroke="#8a6a18" stroke-width="14"/>
-    <path d="M4 30C44 16 96 14 138 20" fill="none" stroke="#8c1c1c" stroke-width="8"/>
-    <path d="M6 27C46 14 96 12 136 18" fill="none" stroke="#f0d27a" stroke-width="1.6" opacity=".7"/>
-    <g fill="#c9a227" stroke="#8a6a18" stroke-width="0.8">
+    <path d="M4 30C44 16 96 14 138 20" fill="none" stroke="#c9a227" stroke-width="8"/>
+    <path d="M6 27C46 14 96 12 136 18" fill="none" stroke="#f3dd9a" stroke-width="1.6" opacity=".8"/>
+    <g fill="none" stroke="#8a6a18" stroke-width=".8" opacity=".6">
+      <path d="M52 22c2 1 4 1 6 0M69 20c2 1 4 1 6 0M86 19c2 1 4 1 6 0M103 18c2 1 4 1 6 0"/>
+    </g>
+    <g fill="#dcb84e" stroke="#8a6a18" stroke-width="0.8">
       <path d="M58 17l4-9 4 10z"/>
       <path d="M78 15l4-9 4 10z"/>
       <path d="M98 15l4-8 4 9z"/>
     </g>
-    <path d="M98 16C102 2 116-4 134 0c-8 8-14 15-14 24z" fill="#8c1c1c" stroke="#e8c96a" stroke-width="1.6"/>
-    <path d="M102 16L131 5M106 18L130 11M110 20L129 17" fill="none" stroke="#e8c96a" stroke-width="1"/>
+    <path d="M98 16C102 2 116-4 134 0c-8 8-14 15-14 24z" fill="#dcb84e" stroke="#8a6a18" stroke-width="1.6"/>
+    <path d="M102 16L131 5M106 18L130 11M110 20L129 17" fill="none" stroke="#8a6a18" stroke-width="1"/>
     <path d="M136 20c8-8 22-8 32-2-8 4-10 10-8 15-9 2-19-3-24-9z" fill="#c9a227" stroke="#8a6a18" stroke-width="1.7"/>
-    <path d="M158 20c3-6 9-9 15-8-4 3-6 6-6 10" fill="none" stroke="#e8c96a" stroke-width="2"/>
-    <path d="M136 17c-4-6-3-13 2-17-1 5 1 9 5 11" fill="none" stroke="#e8c96a" stroke-width="2.2"/>
+    <path d="M158 20c3-6 9-9 15-8-4 3-6 6-6 10" fill="none" stroke="#f0d27a" stroke-width="2"/>
+    <path d="M136 17c-4-6-3-13 2-17-1 5 1 9 5 11" fill="none" stroke="#f0d27a" stroke-width="2.2"/>
     <circle cx="150" cy="19" r="1.9" fill="#8c1c1c"/>
     <circle cx="150.6" cy="18.4" r=".6" fill="#f0d27a"/>
     <path d="M168 24c7 1 11 5 13 10-4-1-7-1-10 1" fill="none" stroke="#8c1c1c" stroke-width="2"/>
@@ -283,89 +286,97 @@ export const SVG_MEDALLION_ILUMINADO =
       <stop offset=".55" stop-color="#173a6c"/>
       <stop offset="1" stop-color="#0a1a33"/>
     </radialGradient>
+    <linearGradient id="__ID__gold" gradientUnits="userSpaceOnUse" x1="28" y1="28" x2="108" y2="98">
+      <stop offset="0" stop-color="#fff8e0"/>
+      <stop offset=".28" stop-color="#f9e7a8"/>
+      <stop offset=".58" stop-color="#eed27a"/>
+      <stop offset=".82" stop-color="#dcb84e"/>
+      <stop offset="1" stop-color="#c19a2c"/>
+    </linearGradient>
+    <linearGradient id="__ID__red" gradientUnits="userSpaceOnUse" x1="54" y1="92" x2="94" y2="116">
+      <stop offset="0" stop-color="#c04a4a"/>
+      <stop offset=".5" stop-color="#962828"/>
+      <stop offset="1" stop-color="#5e1212"/>
+    </linearGradient>
+    <clipPath id="__ID__clip"><circle cx="70" cy="70" r="54"/></clipPath>
   </defs>
+
   <circle cx="70" cy="70" r="68" fill="#081426" stroke="#8a6a18" stroke-width="2.4"/>
   <circle cx="70" cy="70" r="64.5" fill="none" stroke="#c9a227" stroke-width="2.6"/>
   <circle cx="70" cy="70" r="60.5" fill="none" stroke="#f3dd9a" stroke-width="0.9" opacity=".8"/>
   <circle cx="70" cy="70" r="57.5" fill="none" stroke="#8c1c1c" stroke-width="4.6" stroke-dasharray="5.6 5.6"/>
   <circle cx="70" cy="70" r="66.2" fill="none" stroke="#f0d27a" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 26.01"/>
   <circle cx="70" cy="70" r="54" fill="url(#__ID__)" stroke="#c9a227" stroke-width="2"/>
-  <g stroke-linecap="round" stroke-linejoin="round">
-    <!-- Cola: serpentea por la parte baja y termina en hoja de acanto. -->
-    <path d="M93 92C104 98 107 107 98 112c-14 8-38 4-53-7-9-7-13-15-9-22" fill="none" stroke="#8a6a18" stroke-width="12"/>
-    <path d="M93 92C104 98 107 107 98 112c-14 8-38 4-53-7-9-7-13-15-9-22" fill="none" stroke="#21457c" stroke-width="7.4"/>
-    <path d="M93 92C104 98 107 107 98 112c-14 8-38 4-53-7-9-7-13-15-9-22" fill="none" stroke="#3a6eae" stroke-width="1.6" opacity=".65"/>
-    <path d="M37 86C30 84 24 79 21 72c7 2 12 5 16 10 0-7 3-13 8-17-1 8-3 15-5 21z" fill="#8c1c1c" stroke="#8a6a18" stroke-width="1.7"/>
-    <path d="M36 83c-4-3-7-7-9-10" fill="none" stroke="#e8c96a" stroke-width="1.1"/>
 
-    <!-- Ala: cuatro plumas de acanto con nervios de oro. -->
-    <path d="M79 63C87 48 97 39 109 35c-2 7-1 12 2 16-10 2-19 8-25 17z" fill="#741616" stroke="#8a6a18" stroke-width="2"/>
-    <path d="M80 66C88 54 98 46 111 42c-2 6-1 11 2 15-10 2-19 8-25 16z" fill="#8c1c1c" stroke="#8a6a18" stroke-width="2"/>
-    <path d="M82 69C90 61 99 56 110 54c-2 5-1 9 1 13-9 0-17 4-23 11z" fill="#a52a2a" stroke="#8a6a18" stroke-width="1.8"/>
-    <path d="M84 74c7-5 14-8 21-9-1 4-1 7 1 10-7-1-14 2-19 7z" fill="#8c1c1c" stroke="#8a6a18" stroke-width="1.6"/>
-    <path d="M82 64l27-27M84 67l27-22M86 71l25-16M88 76l21-11" fill="none" stroke="#e8c96a" stroke-width="1.1"/>
-    <g fill="#f0d27a">
-      <circle cx="110" cy="36" r="1.1"/>
-      <circle cx="112" cy="44" r="1"/>
-      <circle cx="111" cy="54" r="1"/>
-      <circle cx="107" cy="65" r=".9"/>
+  <g clip-path="url(#__ID__clip)" stroke-linecap="round" stroke-linejoin="round">
+    <g fill="none" stroke="#7ea6d8" stroke-width="1" opacity=".2">
+      <path d="M26 80c6-6 13-7 18-2 3 4 2 9-2 10-3 1-6-1-6-4"/>
+      <path d="M102 90c6-3 11-1 12 4 1 4-2 7-6 7"/>
+      <path d="M40 112c5-3 10-2 13 2"/>
     </g>
 
-    <!-- Pata trasera, detrás del cuerpo. -->
-    <path d="M92 86c5 8 7 15 7 22" fill="none" stroke="#8a6a18" stroke-width="11"/>
-    <path d="M92 86c5 8 7 15 7 22" fill="none" stroke="#21457c" stroke-width="6.4"/>
-    <path d="M99 108l5 2M99 108l4 3M99 108l1 5" fill="none" stroke="#e8c96a" stroke-width="1.6"/>
+    <!-- Cola roja enrollada -->
+    <path d="M84 84c2 4 5 7 6 11 1 5-1 10-6 13-6 4-16 5-24 2-7-3-10-9-7-14 3-5 11-6 16-2 4 3 4 8 0 10-3 2-7 1-8-2-1-2 1-4 3-4"
+          fill="none" stroke="#4a0d0d" stroke-width="10.2"/>
+    <path d="M84 84c2 4 5 7 6 11 1 5-1 10-6 13-6 4-16 5-24 2-7-3-10-9-7-14 3-5 11-6 16-2 4 3 4 8 0 10-3 2-7 1-8-2-1-2 1-4 3-4"
+          fill="none" stroke="url(#__ID__red)" stroke-width="7"/>
+    <path d="M86 89c4 4 5 9 3 13-3 5-10 7-16 6" fill="none" stroke="#e08a7a" stroke-width=".9" opacity=".38"/>
+    <path d="M61 102c-2 2-2 5 0 7 2-2 4-3 6-3-2-2-4-3-6-4z" fill="#962828" stroke="#4a0d0d" stroke-width=".7"/>
+    <!-- Sombra bajo las patas -->
+    <ellipse cx="70" cy="98" rx="24" ry="4.5" fill="#4a0d0d" opacity=".28"/>
 
-    <!-- Cuerpo y cuello. -->
-    <path d="M58 58c7-8 19-8 29 0 10 8 15 20 11 31-3 8-10 10-17 6-7-4-12-12-18-19-6-7-9-13-5-18z" fill="#21457c" stroke="#8a6a18" stroke-width="2.4"/>
-    <path d="M62 60c6-5 15-5 22 2 7 7 11 16 10 24" fill="none" stroke="#2f5c9c" stroke-width="4" opacity=".75"/>
-    <path d="M61 72c6 8 12 15 19 19" fill="none" stroke="#173a6e" stroke-width="2.5" opacity=".75"/>
-    <path d="M47 46c4 9 11 16 20 19" fill="none" stroke="#8a6a18" stroke-width="14"/>
-    <path d="M47 46c4 9 11 16 20 19" fill="none" stroke="#21457c" stroke-width="9"/>
-    <path d="M47 46c4 9 11 16 20 19" fill="none" stroke="#2f5c9c" stroke-width="2" opacity=".7"/>
-
-    <!-- Cresta dorsal. -->
-    <g fill="#c9a227" stroke="#8a6a18" stroke-width=".7">
-      <path d="M54 53l3-7 3 8z"/>
-      <path d="M61 56l3-7 3 8z"/>
-      <path d="M68 58l3-6 3 8z"/>
-      <path d="M76 59l3-6 3 8z"/>
-      <path d="M84 62l4-5 2 8z"/>
-      <path d="M90 68l4-4 1 8z"/>
+    <!-- Dragón galés -->
+    <g transform="translate(70 67) scale(0.15) translate(-350 -250)">
+      <path d="M669.5 56.4c-5 34.8 0 85.2 8.6 101.7a52 52 0 0 1-28-24.2l-12.2 38c26 52.7-41.5 94.1-97.6 97 34.3 18.6 79 41.7 79 53.9-13.5 5-21.7-9.4-32.5-14.1 11.6 30.3 4.4 52.7-1.6 82.7-5.9 7 0 11.6 2.4 17.4l16.1 6.3 2.6 2.4s11.4.5 14.6 16.4c-7.6-9.2-18-6.3-18-6.3l-3.9 2.6-9.1-5.4c-10-6.7-20.3-6.4-31.3-1.6a17 17 0 0 1-16.7.5c-6.2-6.7-19.6-.8-19.8-.8l-14.4 9.4-3.6-.8c-.3 0-9.2-.2-21 7.4 3.2-16 14.7-15.7 14.7-15.7-1-3.3 1.4-2.8 2-4.2 3.9-4.2 12-3.5 17.8-5.2l-33.9-1.6.5-1.5c-7.4-.7-13.2-1-17.4 6-.5-11.7 9.3-13.8 15.6-16.5 2.8-4.4 9-3.6 14.9-3l30 11.1c-2.4-.8-38.1-16.1-38.1-16.1-1.8-2.7.5-4.2.5-4.5s-9.6-6-16.4.5c1.3-13.8 17.7-10.1 17.7-10.1 1-4.5 5.4-3.9 7.6-1.9l12.8 12.6 12 7.5c11.1 5 23 3.1 32.8-12.8-3.3-8.2-1.8-11.8 5.8-16.7-2-5.4-1.3-11 1-16.4-3.3-5-5.3-18.7-2-22-7.6-2.6-10.5-10-11-10-6.9 1.3-12.8-1-15.7-3.7a24 24 0 0 1-26.6-4c-12.2 4.2-23.3 1.3-29.2-3.9-9.4 2.3-24-4.4-26.6-12-5.4 0-10.9-6-16.7-5.4-4.8 7.8-6 7-13.3 13.5-7.4 7.7-4.8 20.8 1 26.9l27.4 10.4c20.9 1.2 25.9 13.2 25.6 24.8-7.9-2.3-8.2-3.6-12-3.9l-16.2-5.7a120 120 0 0 1-74.9 55c6.6 3 13 2 19.6 2.9l7 4.2c10.2 2 17.3 5.3 17.3 14.8-6.8-7.5-13.4-7.3-18.8-3.6-10.8 4.5-17-5.4-25.6-8.1-7.2-5.2-14.3-3-20.6.3-7.1-4.7-15.3-2.3-23.5-1.4-10.2 1-21.8 3.7-26.9 9.4-3.3 2.7-4.7-1.3-5-1-11.6-3.8-16.9 6.5-16.9 6.5-2.8-11.9 3.3-14.5 9.7-16.2l-13-7.5c-.3-1.5-1.3-1.8 1.2-2.4-5-3.3-10.2-.7-15.9 4.5.5-11 14-17.7 19.6-14.1 4-3 11.5-3.6 17 1a26 26 0 0 0 21.6 3.4 20 20 0 0 0-16-12c-6.6-1.6-14.4-4-12.2-8-4.1-6-10-4.1-16.7.7 2.4-13.4 16.6-12 20.4-9.1 1.3-4.2 5.7-5.1 9.4-.8 5.7 1.5 6.6 5.6 9.9 8.3 6.4 6.6 16.3 10 24.5 11.3a53 53 0 0 1 25.6-5.3c1.7-7.4 6.6-9 13-9-.2-6.7 3.1-9.7 9.4-12.6 0 0-10-.9-10.7-7.3-16.7-.1-27.8-2.4-29.2-13.3-15.3-4.8-24.9-16.3-18.8-28.7a26 26 0 0 1-19 0c-10.6 9.3-27 20.5-37 14.3a73 73 0 0 1-16.3 10.7c-1.3 11.8-10.4 26.4-10.4 26.4-4.5-11.4-13.1-23.9-12.5-35-15.3 19.8-24.2 25.7-36.3 38.6a75 75 0 0 0-18.2 35c7.3 4.2 16.7 3.5 25 5.2 2.3 3 1.7 1.7 2.6 2.6 9 .2 15.5 5.1 15.4 14.4-8-8.2-16-3.2-16-3.2-6.4 5.4-14.7 3-22.6 0-6.9-7.3-16.9-11.5-25.3-5.2-10.2 8.3-14.8-4.4-30.5 4.4-11.3 10.3-26.8 11.2-31 5 0 0-7.9-3-18.9 8.6 3.2-19 14.9-17.2 14.9-17.2l-.5-6-4.5-1.6c-7.9-3.5-17.7-2.6-22.1 1 3-12.4 14.6-12.5 23.2-11.1l4.7-5.3c-3.6-1.4-2.8-3.8-1.8-6.2-4.8-4.8-8.4-5.8-14.4-.8 1.9-12.1 13.4-11.3 21.4-6 4.3-2.7 13.7 2.4 19.8 6 18.6 6.2 30.1 7 48.8-17 .2-11.4.9-15.8 11-22.7-3.9-7-1.8-13.9 7.8-17.2-3.4-3.2-.8-8 1.6-12.9-13.8-.6-29.2.8-40 4.6a70 70 0 0 1-15.9 29.4c.2-28.3-16.1-48.4-36-69.6-22.7-15-32.8-45-34.7-54.8-4.2 11-7 12.8-7 13-5 5.5-1.6 18-12.1 18.3-9.8 12-21.6 5-21.6 5 11.2-1.6 13-6.1 15.2-13.6-7-1.7-1-7.5 2.6-9.7 2.1-.4 7.6-14.2 11.2-13.8l4.4-41c-9-3.7-15-9.5-14.3-19.5-3.3-4.3-5.6-10.5-1-12.8-2-5.1-4.4-10.8-11.8-12.8 17.2-3 19.3 7.5 23.7 8.4 5 3 8.6 20.3 14.6 29.4-4.6-15-2.2-25 2.4-38 0-7-3-14-10-18 14.7-.4 20.7 14.8 21.2 15.3 9.3 12-3.2 20.5.8 25.9 2.9-2.2 4.3-7.2 8.6-6.5 3.6-4 6.3-8.2 6-17 9 5.1 6.8 12.7 4 20 .5 11.2-1.1 14.2-8.4 18-7.4 4.5-8.7 8-7.9 13.4 9 9.5 10.7 38.9 10.7 38.9a16 16 0 0 1 11.8 16.7c8.4-.8 16.2 5.8 17.5 11.7 5-4.7 12-.3 17 4.7 1.6-2.6 5.3-3.8 9.3-2.3 0-4.6 2.6-7.5 6.8-11.3-10.1-7.8-13-27.2-1.6-37.8-2.2-14.2 2-27.6 9.4-29.2-2.3-15.6 7-20.6 10.7-24.3-2.4-7.1 5.5-20.2 10-20.3-4.5-7.5 3.7-21 10.4-22l-4.5-10.4s-21.2 3.2-25 22.7c-2.6-4-5.2-10.2-5.2-10.2s-8.5 22.7-8.8 22.2c-7.3-4.4-4-15.4-4-15.4-5.3-5.8-4.4-13.2-6.5-19.8L79.3 107s6.8 12.5 6.8 12.2c-7 .2-41.6-29.3-48.3-54.5 17.7 14 36.6 17.6 56.6 21.7l-15.9 7.8c55 4.7 112-5.5 111.7-5.7-6.2-12.9-26.4-12.8-26.4-12.8v8.6l-5.4-4-.3 6.6L154 84l-1.3 5.5-4.1-2.9-1.9 5-4.7-3.7s-3.9 0-4.1-.5c-2.6-13-15-13.3-15-13.3-14.4-1.8-25.7 1.2-38.5 1.8 18.9-23.7 44.8-21.5 69.6-24 1.8-10.5 11.1-13.6 22-15.1l51 2.6c6.6-8.6 27-12.2 27-12.2 7-3.6 15-2 21.4-10.7-1.7 11.8-1.8 14.2-2.7 21.3l6.6.8c-6 3.9-13.8 9.3-19.7 13-6.6 10-5.4 10.2-2.5 15.5l6 10.4c10.1 3.1 17.5 7.4 19.8 14-11-1.2-19 .8-18.8 5.6.3 3.5 8.6 5 12 7.1a24 24 0 0 1 8.6 18.4c-8-.4-18.6-12.5-24.2-1.3-2.7 5.5.3 13 7.3 15.4 12.9 3.6 14 21.2 13.8 21.2s-28.3-18.7-26.9-1.3c-.4 7.7 3.2 9.5 6 11.7 8.4 3.1 15.6 6.7 14.7 15.7-12.1-4.4-17.9-1-19.4 6l4.7 13.5 49-9.9c7.2-6.5 10.5-17.3 9.7-29 .9-17.3-5.3-32.6 16.7-51.9a900 900 0 0 1 145.1-97.3C470.6 33.1 463 66 490.7 68.1c9 .1 106.6-41 106.6-41-34 24.8-73 59.4-27.7 74.4-41.6 13-76.1 55-45.9 89-21.6-6.2-50 7.7-55 23.5 24.6-.2 46.8-1.6 70.2 6.5 0 0 65.2 13 69.6-15.7-34.8 7.5-60.6 4-61.8-27.4.3-27 40.8-42 75.2-21.9l10.6-21.9c-12.6 1.6-24 3.7-37 .6 26.5-25.1 51.5-50 74-77.8" fill="url(#__ID__gold)" stroke="#6b4a14" stroke-width="10" stroke-linejoin="round"/>
+      <path d="m174.2 55 12 2.2s-8.4 11.4-12-2.2" fill="#fff3c4" stroke="#6b4a14" stroke-width="5" stroke-linejoin="round"/>
     </g>
 
-    <!-- Escamas y placas del vientre. -->
-    <g fill="none" stroke="#c9a227" stroke-width=".9" opacity=".8">
-      <path d="M70 62c2 1 4 1 6 0M77 64c2 1 4 1 6 0M84 68c2 1 4 1 6 0M88 75c2 1 4 1 6 0"/>
-      <path d="M50 53c3 0 5 2 6 4M53 58c3 0 6 2 8 4M57 63c3 0 6 2 8 4"/>
-      <path d="M64 76c5 2 9 5 12 9M68 82c5 2 8 5 11 9"/>
+    <!-- Volumen -->
+    <path d="M46 44c2 8 5 16 10 23 4 5 9 9 15 11" fill="none" stroke="#8a6a18" stroke-width="3.4" opacity=".16"/>
+    <path d="M55 68c6 1 12 4 17 8 4 4 7 8 8 13" fill="none" stroke="#fff8e0" stroke-width="4" opacity=".22"/>
+
+    <!-- Estructura del ala -->
+    <g fill="none" stroke="#8a6a18" stroke-width="1.1" opacity=".8">
+      <path d="M64 61C72 51 82 40 94 30"/>
+      <path d="M64 62C74 55 84 48 97 41"/>
+      <path d="M65 64C73 59 81 55 92 50"/>
+      <path d="M66 66C72 62 79 59 86 56"/>
+    </g>
+    <path d="M63 60C72 50 83 39 95 29" fill="none" stroke="#fff8e0" stroke-width="1.1" opacity=".55"/>
+
+    <!-- Escamas -->
+    <g fill="none" stroke="#a07a18" stroke-width=".8" opacity=".65">
+      <path d="M53 52c2 1 3 2 4 4M56 58c2 1 3 2 4 4M59 64c2 1 3 2 4 4"/>
+      <path d="M65 69c2 1 4 1 6 0M71 72c2 1 4 1 6 0M78 75c2 1 4 1 5 0M85 77c2 1 3 1 5 0"/>
+      <path d="M70 80c2 1 4 1 6 0M77 82c2 1 3 1 5 0"/>
+    </g>
+    <g fill="none" stroke="#fff3c4" stroke-width="1.15" opacity=".55">
+      <path d="M60 74c4 1 7 3 9 6M63 79c4 1 7 3 9 6M67 84c3 1 6 3 8 5"/>
     </g>
 
-    <!-- Patas delanteras. -->
-    <path d="M67 68c-4 8-9 15-13 21" fill="none" stroke="#8a6a18" stroke-width="9"/>
-    <path d="M67 68c-4 8-9 15-13 21" fill="none" stroke="#21457c" stroke-width="5.5"/>
-    <path d="M54 89l-5 3M54 89l-4 4M54 89l-1 5" fill="none" stroke="#e8c96a" stroke-width="1.6"/>
-    <path d="M74 70c4 4 8 6 12 6" fill="none" stroke="#8a6a18" stroke-width="8"/>
-    <path d="M74 70c4 4 8 6 12 6" fill="none" stroke="#21457c" stroke-width="4.5"/>
-    <path d="M86 76l4 2M86 76l4 0M86 76l3 4" fill="none" stroke="#e8c96a" stroke-width="1.4"/>
+    <!-- Cresta del cuello -->
+    <g fill="#eed27a" stroke="#6b4a14" stroke-width=".65">
+      <path d="M54 49c3-3 6-4 9-4-2 3-3 6-3 9z"/>
+      <path d="M58 55c3-3 6-4 9-4-2 3-3 6-3 9z"/>
+      <path d="M63 61c3-3 6-4 9-4-2 3-3 6-3 9z"/>
+    </g>
 
-    <!-- Cabeza: perfil, fauces abiertas, cuernos y ojo dorado. -->
-    <path d="M39 38c2-7 10-10 16-5l7 7c-6 0-10 1-14 4l-6 4c-4-2-5-6-3-10z" fill="#21457c" stroke="#8a6a18" stroke-width="2"/>
-    <path d="M43 47c5-2 10-3 16-2l-2 5c-5 2-10 2-14 0z" fill="#21457c" stroke="#8a6a18" stroke-width="1.8"/>
-    <path d="M49 43l12-3-2 5-10 1z" fill="#5a1010"/>
-    <path d="M57 41l2 0-1 2zM54 42l1.5 0-1 2z" fill="#f3e3b8" stroke="none"/>
-    <path d="M58 45c-4 2-8 3-12 2 4-1 8-2 12-4z" fill="#8c1c1c" stroke="none"/>
-    <circle cx="49" cy="38" r="2.2" fill="#e8c96a" stroke="#6b4a14" stroke-width=".7"/>
-    <circle cx="49.4" cy="37.8" r=".8" fill="#081426" stroke="none"/>
-    <path d="M44 34c-3-6-8-10-13-11 4 5 5 9 4 13" fill="none" stroke="#e8c96a" stroke-width="2.2"/>
-    <path d="M49 33c-1-6 1-11 4-15-1 6 1 10 3 13" fill="none" stroke="#e8c96a" stroke-width="2"/>
-    <path d="M41 35c-5-2-9 0-11 4 4-1 7 0 9 3z" fill="#8c1c1c" stroke="#e8c96a" stroke-width="1.2"/>
-    <circle cx="59" cy="39" r=".8" fill="#081426" stroke="none"/>
+    <!-- Cuerno, ojo, boca -->
+    <path d="M47 36c-1-5 1-9 5-12-2 4-2 8 0 11z" fill="#f2dc96" stroke="#6b4a14" stroke-width=".75"/>
+    <circle cx="43.6" cy="37.8" r=".8" fill="#3a1a08"/>
+    <path d="M41 36c1-1 3-1 4 0" fill="none" stroke="#6b4a14" stroke-width=".65"/>
+    <path d="M30 46c2 0 4 1 5 2-2 0-4 0-5-1z" fill="#c04a4a" stroke="#6b4a14" stroke-width=".5"/>
+    <path d="M38 49c-1 2-2 3-4 3 1-2 2-3 4-4z" fill="#eed27a" stroke="#6b4a14" stroke-width=".55"/>
+    <circle cx="29.5" cy="42" r=".55" fill="#6b4a14"/>
+    <path d="M95 29c2-2 4-2 5-1-1 2-2 3-3 4z" fill="#fff3c4" stroke="#6b4a14" stroke-width=".7"/>
   </g>
+
   <path d="M70 13l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#f3dd9a"/>
-  <circle cx="30" cy="86" r="1.4" fill="#f0d27a"/>
-  <circle cx="112" cy="82" r="1.4" fill="#f0d27a"/>
-  <circle cx="104" cy="22" r="1.2" fill="#f0d27a"/>
+  <g fill="#f0d27a">
+    <circle cx="25" cy="92" r="1.3"/>
+    <circle cx="112" cy="88" r="1.3"/>
+    <circle cx="100" cy="21" r="1.1"/>
+  </g>
 </svg>`;
 
 export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
@@ -672,7 +683,7 @@ export const PDF_THEMES: Record<ThemeId, PdfTheme> = {
     medallionSvg: SVG_MEDALLION_ILUMINADO,
     friezeSvg: SVG_FRIEZE_ILUMINADO,
     emblemSvg: SVG_MEDALLION_ILUMINADO,
-    emblemSize: 200,
+    emblemSize: 140,
     decor: {
       band: 58,
       cornerTop: 140,
@@ -872,7 +883,7 @@ export function pdfThemeRules(th: PdfTheme): string {
     rules.push(
       `body { background-image: ${th.bodyTexture}; background-attachment: fixed; }`,
       `@media print { body { background: radial-gradient(ellipse at 50% 12%, #1b3d70 0%, #102544 46%, #081326 100%); } }`,
-      `.cover { padding: 20px 20px 56px; border-bottom: none; }`,
+      `.cover { padding: 6px 20px 56px; border-bottom: none; }`,
       `.cover h1 { font-size: 31px; letter-spacing: 2px; color: #f0d27a; text-shadow: 0 3px 10px rgba(0,0,0,0.65); overflow-wrap: break-word; hyphens: auto; }`,
       `.cover .subtitle { color: #c9b78d; letter-spacing: 2px; }`,
       `.cover-emblem { filter: drop-shadow(0 8px 18px rgba(0,0,0,0.55)); }`,
