@@ -15,7 +15,7 @@ import { z } from "zod";
 import { parseOr400 } from "@/lib/api-validate";
 import { THEME_IDS, type ThemeId } from "@/lib/exporters/themes";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const exportSchema = z.object({
   projectId: z
@@ -31,6 +31,31 @@ const exportSchema = z.object({
   mobile: z.boolean().optional(),
   showPassageMarkers: z.boolean().optional(),
 });
+
+const PDF_CHUNK_SIZE = 1024 * 1024;
+
+function pdfStreamResponse(pdf: Buffer, title: string): Response {
+  let offset = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (offset >= pdf.length) {
+        controller.close();
+        return;
+      }
+      const end = Math.min(offset + PDF_CHUNK_SIZE, pdf.length);
+      controller.enqueue(new Uint8Array(pdf.subarray(offset, end)));
+      offset = end;
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${title}.pdf"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -84,7 +109,17 @@ export async function POST(req: Request) {
 
     switch (format) {
       case "pdf": {
-        const html = await generatePDF(projectId, readingMode, theme ?? "clasico", mobile ?? false, showPassageMarkers ?? false);
+        const themeId = theme ?? "clasico";
+        const isMobile = mobile ?? false;
+        const htmlStartedAt = Date.now();
+        const html = await generatePDF(
+          projectId,
+          readingMode,
+          themeId,
+          isMobile,
+          showPassageMarkers ?? false
+        );
+        const htmlMs = Date.now() - htmlStartedAt;
         const quota = await getPdfExportUsage();
         if (!quota.allowed) {
           return NextResponse.json(
@@ -95,14 +130,16 @@ export async function POST(req: Request) {
           );
         }
         try {
-          const pdf = await htmlToPdf(html, mobile ?? false);
+          const pdfStartedAt = Date.now();
+          const pdf = await htmlToPdf(html, isMobile);
+          const pdfMs = Date.now() - pdfStartedAt;
           await recordPdfExport();
-          return new NextResponse(new Uint8Array(pdf), {
-            headers: {
-              "Content-Type": "application/pdf",
-              "Content-Disposition": `attachment; filename="${safeTitle}.pdf"`,
-            },
-          });
+          console.log(
+            `[pdf-export] theme=${themeId} mobile=${isMobile} bytes=${pdf.length} html=${htmlMs}ms render=${pdfMs}ms`
+          );
+          // Streaming explícito: las respuestas en streaming no están sujetas
+          // al límite de 4,5 MB de Vercel.
+          return pdfStreamResponse(pdf, safeTitle);
         } catch (renderError) {
           console.error(
             "[pdf-export] fallo al generar PDF:",

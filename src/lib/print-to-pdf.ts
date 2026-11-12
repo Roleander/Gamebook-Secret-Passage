@@ -28,11 +28,12 @@ export async function htmlToPdf(html: string, mobile = false): Promise<Buffer> {
     executablePath,
     args,
     headless: true,
-    protocolTimeout: 55000,
+    timeout: 30000,
+    protocolTimeout: 240000,
   });
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "load", timeout: 30000 });
+    await page.setContent(html, { waitUntil: "load", timeout: 60000 });
     await page.evaluate(() => document.fonts.ready);
     const fullBleed = await page.evaluate(
       () => !!document.querySelector('meta[name="pdf-full-bleed"]')
@@ -44,7 +45,7 @@ export async function htmlToPdf(html: string, mobile = false): Promise<Buffer> {
           printBackground: true,
           displayHeaderFooter: false,
           margin: { top: "0.2in", right: "0.2in", bottom: "0.2in", left: "0.2in" },
-          timeout: 30000,
+          timeout: 180000,
         }
       : {
           format: "A4" as const,
@@ -53,7 +54,7 @@ export async function htmlToPdf(html: string, mobile = false): Promise<Buffer> {
           margin: fullBleed
             ? { top: "0", right: "0", bottom: "0", left: "0" }
             : { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
-          timeout: 30000,
+          timeout: 180000,
         };
     const pdf = await page.pdf(pageOptions);
     return addModernNameTree(Buffer.from(pdf));

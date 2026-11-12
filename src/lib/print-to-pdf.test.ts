@@ -29,10 +29,14 @@ describe("print-to-pdf (htmlToPdf)", () => {
     const buf = await htmlToPdf("<html><body>hola</body></html>");
     expect(Buffer.isBuffer(buf)).toBe(true);
     expect(buf.subarray(0, 4).toString()).toBe("%PDF");
-    expect(setContent).toHaveBeenCalledWith("<html><body>hola</body></html>", expect.anything());
+    expect(setContent).toHaveBeenCalledWith(
+      "<html><body>hola</body></html>",
+      expect.objectContaining({ timeout: 60000 })
+    );
     expect(pdf).toHaveBeenCalledWith(
       expect.objectContaining({
         printBackground: true,
+        timeout: 180000,
         margin: { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
       })
     );
@@ -42,7 +46,12 @@ describe("print-to-pdf (htmlToPdf)", () => {
   it("usa el ejecutable de CHROME_EXECUTABLE_PATH en local", async () => {
     await htmlToPdf("<html></html>");
     expect(launch).toHaveBeenCalledWith(
-      expect.objectContaining({ executablePath: "C:/fake/chrome.exe", headless: true })
+      expect.objectContaining({
+        executablePath: "C:/fake/chrome.exe",
+        headless: true,
+        timeout: 30000,
+        protocolTimeout: 240000,
+      })
     );
   });
 

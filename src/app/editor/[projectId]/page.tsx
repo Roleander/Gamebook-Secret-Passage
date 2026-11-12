@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { ReviewPanel } from "@/components/editor/review-panel";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import {
   ArrowLeft, Upload, BookOpen, AlertTriangle, Shuffle, Download,
-  Trash2, Wand2, ChevronDown, Eye, Lock, LineChart, Network, ListChecks
+  Trash2, Wand2, ChevronDown, Eye, Lock, Loader2, LineChart, Network, ListChecks
 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
@@ -129,6 +129,9 @@ export default function EditorPage() {
     passageCount: number;
   } | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exporting, setExporting] = useState<{ format: string; startedAt: number } | null>(null);
+  const [exportElapsed, setExportElapsed] = useState(0);
+  const exportingRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
   const [readingMode, setReadingMode] = useState(true);
   const [exportTheme, setExportTheme] = useState<ThemeId>(
@@ -142,6 +145,21 @@ export default function EditorPage() {
   const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
 
   const locked = ents !== null && !ents.isPro;
+
+  useEffect(() => {
+    if (!exporting) {
+      setExportElapsed(0);
+      return;
+    }
+    const tick = () => {
+      setExportElapsed(
+        Math.max(0, Math.floor((Date.now() - exporting.startedAt) / 1000))
+      );
+    };
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [exporting]);
 
   const fetchEntitlements = useCallback(async () => {
     try {
@@ -591,16 +609,26 @@ export default function EditorPage() {
   };
 
   const handleExport = async (format: "pdf" | "epub" | "txt" | "odt" | "doc" | "docx", mobile = false, showPassageMarkers = false) => {
+    if (exportingRef.current) return;
     if (format !== "txt" && ents && !ents.features.exportAdvanced) {
       setUpgradeMsg("");
       return;
     }
+
+    exportingRef.current = true;
+    setExporting({ format, startedAt: Date.now() });
+    setShowExportMenu(false);
+
     let alerted = false;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 330_000);
+
     try {
       const response = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectId, format, readingMode, theme: exportTheme, mobile, showPassageMarkers }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -610,7 +638,13 @@ export default function EditorPage() {
           const data = await response.json();
           serverMsg = data?.error || "";
         } catch {}
-        const msg = serverMsg || t("Editor.exportError");
+        const msg =
+          serverMsg ||
+          (response.status === 413
+            ? t("Editor.exportTooLarge")
+            : response.status === 504 || response.status === 408
+              ? t("Editor.exportTimeout")
+              : t("Editor.exportError"));
         alert(msg);
         alerted = true;
         throw new Error(msg);
@@ -633,10 +667,22 @@ export default function EditorPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      // No liberar el blob al instante: en PDF grandes el navegador puede
+      // tardar en empezar a guardarlo y la descarga quedaría a medias.
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
     } catch (error) {
       console.error("Error exporting:", error);
-      if (!alerted) alert(t("Editor.exportError"));
+      if (!alerted) {
+        const aborted =
+          typeof error === "object" &&
+          error !== null &&
+          (error as { name?: string }).name === "AbortError";
+        alert(aborted ? t("Editor.exportTimeout") : t("Editor.exportError"));
+      }
+    } finally {
+      window.clearTimeout(timeoutId);
+      exportingRef.current = false;
+      setExporting(null);
     }
   };
 
@@ -787,15 +833,29 @@ export default function EditorPage() {
             <div className="relative">
               <Button
                 variant="outline"
-                disabled={project.passages.length === 0}
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                onMouseEnter={() => setShowExportMenu(true)}
+                disabled={project.passages.length === 0 || exporting !== null}
+                aria-busy={exporting !== null}
+                onClick={() => {
+                  if (!exporting) setShowExportMenu(!showExportMenu);
+                }}
+                onMouseEnter={() => {
+                  if (!exporting) setShowExportMenu(true);
+                }}
               >
-                <Download className="w-4 h-4 mr-2" />
-                {t("Editor.export")}
-                <ChevronDown className="w-4 h-4 ml-1" />
+                {exporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("Editor.exporting")} {exportElapsed}s
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    {t("Editor.export")}
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </>
+                )}
               </Button>
-              {showExportMenu && (
+              {showExportMenu && !exporting && (
                 <div
                   className="absolute right-0 top-full mt-1 z-50"
                   onMouseLeave={() => setShowExportMenu(false)}
