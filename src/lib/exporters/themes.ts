@@ -290,28 +290,78 @@ export const SVG_MEDALLION_ILUMINADO =
   <circle cx="70" cy="70" r="57.5" fill="none" stroke="#8c1c1c" stroke-width="4.6" stroke-dasharray="5.6 5.6"/>
   <circle cx="70" cy="70" r="66.2" fill="none" stroke="#f0d27a" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 26.01"/>
   <circle cx="70" cy="70" r="54" fill="url(#__ID__)" stroke="#c9a227" stroke-width="2"/>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M48 56C62 42 92 42 104 60c10 15 1 34-18 39-16 4-30-4-34-15" stroke="#8a6a18" stroke-width="15"/>
-    <path d="M48 56C62 42 92 42 104 60c10 15 1 34-18 39-16 4-30-4-34-15" stroke="#8c1c1c" stroke-width="9"/>
-    <path d="M50 53C63 41 91 41 102 58c9 14 1 31-16 36-14 4-26-3-30-12" stroke="#f0d27a" stroke-width="2" opacity=".6"/>
-    <path d="M48 56C43 48 33 46 26 52c5 3 6 8 4 13 7 3 15-2 18-9z" fill="#c9a227" stroke="#8a6a18" stroke-width="1.7"/>
-    <path d="M30 65c-6 3-11 2-15-1" stroke="#8c1c1c" stroke-width="3"/>
-    <path d="M41 48c-3-7 1-13 8-15M47 48c0-7 5-11 11-11" stroke="#e8c96a" stroke-width="2.2"/>
-    <path d="M52 50c4-4 10-4 14-1" stroke="#e8c96a" stroke-width="1.4"/>
-    <path d="M92 50c4-14 16-24 32-26-4 10-5 18-2 27-10-5-20-5-30-1z" fill="#8c1c1c" stroke="#e8c96a" stroke-width="1.8"/>
-    <path d="M95 50l27-23M99 50l23-17M103 50l21-11" stroke="#e8c96a" stroke-width="1.1"/>
-    <path d="M62 93l-4 12M58 105l-5 4M58 105l1 5M58 105l5 4M88 96l4 11M92 107l-5 4M92 107l1 5M92 107l5 3" stroke="#c9a227" stroke-width="3"/>
-    <path d="M86 99c-14 8-30 3-36-6-4-6-2-12 4-14" stroke="#8a6a18" stroke-width="8"/>
-    <path d="M86 99c-14 8-30 3-36-6-4-6-2-12 4-14" stroke="#8c1c1c" stroke-width="4.5"/>
-    <path d="M54 79l-9-5 4 10z" fill="#8c1c1c" stroke="#e8c96a" stroke-width="1.1"/>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <!-- Cola: serpentea por la parte baja y termina en hoja de acanto. -->
+    <path d="M93 92C104 98 107 107 98 112c-14 8-38 4-53-7-9-7-13-15-9-22" fill="none" stroke="#8a6a18" stroke-width="12"/>
+    <path d="M93 92C104 98 107 107 98 112c-14 8-38 4-53-7-9-7-13-15-9-22" fill="none" stroke="#21457c" stroke-width="7.4"/>
+    <path d="M93 92C104 98 107 107 98 112c-14 8-38 4-53-7-9-7-13-15-9-22" fill="none" stroke="#3a6eae" stroke-width="1.6" opacity=".65"/>
+    <path d="M37 86C30 84 24 79 21 72c7 2 12 5 16 10 0-7 3-13 8-17-1 8-3 15-5 21z" fill="#8c1c1c" stroke="#8a6a18" stroke-width="1.7"/>
+    <path d="M36 83c-4-3-7-7-9-10" fill="none" stroke="#e8c96a" stroke-width="1.1"/>
+
+    <!-- Ala: cuatro plumas de acanto con nervios de oro. -->
+    <path d="M79 63C87 48 97 39 109 35c-2 7-1 12 2 16-10 2-19 8-25 17z" fill="#741616" stroke="#8a6a18" stroke-width="2"/>
+    <path d="M80 66C88 54 98 46 111 42c-2 6-1 11 2 15-10 2-19 8-25 16z" fill="#8c1c1c" stroke="#8a6a18" stroke-width="2"/>
+    <path d="M82 69C90 61 99 56 110 54c-2 5-1 9 1 13-9 0-17 4-23 11z" fill="#a52a2a" stroke="#8a6a18" stroke-width="1.8"/>
+    <path d="M84 74c7-5 14-8 21-9-1 4-1 7 1 10-7-1-14 2-19 7z" fill="#8c1c1c" stroke="#8a6a18" stroke-width="1.6"/>
+    <path d="M82 64l27-27M84 67l27-22M86 71l25-16M88 76l21-11" fill="none" stroke="#e8c96a" stroke-width="1.1"/>
+    <g fill="#f0d27a">
+      <circle cx="110" cy="36" r="1.1"/>
+      <circle cx="112" cy="44" r="1"/>
+      <circle cx="111" cy="54" r="1"/>
+      <circle cx="107" cy="65" r=".9"/>
+    </g>
+
+    <!-- Pata trasera, detrás del cuerpo. -->
+    <path d="M92 86c5 8 7 15 7 22" fill="none" stroke="#8a6a18" stroke-width="11"/>
+    <path d="M92 86c5 8 7 15 7 22" fill="none" stroke="#21457c" stroke-width="6.4"/>
+    <path d="M99 108l5 2M99 108l4 3M99 108l1 5" fill="none" stroke="#e8c96a" stroke-width="1.6"/>
+
+    <!-- Cuerpo y cuello. -->
+    <path d="M58 58c7-8 19-8 29 0 10 8 15 20 11 31-3 8-10 10-17 6-7-4-12-12-18-19-6-7-9-13-5-18z" fill="#21457c" stroke="#8a6a18" stroke-width="2.4"/>
+    <path d="M62 60c6-5 15-5 22 2 7 7 11 16 10 24" fill="none" stroke="#2f5c9c" stroke-width="4" opacity=".75"/>
+    <path d="M61 72c6 8 12 15 19 19" fill="none" stroke="#173a6e" stroke-width="2.5" opacity=".75"/>
+    <path d="M47 46c4 9 11 16 20 19" fill="none" stroke="#8a6a18" stroke-width="14"/>
+    <path d="M47 46c4 9 11 16 20 19" fill="none" stroke="#21457c" stroke-width="9"/>
+    <path d="M47 46c4 9 11 16 20 19" fill="none" stroke="#2f5c9c" stroke-width="2" opacity=".7"/>
+
+    <!-- Cresta dorsal. -->
+    <g fill="#c9a227" stroke="#8a6a18" stroke-width=".7">
+      <path d="M54 53l3-7 3 8z"/>
+      <path d="M61 56l3-7 3 8z"/>
+      <path d="M68 58l3-6 3 8z"/>
+      <path d="M76 59l3-6 3 8z"/>
+      <path d="M84 62l4-5 2 8z"/>
+      <path d="M90 68l4-4 1 8z"/>
+    </g>
+
+    <!-- Escamas y placas del vientre. -->
+    <g fill="none" stroke="#c9a227" stroke-width=".9" opacity=".8">
+      <path d="M70 62c2 1 4 1 6 0M77 64c2 1 4 1 6 0M84 68c2 1 4 1 6 0M88 75c2 1 4 1 6 0"/>
+      <path d="M50 53c3 0 5 2 6 4M53 58c3 0 6 2 8 4M57 63c3 0 6 2 8 4"/>
+      <path d="M64 76c5 2 9 5 12 9M68 82c5 2 8 5 11 9"/>
+    </g>
+
+    <!-- Patas delanteras. -->
+    <path d="M67 68c-4 8-9 15-13 21" fill="none" stroke="#8a6a18" stroke-width="9"/>
+    <path d="M67 68c-4 8-9 15-13 21" fill="none" stroke="#21457c" stroke-width="5.5"/>
+    <path d="M54 89l-5 3M54 89l-4 4M54 89l-1 5" fill="none" stroke="#e8c96a" stroke-width="1.6"/>
+    <path d="M74 70c4 4 8 6 12 6" fill="none" stroke="#8a6a18" stroke-width="8"/>
+    <path d="M74 70c4 4 8 6 12 6" fill="none" stroke="#21457c" stroke-width="4.5"/>
+    <path d="M86 76l4 2M86 76l4 0M86 76l3 4" fill="none" stroke="#e8c96a" stroke-width="1.4"/>
+
+    <!-- Cabeza: perfil, fauces abiertas, cuernos y ojo dorado. -->
+    <path d="M39 38c2-7 10-10 16-5l7 7c-6 0-10 1-14 4l-6 4c-4-2-5-6-3-10z" fill="#21457c" stroke="#8a6a18" stroke-width="2"/>
+    <path d="M43 47c5-2 10-3 16-2l-2 5c-5 2-10 2-14 0z" fill="#21457c" stroke="#8a6a18" stroke-width="1.8"/>
+    <path d="M49 43l12-3-2 5-10 1z" fill="#5a1010"/>
+    <path d="M57 41l2 0-1 2zM54 42l1.5 0-1 2z" fill="#f3e3b8" stroke="none"/>
+    <path d="M58 45c-4 2-8 3-12 2 4-1 8-2 12-4z" fill="#8c1c1c" stroke="none"/>
+    <circle cx="49" cy="38" r="2.2" fill="#e8c96a" stroke="#6b4a14" stroke-width=".7"/>
+    <circle cx="49.4" cy="37.8" r=".8" fill="#081426" stroke="none"/>
+    <path d="M44 34c-3-6-8-10-13-11 4 5 5 9 4 13" fill="none" stroke="#e8c96a" stroke-width="2.2"/>
+    <path d="M49 33c-1-6 1-11 4-15-1 6 1 10 3 13" fill="none" stroke="#e8c96a" stroke-width="2"/>
+    <path d="M41 35c-5-2-9 0-11 4 4-1 7 0 9 3z" fill="#8c1c1c" stroke="#e8c96a" stroke-width="1.2"/>
+    <circle cx="59" cy="39" r=".8" fill="#081426" stroke="none"/>
   </g>
-  <g fill="#c9a227" stroke="#8a6a18" stroke-width="0.8">
-    <path d="M64 44l3-8 3 8z"/>
-    <path d="M76 42l3-7 3 7z"/>
-    <path d="M88 45l3-7 3 7z"/>
-  </g>
-  <circle cx="35" cy="55" r="2" fill="#8c1c1c"/>
-  <circle cx="35.5" cy="54.4" r=".6" fill="#f0d27a"/>
   <path d="M70 13l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#f3dd9a"/>
   <circle cx="30" cy="86" r="1.4" fill="#f0d27a"/>
   <circle cx="112" cy="82" r="1.4" fill="#f0d27a"/>
