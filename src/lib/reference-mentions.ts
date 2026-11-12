@@ -1,6 +1,6 @@
 import { classifyNumber } from "./reference-classifier";
 
-const DIGIT_RUN = /\b\d+\b/g;
+const DIGIT_RUN = /\b\d+(?:[.,]\d+)?\b/g;
 
 function forEachReference(
   content: string,
@@ -8,6 +8,8 @@ function forEachReference(
 ): void {
   for (const match of content.matchAll(DIGIT_RUN)) {
     const raw = match[0];
+    // Los decimales no son números de pasaje.
+    if (/[.,]/.test(raw)) continue;
     const n = Number(raw);
     if (!Number.isSafeInteger(n) || n < 1) continue;
     if (classifyNumber(content, match.index ?? 0, raw.length) !== "reference") {

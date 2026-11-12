@@ -26,6 +26,12 @@ describe("findReferenceTargets", () => {
   it("detecta destinos partidos entre líneas", () => {
     expect(findReferenceTargets("Ve al\n121.")).toEqual([121]);
   });
+
+  it("no cuenta las cifras de un número decimal", () => {
+    expect(findReferenceTargets("Consulta la tabla 7,5.")).toEqual([]);
+    expect(referencesTo("Consulta la tabla 7,5.", 5)).toBe(false);
+    expect(referencesTo("Consulta la tabla 7,5.", 7)).toBe(false);
+  });
 });
 
 describe("referencesTo", () => {

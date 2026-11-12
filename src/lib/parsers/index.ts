@@ -12,6 +12,60 @@ export interface FileParseResult {
   warnings: string[];
 }
 
+function decodeTextBuffer(buffer: Buffer): { text: string; encoding: string } {
+  if (
+    buffer.length >= 3 &&
+    buffer[0] === 0xef &&
+    buffer[1] === 0xbb &&
+    buffer[2] === 0xbf
+  ) {
+    return {
+      text: new TextDecoder("utf-8").decode(buffer.subarray(3)),
+      encoding: "utf-8",
+    };
+  }
+  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return {
+      text: new TextDecoder("utf-16le").decode(buffer.subarray(2)),
+      encoding: "utf-16le",
+    };
+  }
+  if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {
+    return {
+      text: new TextDecoder("utf-16be").decode(buffer.subarray(2)),
+      encoding: "utf-16be",
+    };
+  }
+
+  try {
+    return {
+      text: new TextDecoder("utf-8", { fatal: true }).decode(buffer),
+      encoding: "utf-8",
+    };
+  } catch {
+    try {
+      return {
+        text: new TextDecoder("windows-1252").decode(buffer),
+        encoding: "windows-1252",
+      };
+    } catch {
+      return { text: buffer.toString("latin1"), encoding: "latin1" };
+    }
+  }
+}
+
+function decodeWithWarning(buffer: Buffer, warnings: string[]): string {
+  const { text, encoding } = decodeTextBuffer(buffer);
+  if (encoding !== "utf-8") {
+    const label =
+      encoding === "windows-1252" ? "Windows-1252" : encoding.toUpperCase();
+    warnings.push(
+      `Archivo leído como ${label} (no era UTF-8 válido). Revisa que los acentos se vean bien.`
+    );
+  }
+  return text;
+}
+
 export async function parseFile(
   buffer: Buffer,
   filename: string
@@ -30,7 +84,7 @@ export async function parseFile(
   try {
     switch (ext) {
       case "txt":
-        rawText = buffer.toString("utf-8");
+        rawText = decodeWithWarning(buffer, warnings);
         break;
       case "docx":
         rawText = await parseDocx(buffer);
@@ -44,7 +98,7 @@ export async function parseFile(
             `Formato .doc legacy: ${docError instanceof Error ? docError.message : "error desconocido"}. Se intentó extracción de texto raw.`
           );
           // Last resort: try to extract readable text from binary
-          rawText = buffer.toString("utf-8")
+          rawText = decodeWithWarning(buffer, warnings)
             .replace(/[^\x20-\x7E\u00A0-\u00FF\u0100-\u024F\u1E00-\u1EFF\n\r\t]/g, " ")
             .replace(/ {3,}/g, "\n")
             .trim();
@@ -54,14 +108,14 @@ export async function parseFile(
         rawText = await parseOdt(buffer);
         break;
       case "rtf":
-        rawText = buffer.toString("utf-8")
+        rawText = decodeWithWarning(buffer, warnings)
           .replace(/\{[^{}]*\}/g, "")
           .replace(/\\[a-z]+\d*\s?/g, "")
           .replace(/[{}]/g, "");
         break;
       case "html":
       case "htm":
-        rawText = buffer.toString("utf-8")
+        rawText = decodeWithWarning(buffer, warnings)
           .replace(/\r\n?/g, "\n")
           .replace(/<br\s*\/?>/gi, "\n")
           .replace(

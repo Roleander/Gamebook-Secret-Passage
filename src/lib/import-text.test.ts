@@ -180,9 +180,55 @@ describe("importParsedResult — enlaces", () => {
       ENT
     );
 
-    expect(createdNumbers()).toEqual([1, 2]);
+    expect(createdNumbers()).toEqual([5, 6]);
     expect(
-      outcome.warnings.some((w) => w.includes("duplicado") && w.includes("2"))
+      outcome.warnings.some((w) => w.includes("duplicado") && w.includes("6"))
     ).toBe(true);
+  });
+});
+
+describe("importParsedResult — numeración original", () => {
+  it("conserva los huecos de numeración en un proyecto vacío", async () => {
+    findPassages
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { id: "p33", number: 33 },
+        { id: "p121", number: 121 },
+        { id: "p158", number: 158 },
+      ]);
+
+    const outcome = await importParsedResult(
+      "proj1",
+      makeResult([
+        { number: 33, content: "Treinta y tres.", isStart: true, isEndpoint: false },
+        { number: 121, content: "Ciento veintiuno.", isStart: false, isEndpoint: false },
+        { number: 158, content: "Fin.", isStart: false, isEndpoint: true },
+      ]),
+      ENT
+    );
+
+    expect(createdNumbers()).toEqual([33, 121, 158]);
+    expect(outcome.createdCount).toBe(3);
+  });
+
+  it("no marca un nuevo inicio ni reinicia sortOrder al añadir a un proyecto existente", async () => {
+    findPassages
+      .mockResolvedValueOnce([{ number: 10, sortOrder: 7 }])
+      .mockResolvedValueOnce([{ id: "p11", number: 11 }]);
+
+    await importParsedResult(
+      "proj1",
+      makeResult([
+        { number: 1, content: "Uno.", isStart: true, isEndpoint: false },
+      ]),
+      ENT
+    );
+
+    const data = createMany.mock.calls[0][0].data;
+    expect(data[0]).toMatchObject({
+      number: 11,
+      isStart: false,
+      sortOrder: 8,
+    });
   });
 });

@@ -18,12 +18,22 @@ export async function importParsedResult(
 ): Promise<ImportOutcome> {
   const existingPassages = await db.passage.findMany({
     where: { projectId },
-    select: { number: true },
+    select: { number: true, sortOrder: true },
   });
-  const maxPassageNumber =
-    existingPassages.length > 0
-      ? Math.max(...existingPassages.map((p) => p.number))
-      : 0;
+  const projectEmpty = existingPassages.length === 0;
+  const maxPassageNumber = projectEmpty
+    ? 0
+    : Math.max(...existingPassages.map((p) => p.number));
+  // En un proyecto vacío se conserva la numeración original. Si ya hay
+  // pasajes, se desplaza lo justo para no chocar con los existentes.
+  const offset = projectEmpty
+    ? 0
+    : Number.isInteger(maxPassageNumber)
+      ? maxPassageNumber
+      : Math.floor(maxPassageNumber) + 1;
+  const baseSortOrder = projectEmpty
+    ? 0
+    : Math.max(...existingPassages.map((p) => p.sortOrder ?? 0)) + 1;
 
   const passageData: Array<{
     projectId: string;
@@ -37,8 +47,13 @@ export async function importParsedResult(
   const warnings: string[] = [];
   const skippedNumbers: number[] = [];
   const numberMapping = new Map<number, number>();
-  const seenSourceNumbers = new Set<number>();
-  let nextFinalNumber = maxPassageNumber;
+  const usedNumbers = new Set(existingPassages.map((p) => p.number));
+
+  const nextFreeNumber = () => {
+    let candidate = Math.floor(Math.max(0, ...usedNumbers)) + 1;
+    while (usedNumbers.has(candidate)) candidate++;
+    return candidate;
+  };
 
   for (let index = 0; index < result.passages.length; index++) {
     const passage = result.passages[index];
@@ -48,25 +63,27 @@ export async function importParsedResult(
       continue;
     }
 
-    const finalNumber = ++nextFinalNumber;
+    let finalNumber = projectEmpty ? passage.number : passage.number + offset;
 
-    if (seenSourceNumbers.has(passage.number)) {
+    if (usedNumbers.has(finalNumber)) {
+      finalNumber = nextFreeNumber();
       warnings.push(
         `Pasaje ${passage.number} duplicado → importado como ${finalNumber}.`
       );
     }
 
-    seenSourceNumbers.add(passage.number);
-
-    numberMapping.set(passage.number, finalNumber);
+    usedNumbers.add(finalNumber);
+    if (!numberMapping.has(passage.number)) {
+      numberMapping.set(passage.number, finalNumber);
+    }
 
     passageData.push({
       projectId,
       number: finalNumber,
       title: passage.title,
       content: passage.content,
-      sortOrder: index,
-      isStart: passage.isStart && index === 0,
+      sortOrder: baseSortOrder + passageData.length,
+      isStart: projectEmpty && passageData.length === 0 && passage.isStart,
       isEndpoint: passage.isEndpoint,
     });
   }

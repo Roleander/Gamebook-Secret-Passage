@@ -14,6 +14,15 @@ function toEntries(mapping: NumberMapping): [number, number][] {
     .sort((a, b) => b[0].toString().length - a[0].toString().length);
 }
 
+/**
+ * Patrón de un número entero de pasaje que no forme parte de otro número ni de
+ * un decimal (`7` no debe coincidir dentro de `17` ni de `7,5`).
+ */
+function integerPattern(n: number): string {
+  const escaped = String(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return `(?<![\\d.,])${escaped}(?![\\d])(?![.,]\\d)`;
+}
+
 export function replaceNumberReferences(
   content: string,
   mapping: NumberMapping
@@ -21,7 +30,7 @@ export function replaceNumberReferences(
   const entries = toEntries(mapping);
   if (entries.length === 0) return content;
   const lookup = new Map(entries);
-  const alternation = entries.map(([oldNum]) => `\\b${oldNum}\\b`).join("|");
+  const alternation = entries.map(([oldNum]) => integerPattern(oldNum)).join("|");
   return content.replace(
     new RegExp(alternation, "g"),
     (match: string, offset: number) => {
@@ -37,5 +46,5 @@ export function replaceNumberReferences(
 
 export function forceReplaceNumber(content: string, from: number, to: number): string {
   if (!Number.isInteger(from) || !Number.isInteger(to) || from === to) return content;
-  return content.replace(new RegExp(`\\b${from}\\b`, "g"), String(to));
+  return content.replace(new RegExp(integerPattern(from), "g"), String(to));
 }

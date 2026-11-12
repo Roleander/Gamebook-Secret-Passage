@@ -47,6 +47,15 @@ describe("detectLinksInPassage", () => {
     expect(detectLinksInPassage("Ve al pasaje 40.", [1, 2])).toEqual([]);
   });
 
+  it("no interpreta los decimales como enlaces a sus cifras", () => {
+    expect(detectLinksInPassage("Consulta la tabla 7,5.", [5, 7])).toEqual([]);
+    expect(
+      detectLinksInPassage("Consulta la tabla 7,5 y ve al 5.", [5, 7]).map(
+        (l) => l.targetNumber
+      )
+    ).toEqual([5]);
+  });
+
   it("deduplicates repeated targets", () => {
     const links = detectLinksInPassage("Ve al 5. Repite: → 5", [5]);
     expect(links).toHaveLength(1);
@@ -89,19 +98,21 @@ describe("autoDetectLinks", () => {
 });
 
 describe("extractPassagesFromText — avisos de importación", () => {
-  it("renumera el duplicado que no está en su sitio y conserva el contextual", () => {
+  it("conserva la primera aparición y renumera las posteriores", () => {
     const r = extractPassagesFromText(
       "10\nPrimera versión del pasaje.\n\n9\nNueve.\n\n10\nVersión en secuencia.\n"
     );
     expect(r.passages.map((p) => p.number)).toEqual([9, 10, 11]);
     expect(r.passages.find((p) => p.number === 10)?.content).toContain(
-      "Versión en secuencia."
+      "Primera versión del pasaje."
     );
     const dup = r.passages.find((p) => p.number === 11);
     expect(dup?.title).toBe("10 (duplicado)");
-    expect(dup?.content).toContain("Primera versión del pasaje.");
+    expect(dup?.content).toContain("Versión en secuencia.");
     expect(
-      r.warnings.some((w) => w.includes("Pasaje 10 duplicado") && w.includes("11"))
+      r.warnings.some(
+        (w) => w.includes("Pasaje 10 duplicado") && w.includes("renumerado como 11")
+      )
     ).toBe(true);
   });
 
@@ -119,7 +130,34 @@ describe("extractPassagesFromText — avisos de importación", () => {
     );
     expect(r.passages.map((p) => p.number)).toEqual([1, 2]);
     expect(r.passages[0].content).toContain("7,5");
-    expect(r.warnings.some((w) => w.includes("no entero"))).toBe(true);
+    expect(
+      r.warnings.some(
+        (w) => w.includes("no entero") && w.includes("no se crea como pasaje")
+      )
+    ).toBe(true);
+    expect(r.warnings.some((w) => w.includes("7.5"))).toBe(false);
+  });
+
+  it("no crea pasajes sintéticos para opciones sin destino", () => {
+    const r = extractPassagesFromText(
+      "1\nElige una acción.\n\tAcción A\n\tAcción B\n"
+    );
+    expect(r.passages.map((p) => p.number)).toEqual([1]);
+    expect(r.links).toEqual([]);
+    expect(
+      r.warnings.some(
+        (w) => w.includes("Opciones sin destino") && w.includes("(2)")
+      )
+    ).toBe(true);
+    expect(r.passages[0].content).not.toContain("[→");
+  });
+
+  it("no confunde el diálogo con una opción", () => {
+    const r = extractPassagesFromText(
+      "1\n— ¿Quién va?\n— Nadie.\nFIN"
+    );
+    expect(r.passages[0].options).toEqual([]);
+    expect(r.passages[0].isEndpoint).toBe(true);
   });
 
   it("avisa cuando no hay cabeceras numeradas y todo va a un solo pasaje", () => {
@@ -246,6 +284,13 @@ describe("extractPassagesFromText — detección estricta de finales", () => {
       extractPassagesFromText("1\nVolumen cerrado.\nFIN I VOLUMEN")
         .passages[0].isEndpoint
     ).toBe(true);
+  });
+
+  it("detecta FIN seguido de la fecha de cierre", () => {
+    const r = extractPassagesFromText(
+      "1\nCierre del volumen.\nFIN I VOLUMEN\nJunio de 1998\n"
+    );
+    expect(r.passages.find((p) => p.number === 1)?.isEndpoint).toBe(true);
   });
 
   it("no marca finales de acto que continúan en otro pasaje", () => {

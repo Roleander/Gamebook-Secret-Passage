@@ -1,6 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { parseFile } from "@/lib/parsers";
 
+describe("parseFile — codificación de texto plano", () => {
+  it("lee Windows-1252 cuando el archivo no es UTF-8 válido", async () => {
+    const raw =
+      "1\nTú abres los ojos y escuchas la señal.\n\n2\nFin de la prueba.\n";
+    const result = await parseFile(Buffer.from(raw, "latin1"), "negra.txt");
+
+    expect(result.errors).toEqual([]);
+    expect(result.passages.map((p) => p.number)).toEqual([1, 2]);
+    expect(result.passages[0].content).toContain("Tú abres los ojos");
+    expect(result.warnings.some((w) => w.includes("Windows-1252"))).toBe(true);
+  });
+
+  it("mantiene UTF-8 sin aviso de codificación", async () => {
+    const raw = "1\nTú abres los ojos.\n\n2\nFin.\n";
+    const result = await parseFile(Buffer.from(raw, "utf8"), "negra.txt");
+
+    expect(result.errors).toEqual([]);
+    expect(result.passages[0].content).toContain("Tú abres los ojos");
+    expect(result.warnings.some((w) => w.includes("Windows-1252"))).toBe(false);
+  });
+});
+
 describe("parseFile — html conserva las cabeceras numeradas", () => {
   it("parte los pasajes de un html con parrafos", async () => {
     const html = [
